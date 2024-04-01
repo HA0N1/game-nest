@@ -1,4 +1,12 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 import { Friendship } from './friendship.entity';
 import { Like } from './like.entity';
@@ -7,6 +15,7 @@ import { PostComment } from '../../post/entities/postComment.entity';
 import { ChannelDMs } from '../../channel/entities/channelDMs.entity';
 import { ChannelMember } from '../../channel/entities/channelMember.entity';
 import { FriendDMs } from './friendDMs.entity';
+import { Channel } from 'src/channel/entities/channel.entity';
 
 @Entity({ name: 'user' })
 export class User {
@@ -54,7 +63,6 @@ export class User {
 
   @OneToMany(() => ChannelMember, channelMember => channelMember.user)
   channelMember: ChannelMember[];
-
   // @OneToOne(()=>File, (file) => file.user)
   // file:File
 

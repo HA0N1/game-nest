@@ -4,33 +4,88 @@ import { UpdateChannelDto } from './dto/update-channel.dto';
 import { Channel } from './entities/channel.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ChannelMember } from './entities/channelMember.entity';
+import { ChannelChat } from './entities/channelChat.entity';
+import { CreateChatDto } from './dto/create-chat.dto';
 
 @Injectable()
 export class ChannelService {
-  constructor(@InjectRepository(Channel)
-  private channelRepository : Repository<Channel>){}
+  constructor(
+    @InjectRepository(Channel)
+    private channelRepository: Repository<Channel>,
+    @InjectRepository(ChannelMember)
+    private channelMemberRepository: Repository<ChannelMember>,
+    @InjectRepository(ChannelChat)
+    private channelChatRepository: Repository<ChannelChat>,
+  ) {}
 
+  // 채널 생성
   async createChannel(createChannelDto: CreateChannelDto) {
-    const {name, gameId} = createChannelDto
-    const channel = await this.channelRepository.findOneBy({name})
+    const { name, gameId } = createChannelDto;
+    const channel = await this.channelRepository.findOneBy({ name });
 
-    if(channel) throw new BadRequestException('이미 존재하는 채널명입니다.')
+    if (channel) throw new BadRequestException('이미 존재하는 채널명입니다.');
+
+    await this.channelRepository.save(createChannelDto);
+  }
+  // 채널 전체 조회
+  async findAllChannel() {
+    const channels = await this.channelRepository.find();
+    return channels;
+  }
+  // 채널 상세 조회
+  async findOneChannel(id: number) {
+    const channel = await this.ChannelfindById(id);
     return channel;
   }
+  // TODO: 관리자 넘기기
+  // 채널 수정
+  async updateChannel(id: number, updateChannelDto: UpdateChannelDto) {
+    const { name } = updateChannelDto;
+    const channel = await this.ChannelfindById(id);
+    if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
+    await this.channelRepository.update({ id }, { name });
+    const updatedChannel = await this.ChannelfindById(id);
+    return updatedChannel;
+  }
+  // 채널 삭제
+  async deleteChannel(id: number) {
+    const channel = await this.ChannelfindById(id);
+    if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
 
-  findAll() {
-    return `This action returns all channel`;
+    // const user = await this.channelMemberRepository.findOne({where: {userId}})
+    // if(user.id !== userId) throw new ForbiddenException('삭제할 권한이 없습니다.');
+
+    await this.channelRepository.delete(id);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} channel`;
+  async ChannelfindById(id: number) {
+    return await this.channelRepository.findOne({ where: { id } });
   }
 
-  update(id: number, updateChannelDto: UpdateChannelDto) {
-    return `This action updates a #${id} channel`;
+  //chat
+  async createChat(id: number, createChatDto: CreateChatDto) {
+    const { title, chatType, maximumPeople = 8 } = createChatDto;
+    const channel = await this.ChannelfindById(id);
+    if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
+    const chat = await this.channelChatRepository.insert({
+      id,
+      title,
+      chatType,
+      maximumPeople,
+    });
+    return chat;
+    // await this.channelChatRepository.save(chat);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} channel`;
+  async deleteChat(channelId: number, chatId: number) {
+    const channel = await this.ChannelfindById(channelId);
+    if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
+
+    const chat = await this.channelChatRepository.findOne({ where: { id: chatId } });
+    if (!chat) throw new NotFoundException('존재하지 않는 채팅입니다.');
+
+    // If you want to delete the chat entity itself
+    await this.channelChatRepository.remove(chat);
   }
 }

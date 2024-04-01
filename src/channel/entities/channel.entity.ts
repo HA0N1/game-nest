@@ -1,27 +1,35 @@
-import { Column,CreateDateColumn,Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm"
-import { ChannelChat } from "./channelChat.entity"
-import { ChannelMember } from "./channelMember.entity"
-import { Game } from "../../game/entities/game.entity"
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { ChannelChat } from './channelChat.entity';
+import { ChannelMember } from './channelMember.entity';
+import { Game } from '../../game/entities/game.entity';
 
-
-@Entity({name: 'channel'})
+@Entity({ name: 'channel' })
 export class Channel {
-@PrimaryGeneratedColumn({unsigned :true})
-id : number
-    
-@Column({type : 'varchar', length: 20})
-name : string
+  @PrimaryGeneratedColumn({ unsigned: true })
+  id: number;
 
-@CreateDateColumn()
-createdAt : Date
+  @Column({ type: 'varchar', length: 20 })
+  name: string;
 
-@ManyToOne(()=> Game, (game)=> game.channel)
-@JoinColumn({name : 'game_id'})
-game : Game
+  @CreateDateColumn()
+  createdAt: Date;
 
-@OneToMany(()=> ChannelChat, (channelChat)=> channelChat.channel)
-channelChat : ChannelChat
+  @ManyToOne(() => Game, game => game.channel)
+  @JoinColumn({ name: 'game_id' })
+  game: Game;
 
-@OneToMany(()=> ChannelMember, (channelMember)=> channelMember.channel)
-channelMember : ChannelMember
+  @OneToMany(() => ChannelChat, channelChat => channelChat.channel)
+  channelChat: ChannelChat;
+
+  @OneToMany(() => ChannelMember, channelMember => channelMember.channel)
+  channelMember: ChannelMember;
 }
