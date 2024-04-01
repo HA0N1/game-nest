@@ -1,25 +1,50 @@
 module.exports = {
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    project: 'tsconfig.json',
-    tsconfigRootDir: __dirname,
-    sourceType: 'module',
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true,
+    "jest": true,
   },
-  plugins: ['@typescript-eslint/eslint-plugin'],
-  extends: [
-    'plugin:@typescript-eslint/recommended',
-    'plugin:prettier/recommended',
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier/@typescript-eslint",
+    "plugin:prettier/recommended"
   ],
-  root: true,
-  env: {
-    node: true,
-    jest: true,
+  "overrides": [
+    {
+      "env": {
+        "node": true
+      },
+      "files": [
+        ".eslintrc.{js,cjs}"
+      ],
+      "parserOptions": {
+        "sourceType": "script"
+      }
+    }
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
   },
-  ignorePatterns: ['.eslintrc.js'],
-  rules: {
+  "rules": {
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    'prettier/prettier': ['error', {
+      useTabs: false,
+      endOfLine: 'auto',
+    },],
   },
-};
+  "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx", ".js"]
+    },
+    "import/resolver": {
+      "typescript": "./tsconfig.json"
+    }
+  }
+}
