@@ -33,6 +33,6 @@ user: User
 @OneToMany(()=>PostComment, (postComment) => postComment.post)
 postComment: PostComment[]
 
-@ManyToOne(()=>Like, (like) => like.post)
+@OneToMany(()=>Like, (like) => like.post)
 like: Like
 }

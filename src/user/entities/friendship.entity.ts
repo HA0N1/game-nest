@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import {  Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, ManyToOne } from "typeorm"
-=======
 import {  Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm"
->>>>>>> 97384a1d465a878a0df2f6f2270b03206f08305a
 import { User } from "./user.entity"
 import { DMRoom } from "./DM-room.entity"
 
