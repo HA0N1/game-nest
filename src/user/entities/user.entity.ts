@@ -9,8 +9,8 @@ import {
 
 import { Friendship } from './friendship.entity';
 import { Like } from './like.entity';
-import { Post } from './post.entity';
-import { PostComment } from './postComment.entity';
+import { Post } from '../../post/entities/post.entity'
+import { PostComment } from '../../post/entities/postComment.entity';
 import { ChannelDMs } from './channelDMs.entity';
 import { ChannelMember } from './channelMember.entity';
 import { FriendDMs } from './friendDMs.entity';
@@ -41,8 +41,11 @@ export class User {
   @OneToMany(() => FriendDMs, friendDms => friendDms.user)
   friendDms: FriendDMs[];
 
-  @OneToMany(() => Friendship, friendship => friendship.user)
-  friendShip: Friendship[];
+  @OneToMany(() => Friendship, (friendship) => friendship.user)
+  friendshipsAsUser: Friendship[];
+  
+  @OneToMany(() => Friendship, (friendship) => friendship.friend)
+  friendshipsAsFriend: Friendship[];
 
   @OneToMany(() => Like, like => like.user)
   like: Like[];
