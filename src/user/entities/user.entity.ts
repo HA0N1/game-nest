@@ -1,4 +1,13 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 
 import { Friendship } from './friendship.entity';
 import { Like } from './like.entity';
@@ -14,7 +23,7 @@ export class User {
   id: number;
 
   @Column({ type: 'int' })
-  imageId: number;
+  imageId?: number;
 
   @Column({ type: 'varchar' })
   email: string;
@@ -58,9 +67,9 @@ export class User {
   // @OneToOne(()=>File, (file) => file.user)
   // file:File
 
-  // @ManyToOne(()=>InterestGenre, (interestGenre) => interestGenre.user)
-  // @JoinColumn({name: interestGgenre_id})
-  // interestGenre: InterestGenre
+  @ManyToOne(() => InterestGenre, interestGenre => interestGenre.user)
+  @JoinColumn({ name: interestGenre_id })
+  interestGenre: InterestGenre;
 
   // @OneToMany(()=>GameComment, (gameComment) => gameComment.user)
   // gameComment: GameComment[]
