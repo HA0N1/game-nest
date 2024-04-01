@@ -11,11 +11,12 @@ import { ChannelChat } from './channel/entities/channelChat.entity';
 import { Channel } from './channel/entities/channel.entity';
 import { DMRoom } from './user/entities/DM-room.entity';
 import { Like } from './user/entities/like.entity';
-import { Post } from './user/entities/post.entity';
-import { PostComment } from './user/entities/postComment.entity';
-import { Game } from './user/entities/game.entity';
+import { Post } from './post/entities/post.entity';
+import { PostComment } from './post/entities/postComment.entity';
+import { Game } from './game/entities/game.entity';
 import { ChannelMember } from './channel/entities/channelMember.entity';
 import { ChannelDMs } from './channel/entities/channelDMs.entity';
+import { GameService } from './game/game.service';
 
 
 
@@ -56,6 +57,6 @@ const typeOrmModuleOptions = {
     ChannelModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [GameService],
 })
 export class AppModule {}
