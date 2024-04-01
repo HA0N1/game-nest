@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from './user/entities/user.entity';
+import { GameService } from './game/game.service';
 
 
 
@@ -43,6 +44,6 @@ const typeOrmModuleOptions = {
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
   ],
   controllers: [],
-  providers: [],
+  providers: [GameService],
 })
 export class AppModule {}

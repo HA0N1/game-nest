@@ -6,7 +6,7 @@ import { ChannelChat } from "./channelChat.entity"
 @Entity({name: 'channelDMs'})
 export class ChannelDMs {
 @PrimaryGeneratedColumn({unsigned :true})
-id : number
+id: number
     
 @Column({type : 'text'})
 content : string

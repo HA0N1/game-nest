@@ -1,6 +1,6 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm"
-import { Channel } from "./channel.entity"
-import { PlatformEnum } from "./type/game-platform.type"
+import { Column, Entity,  OneToMany, PrimaryGeneratedColumn } from "typeorm"
+import { Channel } from "../../user/entities/channel.entity"
+import { PlatformEnum } from "./game-platform.type"
 
 @Entity({name : 'game'})
 export class Game {
