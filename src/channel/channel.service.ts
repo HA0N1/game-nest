@@ -14,7 +14,7 @@ export class ChannelService {
     const {name, gameId} = createChannelDto
     const channel = await this.channelRepository.findOneBy({name})
 
-    if(channel) throw new BadRequestException('이미 존재하는 채널명입니다')
+    if(channel) throw new BadRequestException('이미 존재하는 채널명입니다.')
     return channel;
   }
 
