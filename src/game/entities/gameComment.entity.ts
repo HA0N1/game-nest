@@ -1,3 +1,4 @@
+import { User } from '../../user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -7,11 +8,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
-import { Post } from './post.entity';
+import { Game } from './game.entity';
 
-@Entity({ name: 'postComment' })
-export class PostComment {
+@Entity({ name: 'gameComment' })
+export class GameComment {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
@@ -24,11 +24,11 @@ export class PostComment {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => User, user => user.postComment)
+  @ManyToOne(() => User, user => user.gameComment)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Post, post => post.postComment)
-  @JoinColumn({ name: 'post_id' })
-  post: Post;
+  @ManyToOne(() => Game, game => game.gameComment)
+  @JoinColumn({ name: 'game_id' })
+  game: Game;
 }
