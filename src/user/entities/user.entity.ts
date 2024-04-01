@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -14,6 +15,8 @@ import { PostComment } from '../../post/entities/postComment.entity';
 import { ChannelDMs } from '../../channel/entities/channelDMs.entity';
 import { ChannelMember } from '../../channel/entities/channelMember.entity';
 import { FriendDMs } from './friendDMs.entity';
+import { GameComment } from '../../game/entities/gameComment.entity';
+import { InterestGenre } from '../../game/entities/interestGenre.entity';
 
 @Entity({ name: 'user' })
 export class User {
@@ -41,11 +44,11 @@ export class User {
   @OneToMany(() => FriendDMs, friendDms => friendDms.user)
   friendDms: FriendDMs[];
 
-@OneToMany(() => Friendship, (friendship) => friendship.user)
-friendshipsAsUser: Friendship[];
+  @OneToMany(() => Friendship, friendship => friendship.user)
+  friendshipsAsUser: Friendship[];
 
-@OneToMany(() => Friendship, (friendship) => friendship.friend)
-friendshipsAsFriend: Friendship[];
+  @OneToMany(() => Friendship, friendship => friendship.friend)
+  friendshipsAsFriend: Friendship[];
 
   @OneToMany(() => Like, like => like.user)
   like: Like[];
@@ -62,13 +65,13 @@ friendshipsAsFriend: Friendship[];
   @OneToMany(() => ChannelMember, channelMember => channelMember.user)
   channelMember: ChannelMember[];
 
+  @OneToMany(() => GameComment, gameComment => gameComment.user)
+  gameComment: GameComment[];
+
   // @OneToOne(()=>File, (file) => file.user)
   // file:File
 
-  // @ManyToOne(()=>InterestGenre, (interestGenre) => interestGenre.user)
-  // @JoinColumn({name: interestGgenre_id})
-  // interestGenre: InterestGenre
-
-  // @OneToMany(()=>GameComment, (gameComment) => gameComment.user)
-  // gameComment: GameComment[]
+  @OneToMany(() => InterestGenre, interestGenre => interestGenre.user)
+  @JoinColumn({ name: 'interestGenre_id' })
+  interestGenre: InterestGenre;
 }
