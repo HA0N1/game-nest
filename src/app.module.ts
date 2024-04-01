@@ -13,16 +13,13 @@ import { DMRoom } from './user/entities/DM-room.entity';
 import { Like } from './user/entities/like.entity';
 import { Post } from './post/entities/post.entity';
 import { PostComment } from './post/entities/postComment.entity';
-import { Game } from './user/entities/game.entity';
+import { Game } from './game/entities/game.entity';
 import { ChannelMember } from './channel/entities/channelMember.entity';
 import { ChannelDMs } from './channel/entities/channelDMs.entity';
-
-
+import { GameService } from './game/game.service';
 
 const typeOrmModuleOptions = {
-  useFactory: async (
-    configService: ConfigService,
-  ): Promise<TypeOrmModuleOptions> => ({
+  useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
     namingStrategy: new SnakeNamingStrategy(), // 자동으로 DB에 스네이프 케이스로
     type: 'mysql',
     username: configService.get('DB_USERNAME'),
@@ -30,7 +27,20 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User,FriendDMs,Friendship,Channel,ChannelChat, ChannelMember, ChannelDMs, DMRoom,Like,Post,PostComment,Game],
+    entities: [
+      User,
+      FriendDMs,
+      Friendship,
+      Channel,
+      ChannelChat,
+      ChannelMember,
+      ChannelDMs,
+      DMRoom,
+      Like,
+      Post,
+      PostComment,
+      Game,
+    ],
     synchronize: configService.get('DB_SYNC'),
     logging: true, // row query 출력
   }),
@@ -56,6 +66,6 @@ const typeOrmModuleOptions = {
     ChannelModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [GameService],
 })
 export class AppModule {}

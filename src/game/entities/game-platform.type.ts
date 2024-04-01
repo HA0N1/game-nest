@@ -1,4 +1,4 @@
-export enum PlatformEnum{
+export enum PlatformEnum {
     PC,
     PS,
     NS,

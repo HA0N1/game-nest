@@ -1,15 +1,8 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { Friendship } from './friendship.entity';
 import { Like } from './like.entity';
-import { Post } from '../../post/entities/post.entity'
+import { Post } from '../../post/entities/post.entity';
 import { PostComment } from '../../post/entities/postComment.entity';
 import { ChannelDMs } from '../../channel/entities/channelDMs.entity';
 import { ChannelMember } from '../../channel/entities/channelMember.entity';
@@ -41,10 +34,10 @@ export class User {
   @OneToMany(() => FriendDMs, friendDms => friendDms.user)
   friendDms: FriendDMs[];
 
-  @OneToMany(() => Friendship, (friendship) => friendship.user)
+  @OneToMany(() => Friendship, friendship => friendship.user)
   friendshipsAsUser: Friendship[];
 
-  @OneToMany(() => Friendship, (friendship) => friendship.friend)
+  @OneToMany(() => Friendship, friendship => friendship.friend)
   friendshipsAsFriend: Friendship[];
 
   @OneToMany(() => Like, like => like.user)
