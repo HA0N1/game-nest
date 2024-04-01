@@ -1,4 +1,4 @@
-import {  Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm"
+import {  Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm"
 import { User } from "./user.entity"
 import { DMRoom } from "./DM-room.entity"
 
@@ -8,12 +8,16 @@ export class Friendship {
 @PrimaryGeneratedColumn({unsigned :true})
 id : number
 
-@Column({type: 'enum', default:false})
+@Column({default:false})
 is_friend : boolean
 
-@OneToOne(()=>User, (user) => user.like)
-@JoinColumn([ { name: "user_id", referencedColumnName: "id" }, { name: "friend_id", referencedColumnName: "id" }])
-user: User
+@ManyToOne(() => User, (user) => user.friendshipsAsUser)
+@JoinColumn({ name: "user_id", referencedColumnName: "id" })
+user: User;
+
+@ManyToOne(() => User, (user) => user.friendshipsAsFriend)
+@JoinColumn({ name: "friend_id", referencedColumnName: "id" })
+friend: User;
 
 @OneToOne(()=>DMRoom, (DMRoom)=> DMRoom.friendship)
 DMroom: DMRoom

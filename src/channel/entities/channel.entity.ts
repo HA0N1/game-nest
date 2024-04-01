@@ -1,7 +1,7 @@
 import { Column,CreateDateColumn,Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm"
 import { ChannelChat } from "./channelChat.entity"
 import { ChannelMember } from "./channelMember.entity"
-import { Game } from "./game.entity"
+import { Game } from "../../user/entities/game.entity"
 
 
 @Entity({name: 'channel'})

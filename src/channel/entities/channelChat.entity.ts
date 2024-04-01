@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, Pri
 import { ChannelDMs } from "./channelDMs.entity"
 import { Channel } from "./channel.entity"
 import { ChannelMember } from "./channelMember.entity"
-import { ChatType } from "./type/channel-chat.type"
+import { ChatType } from "../type/channel-chat.type"
 
 
 @Entity({name: 'channelChat'})
