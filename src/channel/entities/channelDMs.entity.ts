@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
-import { User } from "./user.entity"
+import { User } from "../../user/entities/user.entity"
 import { ChannelChat } from "./channelChat.entity"
 
 

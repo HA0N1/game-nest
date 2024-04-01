@@ -9,15 +9,15 @@
  
 ################
 # 🎉 : 서버 init
-# ✨ Feat :해당 파일에 새로운 기능이 생김
-# ♻️ Refactor : 코드 리팩토링
-# 🐛 Fix :버그 수정
-# 🚑️ !HOTFIX : 급하게 치명적인 버그를 고쳐야하는 경우
-# 💄 Style : 코드 포맷 변경, 세미 콜론 누락, 코드 수정이 없는 경우
-# 💡 Comment : 필요한 주석 추가 및 변경
-# ✅ Test : 테스트 추가, 테스트 리팩토링(프로덕션 코드 변경 X)
-# 📦️ Chore : 패키지 매니저를 설정하는 경우
-# 📝 Docs : 문서 수정 및 변경
-# 🔥 Remove : 코드/파일 삭제
-# 🔧 Chore : 빌드 업무 수정, 패키지 매니저 수정(ex .gitignore 수정 같은 경우)
+# :sparkles: Feat :해당 파일에 새로운 기능이 생김
+# :recycle: Refactor : 코드 리팩토링
+# :bug: Fix :버그 수정
+# :ambulance: !HOTFIX : 급하게 치명적인 버그를 고쳐야하는 경우
+# :lipstick: Style : 코드 포맷 변경, 세미 콜론 누락, 코드 수정이 없는 경우
+# :bulb: Comment : 필요한 주석 추가 및 변경
+# :white_check_mark: Test : 테스트 추가, 테스트 리팩토링(프로덕션 코드 변경 X)
+# :package: Chore : 패키지 매니저를 설정하는 경우
+# :memo: Docs : 문서 수정 및 변경
+# :fire: Remove : 코드/파일 삭제
+# :wrench: Chore : 빌드 업무 수정, 패키지 매니저 수정(ex .gitignore 수정 같은 경우)
 ################
