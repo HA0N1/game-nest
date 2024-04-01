@@ -1,6 +1,6 @@
 import {  Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm"
 import { User } from "./user.entity"
-import { Post } from "./post.entity"
+import { Post } from "../../post/entities/post.entity"
 
 
 @Entity({name: 'like'})

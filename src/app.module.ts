@@ -4,6 +4,18 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from './user/entities/user.entity';
+import { ChannelModule } from './channel/channel.module';
+import { FriendDMs } from './user/entities/friendDMs.entity';
+import { Friendship } from './user/entities/friendship.entity';
+import { ChannelChat } from './channel/entities/channelChat.entity';
+import { Channel } from './channel/entities/channel.entity';
+import { DMRoom } from './user/entities/DM-room.entity';
+import { Like } from './user/entities/like.entity';
+import { Post } from './post/entities/post.entity';
+import { PostComment } from './post/entities/postComment.entity';
+import { Game } from './game/entities/game.entity';
+import { ChannelMember } from './channel/entities/channelMember.entity';
+import { ChannelDMs } from './channel/entities/channelDMs.entity';
 import { GameService } from './game/game.service';
 
 
@@ -19,7 +31,7 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User],
+    entities: [User,FriendDMs,Friendship,Channel,ChannelChat, ChannelMember, ChannelDMs, DMRoom,Like,Post,PostComment,Game],
     synchronize: configService.get('DB_SYNC'),
     logging: true, // row query 출력
   }),
@@ -42,6 +54,7 @@ const typeOrmModuleOptions = {
       }),
     }),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
+    ChannelModule,
   ],
   controllers: [],
   providers: [GameService],
