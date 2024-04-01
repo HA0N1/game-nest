@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm"
-import { Channel } from "./channal.entity"
+import { Channel } from "./channel.entity"
 import { PlatformEnum } from "./type/game-platform.type"
 
 @Entity({name : 'game'})

@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm"
 import { ChannelDMs } from "./channelDMs.entity"
-import { Channel } from "./channal.entity"
+import { Channel } from "./channel.entity"
 import { ChannelMember } from "./channelMember.entity"
 import { ChatType } from "./type/channel-chat.type"
 
