@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Channel } from '../../channel/entities/channel.entity';
 import { PlatformEnum } from '../type/game-platform.type';
 import { GameComment } from './gameComment.entity';
@@ -39,7 +39,7 @@ export class Game {
   @Column({ type: 'varchar' })
   publisher: string;
 
-  @OneToOne(() => Genre, genre => genre.game)
+  @ManyToOne(() => Genre, genre => genre.game)
   @JoinColumn({ name: 'genre_id' })
   genre: Genre;
 

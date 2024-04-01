@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { GameGenre } from '../type/game-genre.type';
 import { InterestGenre } from './interestGenre.entity';
 import { Game } from './game.entity';
@@ -15,7 +15,7 @@ export class Genre {
   @JoinColumn({ name: 'interestGenre_id' })
   interestGenre: InterestGenre;
 
-  @OneToOne(() => Game, game => game.genre)
-  @JoinColumn({ name: 'genre_id' })
+  @OneToMany(() => Game, game => game.genre)
+  @JoinColumn({ name: 'game_id' })
   game: Game;
 }
