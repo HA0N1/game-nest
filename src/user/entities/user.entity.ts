@@ -1,65 +1,71 @@
-import {Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn} from 'typeorm'
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
-import { Friendship } from './friendship.entity'
-import { Like } from './like.entity'
-import { Post } from './post.entity'
-import { PostComment } from './postComment.entity'
-import { ChannelDMs } from './channelDMs.entity'
-import { ChannelMember } from './channelMember.entity'
-import { FriendDMs } from './friendDMs.entity'
+import { Friendship } from './friendship.entity';
+import { Like } from './like.entity';
+import { Post } from './post.entity';
+import { PostComment } from './postComment.entity';
+import { ChannelDMs } from './channelDMs.entity';
+import { ChannelMember } from './channelMember.entity';
+import { FriendDMs } from './friendDMs.entity';
 
-@Entity({name : 'user'})
+@Entity({ name: 'user' })
 export class User {
-@PrimaryGeneratedColumn({unsigned :true})
-id : number
+  @PrimaryGeneratedColumn({ unsigned: true })
+  id: number;
 
-@Column({type : 'int'})
-imageId : number
+  @Column({ type: 'int' })
+  imageId: number;
 
-@Column({type : 'varchar'})
-email : string
+  @Column({ type: 'varchar' })
+  email: string;
 
-@Column({type : 'varchar'})
-nickname : string
+  @Column({ type: 'varchar' })
+  nickname: string;
 
-@Column({type : 'varchar'})
-password : string
+  @Column({ type: 'varchar' })
+  password: string;
 
-@CreateDateColumn()
-createdAt : Date
+  @CreateDateColumn()
+  createdAt: Date;
 
-@UpdateDateColumn()
-updatedAt : Date
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-@OneToMany(()=>FriendDMs, (friendDms) => friendDms.user)
-friendDms: FriendDMs[]
+  @OneToMany(() => FriendDMs, friendDms => friendDms.user)
+  friendDms: FriendDMs[];
 
-@OneToMany(()=>Friendship, (friendship) => friendship.user)
-friendShip: Friendship[]
+  @OneToMany(() => Friendship, friendship => friendship.user)
+  friendShip: Friendship[];
 
-@OneToOne(()=>Like, (like) => like.user)
-like:Like
+  @OneToMany(() => Like, like => like.user)
+  like: Like[];
 
-@OneToMany(()=>Post, (post) => post.user)
-post: Post[]
+  @OneToMany(() => Post, post => post.user)
+  post: Post[];
 
-@OneToMany(()=>PostComment, (postComment) => postComment.user)
-postComment: PostComment[]
+  @OneToMany(() => PostComment, postComment => postComment.user)
+  postComment: PostComment[];
 
-@OneToMany(()=>ChannelDMs, (channelDMs) => channelDMs.user)
-channelDMs: ChannelDMs[]
+  @OneToMany(() => ChannelDMs, channelDMs => channelDMs.user)
+  channelDMs: ChannelDMs[];
 
+  @OneToMany(() => ChannelMember, channelMember => channelMember.user)
+  channelMember: ChannelMember[];
 
-@OneToMany(()=>ChannelMember, (channelMember) => channelMember.user)
-channelMember: ChannelMember[]
+  // @OneToOne(()=>File, (file) => file.user)
+  // file:File
 
-// @OneToOne(()=>File, (file) => file.user)
-// file:File
+  // @ManyToOne(()=>InterestGenre, (interestGenre) => interestGenre.user)
+  // @JoinColumn({name: interestGgenre_id})
+  // interestGenre: InterestGenre
 
-// @ManyToOne(()=>InterestGenre, (interestGenre) => interestGenre.user)
-// @JoinColumn({name: interestGgenre_id})
-// interestGenre: InterestGenre
-
-// @OneToMany(()=>GameComment, (gameComment) => gameComment.user)
-// gameComment: GameComment[]
+  // @OneToMany(()=>GameComment, (gameComment) => gameComment.user)
+  // gameComment: GameComment[]
 }

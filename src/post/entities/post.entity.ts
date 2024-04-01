@@ -1,8 +1,8 @@
 import {Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn} from 'typeorm'
-import { User } from './user.entity'
+import { User } from '../../user/entities/user.entity'
 import { PostComment } from './postComment.entity'
-import { Like } from './like.entity'
-import { Category } from './type/post.type'
+import { Like } from '../../user/entities/like.entity'
+import { Category } from '../../user/entities/type/post.type'
 @Entity({name : 'post'})
 export class Post {
 @PrimaryGeneratedColumn({unsigned :true})

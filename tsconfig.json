@@ -18,6 +18,7 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "esModuleInterop": true
+    "allowJs": true, // TypeScript 프로젝트에 JavaScript 파일 허용 여부
+    "checkJs": true // JavaScript 파일 타입 체크 여부
   }
 }
