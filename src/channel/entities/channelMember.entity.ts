@@ -1,8 +1,8 @@
 import { Column,Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm"
-import { User } from "./user.entity"
+import { User } from "../../user/entities/user.entity"
 import { Channel } from "./channel.entity"
 import { ChannelChat } from "./channelChat.entity"
-import { MemberRole } from "./type/MemberRole.type"
+import { MemberRole } from "../type/MemberRole.type"
 
 
 @Entity({name: 'channelMember'})

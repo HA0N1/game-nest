@@ -4,8 +4,8 @@ import { Friendship } from './friendship.entity'
 import { Like } from './like.entity'
 import { Post } from './post.entity'
 import { PostComment } from './postComment.entity'
-import { ChannelDMs } from './channelDMs.entity'
-import { ChannelMember } from './channelMember.entity'
+import { ChannelDMs } from '../../channel/entities/channelDMs.entity'
+import { ChannelMember } from '../../channel/entities/channelMember.entity'
 import { FriendDMs } from './friendDMs.entity'
 
 @Entity({name : 'user'})
@@ -34,8 +34,11 @@ updatedAt : Date
 @OneToMany(()=>FriendDMs, (friendDms) => friendDms.user)
 friendDms: FriendDMs[]
 
-@OneToMany(()=>Friendship, (friendship) => friendship.user)
-friendShip: Friendship[]
+@OneToMany(() => Friendship, (friendship) => friendship.user)
+friendshipsAsUser: Friendship[];
+
+@OneToMany(() => Friendship, (friendship) => friendship.friend)
+friendshipsAsFriend: Friendship[];
 
 @OneToOne(()=>Like, (like) => like.user)
 like:Like
