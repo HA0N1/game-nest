@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
-import { PostComment } from './postComment.entity';
+import { PostComment } from '../../comment/entities/comment.entity';
 import { Like } from '../../user/entities/like.entity';
 import { Category } from './type/post.type';
 @Entity({ name: 'post' })
