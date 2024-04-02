@@ -40,16 +40,35 @@ export class PostService {
 
   //게시글 상세 조회
   async findOne(id: number) {
-    return await this.findOne(id);
+    const post = await this.postRepository.findOne({ where: { id } });
+    if (!post) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+    return post;
   }
 
   //게시글 수정
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return `This action updates a #${id} post`;
+  async update(id: number, updatePostDto: UpdatePostDto) {
+    const post = await this.postRepository.findOne({ where: { id } });
+    if (!post) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+    const { title, content, category } = updatePostDto;
+    (post.title = title), (post.content = content), (post.category = category);
+
+    const updatePost = await this.postRepository.save(post);
+
+    return { message: '게시글이 수정되었습니다.', updatePost };
   }
 
   //게시글 삭제
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+  async remove(id: number) {
+    const post = await this.postRepository.findOne({ where: { id } });
+    if (!post) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+
+    const deletePost = await this.postRepository.remove(post);
+    return { message: '게시글이 삭제되었습니다', deletePost };
   }
 }

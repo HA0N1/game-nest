@@ -67,6 +67,6 @@ const typeOrmModuleOptions = {
     PostModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [GameService],
 })
 export class AppModule {}
