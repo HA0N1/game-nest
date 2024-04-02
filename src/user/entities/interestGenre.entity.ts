@@ -13,15 +13,9 @@ export class InterestGenre {
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
 
-  @Column()
-  user_id: number;
-
   @ManyToOne(() => Genre, genre => genre.interestGenre, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'genre_id', referencedColumnName: 'id' })
   genre: Genre;
-
-  @Column()
-  genre_id: number;
 }

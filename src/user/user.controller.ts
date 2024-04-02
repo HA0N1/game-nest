@@ -1,32 +1,48 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmailLoginDto } from './dto/emailLogin.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { RedisService } from 'auth/redis/redis.service';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly redisService: RedisService,
+  ) {}
 
   /* 회원 가입 */
   @Post('sign-up')
   async create(@Body() createUserDto: CreateUserDto) {
+    console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaa');
     return await this.userService.create(createUserDto);
   }
 
   /* 로그인 */
   @Post('email')
   async emailLogin(@Body() emailLoginDto: EmailLoginDto) {
-    return await this.userService.emailLogin(emailLoginDto);
+    const login = await this.userService.emailLogin(emailLoginDto);
+
+    const user = await this.userService.findUserByEmail(emailLoginDto.email);
+
+    const userId = user.id.toString();
+
+    const registerRedis = await this.redisService.setValueToRedis(userId, login.refreshToken);
+
+    return login;
   }
 
-  // @Get(':id')
-  // async findOne(@Param('id') id: string) {
-  //   return await this.userService.findOne(+id);
-  // }
+  /* 프로필 조회 */
+  @Get('userinfo')
+  @UseGuards(AuthGuard('jwt'))
+  async findOne(@Param('id') id: string) {
+    return await this.userService.findUserById(+id);
+  }
 
   /* 프로필 수정 */
-  @Patch(':id')
+  @Patch('userinfo')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return await this.userService.update(+id, updateUserDto);
   }

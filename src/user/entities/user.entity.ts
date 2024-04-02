@@ -79,10 +79,6 @@ export class User {
   interestGenre: InterestGenre[];
 
   @OneToMany(() => FriendDMs, friendDMs => friendDMs.DMRoom)
-  @JoinColumn({ name: 'friend_DM_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'friend_DM_id' })
   friendDMS: FriendDMs[];
-
-  @Column({ nullable: true })
-  @Exclude()
-  currentHashedRefreshToken?: string;
 }

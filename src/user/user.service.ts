@@ -9,9 +9,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InterestGenre } from '../user/entities/interestGenre.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Genre } from 'src/game/entities/gameGenre.entity';
-import { GameGenre } from 'src/game/type/game-genre.type';
-import { RedisRepository } from '../../auth/redis.repository';
+import { RedisRepository } from 'auth/redis/redis.repository';
 
 @Injectable()
 export class UserService {
@@ -19,11 +17,8 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-    private readonly redisRepository: RedisRepository,
     @InjectRepository(InterestGenre)
     private interestGenreRepository: Repository<InterestGenre>,
-    @InjectRepository(Genre)
-    private GenreRepository: Repository<Genre>,
   ) {}
 
   /* 회원가입 */
@@ -44,13 +39,13 @@ export class UserService {
       password: hashedPassword,
     });
 
-    const interestGenre = createUserDto.interestGenre; // 희망하는 장르의 아이디들을 배열로 받아옴 [1: action, 3: RolePlaying, 5: Adventure]
+    const interestGenre = createUserDto.interestGenre; // 희망하는 장르의 아이디들을 배열로 받아옴 [1(action), 3(RolePlaying), 5(Adventure)]
 
     // interestGenre 하나씩 생성하기
-    const igArr = interestGenre.map((element) => {
+    interestGenre.map(element => {
       return this.interestGenreRepository.save({
-        user_id: user.id,
-        genre_id: element.
+        user,
+        genre_id: +element,
       });
     });
 
@@ -81,9 +76,7 @@ export class UserService {
     const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    await this.redisRepository.set(userId, refreshToken);
-
-    return { message: `${user.nickname}님 로그인 완료!`, accessToken };
+    return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
   }
 
   /* 유저 조회 */
