@@ -22,7 +22,7 @@ export class PostService {
       category,
       view_count: 0,
     });
-    return post;
+    return { message: '게시글이 생성되었습니다.', post };
   }
 
   //게시글 전체 조회
@@ -49,6 +49,9 @@ export class PostService {
     if (!post) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
+    post.view_count++;
+    await this.postRepository.save(post);
+
     return post;
   }
 

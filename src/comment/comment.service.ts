@@ -16,27 +16,47 @@ export class CommentService {
 
   async create(post_Id: number, createCommentDto: CreateCommentDto) {
     const { content } = createCommentDto;
-    const post = await this.postRepository.findOne({ where: { id: post_Id } });
+    const post = await this.postRepository.findOne({ where: { id: +post_Id } });
     if (!post) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
-    const comment = await this.commentRepository.save({ content });
+    const comment = await this.commentRepository.save({ content, post });
+    return { message: '댓글이 생성되었습니다.', comment };
+  }
+
+  async findAll() {
+    const comment = await this.commentRepository.find();
+    if (!comment) {
+      throw new NotFoundException('댓글이 존재하지 않습니다.');
+    }
     return comment;
   }
 
-  findAll() {
-    return `This action returns all comment`;
+  async findOne(id: number) {
+    const comment = await this.commentRepository.findOne({ where: { id } });
+    if (!comment) {
+      throw new NotFoundException('댓글을 찾을 수 없습니다.');
+    }
+    return comment;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} comment`;
+  async update(id: number, updateCommentDto: UpdateCommentDto) {
+    const comment = await this.commentRepository.findOne({ where: { id } });
+    if (!comment) {
+      throw new NotFoundException('댓글을 찾을 수 없습니다.');
+    }
+    const { content } = updateCommentDto;
+    comment.content = content;
+    const updatecomment = await this.commentRepository.save(comment);
+    return { message: '댓글이 수정되었습니다.', updatecomment };
   }
 
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return `This action updates a #${id} comment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} comment`;
+  async remove(id: number) {
+    const comment = await this.commentRepository.findOne({ where: { id } });
+    if (!comment) {
+      throw new NotFoundException('댓글을 찾을 수 없습니다.');
+    }
+    const deletecomment = await this.commentRepository.remove(comment);
+    return { message: '댓글이 삭제되었습니다.', deletecomment };
   }
 }
