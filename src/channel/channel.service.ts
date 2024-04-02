@@ -40,14 +40,14 @@ export class ChannelService {
       const user = await this.userRepository.findOneBy({ id: userId });
       const newMember = this.channelMemberRepository.create({
         role: MemberRole.Admin,
-        user: user.id,
-        channel: channel.id,
+        user: user,
+        channel: channel,
       });
 
       await this.channelMemberRepository.save(newMember);
 
       await queryRunner.commitTransaction();
-    } catch (err) {
+    } catch (error) {
       await queryRunner.rollbackTransaction();
     } finally {
       await queryRunner.release();

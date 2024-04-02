@@ -10,7 +10,7 @@ export class ChannelMember {
   id: number;
 
   @Column({ type: 'enum', enum: MemberRole })
-  role: string;
+  role: MemberRole;
 
   @ManyToOne(() => User, user => user.channelMember)
   @JoinColumn({ name: 'user_id' })
