@@ -28,8 +28,8 @@ export class Channel {
   game: Game;
 
   @OneToMany(() => ChannelChat, channelChat => channelChat.channel)
-  channelChat: ChannelChat;
+  channelChat: ChannelChat[];
 
   @OneToMany(() => ChannelMember, channelMember => channelMember.channel)
-  channelMember: ChannelMember;
+  channelMember: ChannelMember[];
 }

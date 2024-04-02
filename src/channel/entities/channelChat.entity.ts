@@ -1,8 +1,8 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { ChannelDMs } from './channelDMs.entity';
-import { Channel } from './channel.entity';
-import { ChannelMember } from './channelMember.entity';
 import { ChatType } from '../type/channel-chat.type';
+import { Channel } from './channel.entity';
+import { ChannelDMs } from './channelDMs.entity';
+import { ChannelMember } from './channelMember.entity';
 
 @Entity({ name: 'channelChat' })
 export class ChannelChat {

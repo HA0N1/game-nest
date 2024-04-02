@@ -3,10 +3,12 @@ import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { Channel } from './entities/channel.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { ChannelMember } from './entities/channelMember.entity';
 import { ChannelChat } from './entities/channelChat.entity';
 import { CreateChatDto } from './dto/create-chat.dto';
+import { User } from 'src/user/entities/user.entity';
+import { MemberRole } from './type/MemberRole.type';
 
 @Injectable()
 export class ChannelService {
@@ -17,16 +19,39 @@ export class ChannelService {
     private channelMemberRepository: Repository<ChannelMember>,
     @InjectRepository(ChannelChat)
     private channelChatRepository: Repository<ChannelChat>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private dataSource: DataSource,
   ) {}
 
   // 채널 생성
-  async createChannel(createChannelDto: CreateChannelDto) {
+  async createChannel(userId: number, createChannelDto: CreateChannelDto) {
     const { name, gameId } = createChannelDto;
-    const channel = await this.channelRepository.findOneBy({ name });
 
-    if (channel) throw new BadRequestException('이미 존재하는 채널명입니다.');
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const channel = await this.channelRepository.findOneBy({ name });
 
-    await this.channelRepository.save(createChannelDto);
+      if (channel) throw new BadRequestException('이미 존재하는 채널명입니다.');
+
+      await this.channelRepository.save(createChannelDto);
+      const user = await this.userRepository.findOneBy({ id: userId });
+      const newMember = this.channelMemberRepository.create({
+        role: MemberRole.Admin,
+        user: user.id,
+        channel: channel.id,
+      });
+
+      await this.channelMemberRepository.save(newMember);
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
+    }
   }
   // 채널 전체 조회
   async findAllChannel() {

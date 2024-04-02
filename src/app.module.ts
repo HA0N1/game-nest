@@ -17,6 +17,7 @@ import { Game } from './game/entities/game.entity';
 import { ChannelMember } from './channel/entities/channelMember.entity';
 import { ChannelDMs } from './channel/entities/channelDMs.entity';
 import { GameService } from './game/game.service';
+import { UserModule } from './user/user.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -64,6 +65,7 @@ const typeOrmModuleOptions = {
     }),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     ChannelModule,
+    UserModule,
   ],
   controllers: [],
   providers: [GameService],

@@ -4,14 +4,17 @@ import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { CreateChatDto } from './dto/create-chat.dto';
 
+import { User } from 'src/user/entities/user.entity';
+import { UserInfo } from 'src/common/user.decorator';
+
 @Controller('channel')
 export class ChannelController {
   constructor(private readonly channelService: ChannelService) {}
 
   // channel
   @Post()
-  createChannel(@Body() createChannelDto: CreateChannelDto) {
-    this.channelService.createChannel(createChannelDto);
+  createChannel(@UserInfo() user: User, @Body() createChannelDto: CreateChannelDto) {
+    this.channelService.createChannel(user.id, createChannelDto);
     return { message: '채널 생성이 완료되었습니다.' };
   }
 
@@ -36,7 +39,7 @@ export class ChannelController {
     await this.channelService.deleteChannel(+id);
     return { message: '성공적으로 삭제되었습니다.' };
   }
-
+  // 채널 초대
   // chat
   @Post(':id/chat')
   async createChat(@Param('id') id: string, @Body() createChatDto: CreateChatDto) {
