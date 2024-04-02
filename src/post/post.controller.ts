@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { Category } from './entities/type/post.type';
 
 @Controller('post')
 export class PostController {
@@ -20,9 +21,9 @@ export class PostController {
   }
 
   // 게시글 카테고리별 조회
-  @Get('category')
-  findCategory(@Param('category') id: string) {
-    return this.postService.findOne(+id);
+  @Get('category/:category')
+  findCategory(@Param('category') category: Category) {
+    return this.postService.findCategory(category);
   }
 
   // 게시글 상세 조회

@@ -4,6 +4,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { Post } from './entities/post.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Category } from './entities/type/post.type';
 
 @Injectable()
 export class PostService {
@@ -34,8 +35,12 @@ export class PostService {
   }
 
   //게시글 카테고리별 조회
-  findCategory(id: number) {
-    return `This action returns a #${id} post`;
+  async findCategory(category: Category) {
+    const post = await this.postRepository.find({ where: { category } });
+    if (!post) {
+      throw new NotFoundException('해당 카테고리의 게시글을 찾을 수 없습니다.');
+    }
+    return post;
   }
 
   //게시글 상세 조회
