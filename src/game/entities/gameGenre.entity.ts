@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { GameGenre } from '../type/game-genre.type';
-import { InterestGenre } from './interestGenre.entity';
+import { InterestGenre } from '../../user/entities/interestGenre.entity';
 import { Game } from './game.entity';
 
 @Entity({ name: 'genre' })
@@ -11,11 +11,11 @@ export class Genre {
   @Column({ type: 'enum', enum: GameGenre })
   gameGenre: GameGenre;
 
-  @OneToMany(() => InterestGenre, interestGenre => interestGenre.user)
+  @OneToMany(() => InterestGenre, interestGenre => interestGenre.genre)
   @JoinColumn({ name: 'interestGenre_id' })
-  interestGenre: InterestGenre;
+  interestGenre: InterestGenre[];
 
-  @OneToOne(() => Game, game => game.genre)
+  @OneToMany(() => Game, game => game.genre)
   @JoinColumn({ name: 'genre_id' })
-  game: Game;
+  game: Game[];
 }
