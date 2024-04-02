@@ -87,7 +87,9 @@ export class ChannelService {
   async ChannelfindById(id: number) {
     return await this.channelRepository.findOne({ where: { id } });
   }
-
+  // 멤버 초대
+  async;
+  // 초대 수락
   //chat
   async createChat(id: number, createChatDto: CreateChatDto) {
     const { title, chatType, maximumPeople = 8 } = createChatDto;
@@ -110,7 +112,6 @@ export class ChannelService {
     const chat = await this.channelChatRepository.findOne({ where: { id: chatId } });
     if (!chat) throw new NotFoundException('존재하지 않는 채팅입니다.');
 
-    // If you want to delete the chat entity itself
     await this.channelChatRepository.remove(chat);
   }
 }
