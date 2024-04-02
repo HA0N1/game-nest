@@ -11,12 +11,14 @@ import { ChannelChat } from './channel/entities/channelChat.entity';
 import { Channel } from './channel/entities/channel.entity';
 import { DMRoom } from './user/entities/DM-room.entity';
 import { Like } from './user/entities/like.entity';
-import { Post } from './post/entities/post.entity';
-import { PostComment } from './post/entities/postComment.entity';
-import { Game } from './game/entities/game.entity';
+import { Post } from '../src/post/entities/post.entity';
+import { PostComment } from '../src/comment/entities/comment.entity';
+import { Game } from '../src/game/entities/game.entity';
 import { ChannelMember } from './channel/entities/channelMember.entity';
 import { ChannelDMs } from './channel/entities/channelDMs.entity';
+import { PostModule } from './post/post.module';
 import { GameService } from './game/game.service';
+import { CommentModule } from './comment/comment.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -64,6 +66,8 @@ const typeOrmModuleOptions = {
     }),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     ChannelModule,
+    PostModule,
+    CommentModule,
   ],
   controllers: [],
   providers: [GameService],
