@@ -3,15 +3,19 @@ import { ChannelService } from './channel.service';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { CreateChatDto } from './dto/create-chat.dto';
+import { UseGuards } from '@nestjs/common';
 
 import { User } from 'src/user/entities/user.entity';
-import { UserInfo } from 'src/common/user.decorator';
+import { UserInfo } from 'src/utils/decorators/userInfo';
+
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('channel')
 export class ChannelController {
   constructor(private readonly channelService: ChannelService) {}
 
   // channel
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   createChannel(@UserInfo() user: User, @Body() createChannelDto: CreateChannelDto) {
     this.channelService.createChannel(user.id, createChannelDto);
@@ -28,9 +32,10 @@ export class ChannelController {
     return this.channelService.findOneChannel(+id);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
-  async updateChannel(@Param('id') id: string, @Body() updateChannelDto: UpdateChannelDto) {
-    const channel = await this.channelService.updateChannel(+id, updateChannelDto);
+  async updateChannel(@UserInfo() user: User, @Param('id') id: string, @Body() updateChannelDto: UpdateChannelDto) {
+    const channel = await this.channelService.updateChannel(+user, +id, updateChannelDto);
     return channel;
   }
   // TODO: 추후 관리자일때만 삭제하게 수정해야 함

@@ -21,11 +21,11 @@ import { GameService } from './game/game.service';
 import { Genre } from './game/entities/gameGenre.entity';
 import { InterestGenre } from './user/entities/interestGenre.entity';
 import { GameComment } from './game/entities/gameComment.entity';
-import { UserModule } from './user/user.module';
-import { AuthModule } from 'auth/auth.module';
-import { RedisModule } from 'auth/redis/redis.module';
+
 import { CommentModule } from './comment/comment.module';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { RedisModule } from './auth/redis/redis.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -76,14 +76,11 @@ const typeOrmModuleOptions = {
     }),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     ChannelModule,
-<<<<<<< HEAD
-=======
     UserModule,
     AuthModule,
     RedisModule,
     PostModule,
     CommentModule,
->>>>>>> 1bbb4e23a419543976966bfe35f1e93b8c6c0f8e
   ],
   controllers: [],
   providers: [GameService],

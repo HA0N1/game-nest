@@ -4,9 +4,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmailLoginDto } from './dto/emailLogin.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { RedisService } from 'auth/redis/redis.service';
+
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
+import { RedisService } from 'src/auth/redis/redis.service';
 
 @Controller('user')
 export class UserController {

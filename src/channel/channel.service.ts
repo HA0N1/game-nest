@@ -36,12 +36,15 @@ export class ChannelService {
 
       if (channel) throw new BadRequestException('이미 존재하는 채널명입니다.');
 
-      await this.channelRepository.save(createChannelDto);
+      const newChannel = await this.channelRepository.save(createChannelDto);
+      console.log('ChannelService ~ createChannel ~ channel:', newChannel);
+
       const user = await this.userRepository.findOneBy({ id: userId });
+
       const newMember = this.channelMemberRepository.create({
         role: MemberRole.Admin,
         user: user,
-        channel: channel,
+        channel: newChannel,
       });
 
       await this.channelMemberRepository.save(newMember);
@@ -66,13 +69,28 @@ export class ChannelService {
 
   // TODO: 관리자 넘기기
   // 채널 수정
-  async updateChannel(id: number, updateChannelDto: UpdateChannelDto) {
+  async updateChannel(userId: number, id: number, updateChannelDto: UpdateChannelDto) {
     const { name } = updateChannelDto;
-    const channel = await this.ChannelfindById(id);
-    if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
-    await this.channelRepository.update({ id }, { name });
-    const updatedChannel = await this.ChannelfindById(id);
-    return updatedChannel;
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const channel = await this.ChannelfindById(id);
+      if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
+      // const result = await this.channelRepository.find({ relations: ['channelMember'], select: [''] });
+      // console.log('2222222222222222222222222222222222:', result);
+      const channelRole = await this.channelMemberRepository.findOne({ where: { id: channel.id } });
+      console.log('ChannelService ~ updateChannel ~ channelRole:', channelRole);
+      await this.channelRepository.update({ id }, { name });
+      const updatedChannel = await this.ChannelfindById(id);
+
+      await queryRunner.commitTransaction();
+      return updatedChannel;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
+    }
   }
   // 채널 삭제
   async deleteChannel(id: number) {
@@ -89,7 +107,7 @@ export class ChannelService {
     return await this.channelRepository.findOne({ where: { id } });
   }
   // 멤버 초대
-  async;
+
   // 초대 수락
   //chat
   async createChat(id: number, createChatDto: CreateChatDto) {
