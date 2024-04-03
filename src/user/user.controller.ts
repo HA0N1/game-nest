@@ -7,6 +7,7 @@ import { UpdatePWDto } from './dto/update-pw.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
+import { InterestGenre } from './entities/interestGenre.entity';
 
 @Controller('user')
 export class UserController {
@@ -54,8 +55,8 @@ export class UserController {
   /* 관심 게임 장르 수정 */
   @UseGuards(AuthGuard('jwt'))
   @Patch('interest-genre')
-  async updateInterestGenre(@UserInfo() user: User, @Body() updateUserDto: UpdateUserDto) {
-    return await this.userService.updateIG(user.id, updateUserDto);
+  async updateInterestGenre(@UserInfo() user: User, @Body() InterestGenre: any) {
+    return await this.userService.updateIG(user.id, InterestGenre);
   }
 
   /* 회원 탈퇴 */

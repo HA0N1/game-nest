@@ -11,7 +11,7 @@ import { EmailLoginDto } from './dto/emailLogin.dto';
 import { JwtService } from '@nestjs/jwt';
 import _ from 'lodash';
 import { compare, hash } from 'bcrypt';
-import { Repository } from 'typeorm';
+import { Repository, getConnection } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -163,7 +163,27 @@ export class UserService {
   }
 
   /* 관심 장르 수정 */
-  async updateIG(id: number, interestGenre: any) {}
+  async updateIG(id: number, interestGenre: any) {
+    const user = await this.userRepository.findOneBy({
+      id,
+    });
+
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+    // 유저 아이디로 interestGenre 조회
+    const originInterestGenres = await getConnection()
+      .createQueryBuilder()
+      .select('user')
+      .from(InterestGenre, 'interestGenre')
+      .where('user_id = id', { id })
+      .getMany();
+    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~s');
+
+    console.log(originInterestGenres);
+
+    // body에 없는 장르 아이디 -> 삭제 / 있는 장르 아이디 -> 새로 생성
+  }
 
   /* 유저 탈퇴 */
   async remove(id: number) {
