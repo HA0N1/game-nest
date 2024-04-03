@@ -40,7 +40,7 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Get('userinfo')
   async findOne(@UserInfo() user: User) {
-    return { user };
+    return { id: user.id, email: user.email, nickname: user.nickname };
   }
 
   /* 프로필 수정 */
