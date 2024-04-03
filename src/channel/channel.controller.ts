@@ -1,13 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ChannelService } from './channel.service';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UseGuards } from '@nestjs/common';
-
+import redisCache from 'src/redis/config';
 import { User } from 'src/user/entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
-
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('channel')
@@ -47,8 +46,14 @@ export class ChannelController {
   // 채널 초대
   @Post('invite/:id')
   async inviteChannel(@Param('id') id: string, @Body('email') email: string) {
-    const user = await this.channelService.inviteMember(+id, email);
-    return user;
+    const url = await this.channelService.linkToInvite(+id, email);
+    return { url };
+  }
+  // 수락
+  @Post('accept')
+  async acceptInvite(@Query('code') code: string) {
+    const data = await this.channelService.getUserIdAndChannelIdFromLink(code);
+    return { message: '채널에 정상적으로 입장하였습니다.', data };
   }
 
   // chat

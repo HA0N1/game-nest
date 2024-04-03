@@ -18,20 +18,13 @@ import { Genre } from './game/entities/gameGenre.entity';
 import { InterestGenre } from './user/entities/interestGenre.entity';
 import { GameComment } from './game/entities/gameComment.entity';
 
-<<<<<<< HEAD
 import { CommentModule } from './comment/comment.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { RedisModule } from './auth/redis/redis.module';
-=======
 import { ChannelModule } from './channel/channel.module';
-import { UserModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
-import { CommentModule } from './comment/comment.module';
 import { GameService } from './game/game.service';
 import { PostModule } from './post/post.module';
 import { PostComment } from './comment/entities/comment.entity';
->>>>>>> db810f95eaf73e2d8ce319b33cb12d3034a378ad
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({

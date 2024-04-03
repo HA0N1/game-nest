@@ -10,6 +10,7 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { User } from 'src/user/entities/user.entity';
 import { MemberRole } from './type/MemberRole.type';
 import redisCache from 'src/redis/config';
+import { RedisCache } from 'cache-store-manager/redis';
 @Injectable()
 export class ChannelService {
   constructor(
@@ -106,24 +107,47 @@ export class ChannelService {
   async ChannelfindById(id: number) {
     return await this.channelRepository.findOne({ where: { id } });
   }
-  // 멤버 초대
 
-  async inviteMember(channelId: number, email: string) {
+  // 멤버 초대 링크 발급
+  async linkToInvite(channelId: number, email: string) {
     /**
      * 이메일을 받은 뒤 매칭되는 유저 id가져오기
      * 랜덤 스트링 키에 user와 channel 아이디 값 넣어주기
      * 수락 링크에는 매개변수로 랜덤 스트링을 넣어 주기
-     * 링크를 해독하여 user와 channel 아이디를 가진 멤버테이블 생성하기
      */
     const user = await this.userRepository.findOne({ where: { email }, select: ['id'] });
+    const uuid = crypto.randomUUID();
+    const userIdAndChannelId = `${user.id}_${channelId}`;
+    await redisCache.set(`randomKey:${uuid}`, userIdAndChannelId);
 
-    await redisCache.set(`user:${user}`, email);
-    const a = await redisCache.get(`user:${user}`);
+    const url = `http://localhost:3000/channel/accept?code=${uuid}`;
+    const a = await this.getUserIdAndChannelIdFromLink(uuid);
 
-    console.log('ChannelService ~ inviteMember ~ a:', a);
-    return user;
+    return url;
   }
-  // 초대 수락
+
+  // 링크를 해독하여 user와 channel id를 추출, 멤버 생성 함수로 연결
+
+  async getUserIdAndChannelIdFromLink(uuid: string) {
+    const Info = await redisCache.get(`randomKey:${uuid}`);
+    const userId = +Info.split('_')[0];
+    const channelId = +Info.split('_')[1];
+    await this.createMember(userId, channelId);
+  }
+
+  //TODO: 호출 형식 여쭤보기
+  // 링크 클릭 시 멤버 생성
+  async createMember(user: number, channel: number) {
+    const newMember = this.channelMemberRepository.create({
+      role: MemberRole.User,
+      user: user,
+      channel: channel,
+    } as any);
+
+    await this.channelMemberRepository.save(newMember);
+    return newMember;
+  }
+
   //chat
   async createChat(id: number, createChatDto: CreateChatDto) {
     const { title, chatType, maximumPeople = 8 } = createChatDto;
