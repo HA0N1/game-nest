@@ -6,10 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { InterestGenre } from './entities/interestGenre.entity';
-
 import { Redis } from 'ioredis';
-import { RedisModule } from 'src/auth/redis/redis.module';
-import { RedisService } from 'src/auth/redis/redis.service';
+import { Genre } from 'src/game/entities/gameGenre.entity';
 
 @Module({
   imports: [
@@ -19,11 +17,10 @@ import { RedisService } from 'src/auth/redis/redis.service';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, InterestGenre, Redis]),
-    RedisModule,
+    TypeOrmModule.forFeature([User, InterestGenre, Genre]),
   ],
   controllers: [UserController],
-  providers: [UserService, RedisService],
+  providers: [UserService],
   exports: [UserService],
 })
 export class UserModule {}

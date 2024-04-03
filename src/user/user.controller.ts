@@ -3,23 +3,20 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmailLoginDto } from './dto/emailLogin.dto';
+import { UpdatePWDto } from './dto/update-pw.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
-import { RedisService } from 'src/auth/redis/redis.service';
+import { InterestGenre } from './entities/interestGenre.entity';
 
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly redisService: RedisService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   /* 회원 가입 */
   @Post('sign-up')
   async create(@Body() createUserDto: CreateUserDto) {
-    console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaa');
     return await this.userService.create(createUserDto);
   }
 
@@ -32,9 +29,7 @@ export class UserController {
 
     const userId = user.id.toString();
 
-    // const registerRedis = await this.redisService.setValueToRedis(userId, login.refreshToken);
-
-    return login;
+    return { message: login.message, accessToken: login.accessToken };
   }
 
   /* 프로필 조회 */
@@ -44,10 +39,25 @@ export class UserController {
     return { id: user.id, email: user.email, nickname: user.nickname };
   }
 
-  /* 프로필 수정 */
-  @Patch('userinfo')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return await this.userService.update(+id, updateUserDto);
+  /* 닉네임 수정 */
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('nickname')
+  async updateNickname(@UserInfo() user: User, @Body() updateUserDto: UpdateUserDto) {
+    return await this.userService.updateNN(user.id, updateUserDto);
+  }
+
+  /* 비밀번호 수정 */
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('password')
+  async updatePW(@UserInfo() user: User, @Body() updatePWDto: UpdatePWDto) {
+    return await this.userService.updatePW(user.id, updatePWDto);
+  }
+
+  /* 관심 게임 장르 수정 */
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('interest-genre')
+  async updateInterestGenre(@UserInfo() user: User, @Body() InterestGenre: any) {
+    return await this.userService.updateIG(user.id, InterestGenre);
   }
 
   /* 회원 탈퇴 */

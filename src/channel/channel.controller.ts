@@ -45,6 +45,12 @@ export class ChannelController {
     return { message: '성공적으로 삭제되었습니다.' };
   }
   // 채널 초대
+  @Post('invite/:id')
+  async inviteChannel(@Param('id') id: string, @Body('email') email: string) {
+    const user = await this.channelService.inviteMember(+id, email);
+    return user;
+  }
+
   // chat
   @Post(':id/chat')
   async createChat(@Param('id') id: string, @Body() createChatDto: CreateChatDto) {

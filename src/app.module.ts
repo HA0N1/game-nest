@@ -4,28 +4,34 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from './user/entities/user.entity';
-import { ChannelModule } from './channel/channel.module';
 import { FriendDMs } from './user/entities/friendDMs.entity';
 import { Friendship } from './user/entities/friendship.entity';
-import { ChannelChat } from './channel/entities/channelChat.entity';
 import { Channel } from './channel/entities/channel.entity';
-import { DMRoom } from './user/entities/DM-room.entity';
-import { Like } from './user/entities/like.entity';
-import { Post } from '../src/post/entities/post.entity';
-import { PostComment } from '../src/comment/entities/comment.entity';
-import { Game } from '../src/game/entities/game.entity';
+import { ChannelChat } from './channel/entities/channelChat.entity';
 import { ChannelMember } from './channel/entities/channelMember.entity';
 import { ChannelDMs } from './channel/entities/channelDMs.entity';
-import { PostModule } from './post/post.module';
-import { GameService } from './game/game.service';
+import { DMRoom } from './user/entities/DM-room.entity';
+import { Like } from './user/entities/like.entity';
+import { Post } from './post/entities/post.entity';
+import { Game } from './game/entities/game.entity';
 import { Genre } from './game/entities/gameGenre.entity';
 import { InterestGenre } from './user/entities/interestGenre.entity';
 import { GameComment } from './game/entities/gameComment.entity';
 
+<<<<<<< HEAD
 import { CommentModule } from './comment/comment.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './auth/redis/redis.module';
+=======
+import { ChannelModule } from './channel/channel.module';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { CommentModule } from './comment/comment.module';
+import { GameService } from './game/game.service';
+import { PostModule } from './post/post.module';
+import { PostComment } from './comment/entities/comment.entity';
+>>>>>>> db810f95eaf73e2d8ce319b33cb12d3034a378ad
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -78,7 +84,6 @@ const typeOrmModuleOptions = {
     ChannelModule,
     UserModule,
     AuthModule,
-    RedisModule,
     PostModule,
     CommentModule,
   ],
