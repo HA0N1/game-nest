@@ -1,15 +1,7 @@
-import { IsArray, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class UpdateUserDto {
   @IsString()
-  nickname?: string;
-
-  @IsString()
-  password?: string;
-
-  @IsString()
-  passwordCheck?: string;
-
-  @IsArray()
-  interestGenre?: string[];
+  @IsNotEmpty({ message: '변경할 닉네임을 입력하세요' })
+  nickname: string;
 }

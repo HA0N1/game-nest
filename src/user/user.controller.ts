@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmailLoginDto } from './dto/emailLogin.dto';
+import { UpdatePWDto } from './dto/update-pw.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
@@ -36,11 +37,25 @@ export class UserController {
     return { id: user.id, email: user.email, nickname: user.nickname };
   }
 
-  /* 프로필 수정 */
+  /* 닉네임 수정 */
   @UseGuards(AuthGuard('jwt'))
-  @Patch('userinfo')
-  async update(@UserInfo() user: User, @Body() updateUserDto: UpdateUserDto) {
-    return await this.userService.update(user.id, updateUserDto);
+  @Patch('nickname')
+  async updateNickname(@UserInfo() user: User, @Body() updateUserDto: UpdateUserDto) {
+    return await this.userService.updateNN(user.id, updateUserDto);
+  }
+
+  /* 비밀번호 수정 */
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('password')
+  async updatePW(@UserInfo() user: User, @Body() updatePWDto: UpdatePWDto) {
+    return await this.userService.updatePW(user.id, updatePWDto);
+  }
+
+  /* 관심 게임 장르 수정 */
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('interest-genre')
+  async updateInterestGenre(@UserInfo() user: User, @Body() updateUserDto: UpdateUserDto) {
+    return await this.userService.updateIG(user.id, updateUserDto);
   }
 
   /* 회원 탈퇴 */

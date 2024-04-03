@@ -1,4 +1,10 @@
-import { Injectable, ConflictException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmailLoginDto } from './dto/emailLogin.dto';
@@ -12,6 +18,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RedisCache } from 'cache-store-manager/redis';
 import redisCache from 'src/redis/config';
 import { Genre } from 'src/game/entities/gameGenre.entity';
+import { UpdatePWDto } from './dto/update-pw.dto';
 
 @Injectable()
 export class UserService {
@@ -33,6 +40,10 @@ export class UserService {
     });
     if (existingUser) {
       throw new ConflictException('이미 해당 이메일로 가입한 사용자가 있습니다.');
+    }
+
+    if (createUserDto.password !== createUserDto.passwordCheck) {
+      throw new BadRequestException('비밀번호와 비밀번호 확인이 다릅니다.');
     }
 
     const interestGenre = createUserDto.interestGenre; // 희망하는 장르의 아이디들을 배열로 받아옴 [1(action), 3(RolePlaying), 5(Adventure)]
@@ -106,8 +117,8 @@ export class UserService {
     return user;
   }
 
-  /* 프로필 수정 */
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  /* 닉네임 수정 */
+  async updateNN(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.findOneBy({
       id,
     });
@@ -116,9 +127,43 @@ export class UserService {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
     }
 
-    //TODO 프로필 수정 시 interest 장르도 수정되도록 할 것
-    // await this.userRepository.update({ id }, { ...updateUserDto });
+    await this.userRepository.update({ id }, { nickname: updateUserDto.nickname });
+
+    return { message: `${updateUserDto.nickname}으로 닉네임 변경 완료` };
   }
+
+  /* 비밀번호 수정 */
+  async updatePW(id: number, updatePWDTO: UpdatePWDto) {
+    const user = await this.userRepository.findOneBy({
+      id,
+    });
+
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+
+    if (updatePWDTO.newPassword !== updatePWDTO.passwordCheck) {
+      throw new BadRequestException('비밀번호와 비밀번호 확인이 다릅니다.');
+    }
+
+    if (!(await compare(updatePWDTO.originPassword, user.password))) {
+      throw new UnauthorizedException('비밀번호가 틀렸습니다.');
+    }
+
+    const hashedPassword = await hash(updatePWDTO.newPassword, 10);
+
+    await this.userRepository.update(
+      { id },
+      {
+        password: hashedPassword,
+      },
+    );
+
+    return { message: '비밀번호 수정 완료' };
+  }
+
+  /* 관심 장르 수정 */
+  async updateIG(id: number, interestGenre: any) {}
 
   /* 유저 탈퇴 */
   async remove(id: number) {
