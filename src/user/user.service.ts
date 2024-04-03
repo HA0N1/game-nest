@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InterestGenre } from '../user/entities/interestGenre.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RedisRepository } from 'auth/redis/redis.repository';
+// import { RedisRepository } from '/src/auth/redis/redis.repository';
 
 @Injectable()
 export class UserService {
