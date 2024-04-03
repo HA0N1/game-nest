@@ -76,7 +76,7 @@ export class UserService {
     const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    return { message: `${user.nickname}님 로그인 완료!`, accessToken };
+    return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
   }
 
   /* 유저 조회 */
@@ -92,7 +92,16 @@ export class UserService {
 
   /* 프로필 수정 */
   async update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+    const user = await this.userRepository.findOneBy({
+      id,
+    });
+
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+
+    //TODO 프로필 수정 시 interest 장르도 수정되도록 할 것
+    // await this.userRepository.update({ id }, { ...updateUserDto });
   }
 
   /* 유저 탈퇴 */

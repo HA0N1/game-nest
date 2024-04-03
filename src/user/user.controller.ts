@@ -31,9 +31,9 @@ export class UserController {
 
     const userId = user.id.toString();
 
-    // const registerRedis = await this.redisService.setValueToRedis(userId, login.refreshToken);
+    const registerRedis = await this.redisService.setValueToRedis(userId, login.refreshToken);
 
-    return login;
+    return { message: login.message, accessToken: login.accessToken };
   }
 
   /* 프로필 조회 */
@@ -44,9 +44,10 @@ export class UserController {
   }
 
   /* 프로필 수정 */
+  @UseGuards(AuthGuard('jwt'))
   @Patch('userinfo')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return await this.userService.update(+id, updateUserDto);
+  async update(@UserInfo() user: User, @Body() updateUserDto: UpdateUserDto) {
+    return await this.userService.update(user.id, updateUserDto);
   }
 
   /* 회원 탈퇴 */

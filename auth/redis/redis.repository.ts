@@ -15,6 +15,8 @@ export class RedisRepository {
   }
 
   async set(key: string, value: string) {
+    console.log('redis 연결 성공');
+
     return this.redisClient.set(key, value);
   }
 }

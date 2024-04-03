@@ -9,6 +9,7 @@ import { InterestGenre } from './entities/interestGenre.entity';
 import { RedisService } from 'auth/redis/redis.service';
 import { RedisModule } from 'auth/redis/redis.module';
 import { Redis } from 'ioredis';
+import { Genre } from 'src/game/entities/gameGenre.entity';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { Redis } from 'ioredis';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, InterestGenre, Redis]),
+    TypeOrmModule.forFeature([User, InterestGenre, Redis, Genre]),
     RedisModule,
   ],
   controllers: [UserController],
