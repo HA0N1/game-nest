@@ -7,9 +7,11 @@ import _ from 'lodash';
 import { compare, hash } from 'bcrypt';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { InterestGenre } from '../user/entities/interestGenre.entity';
+import { InterestGenre } from './entities/interestGenre.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RedisRepository } from 'auth/redis/redis.repository';
+import { RedisCache } from 'cache-store-manager/redis';
+import redisCache from 'src/redis/config';
+import { Genre } from 'src/game/entities/gameGenre.entity';
 
 @Injectable()
 export class UserService {
@@ -19,6 +21,8 @@ export class UserService {
     private readonly jwtService: JwtService,
     @InjectRepository(InterestGenre)
     private interestGenreRepository: Repository<InterestGenre>,
+    @InjectRepository(Genre)
+    private genreRepository: Repository<Genre>,
   ) {}
 
   /* 회원가입 */
@@ -31,6 +35,8 @@ export class UserService {
       throw new ConflictException('이미 해당 이메일로 가입한 사용자가 있습니다.');
     }
 
+    const interestGenre = createUserDto.interestGenre; // 희망하는 장르의 아이디들을 배열로 받아옴 [1(action), 3(RolePlaying), 5(Adventure)]
+
     // DB에 회원가입 정보 넣기
     const hashedPassword = await hash(createUserDto.password, 10);
     const user = await this.userRepository.save({
@@ -39,17 +45,27 @@ export class UserService {
       password: hashedPassword,
     });
 
-    const interestGenre = createUserDto.interestGenre; // 희망하는 장르의 아이디들을 배열로 받아옴 [1(action), 3(RolePlaying), 5(Adventure)]
-
     // interestGenre 하나씩 생성하기
-    interestGenre.map(element => {
-      return this.interestGenreRepository.save({
+    await interestGenre.map(async element => {
+      // 장르 아이디로 장르 테이블 가져오기
+      const inputGenre = await this.findGenre(+element);
+      if (!inputGenre) {
+        throw new NotFoundException('해당 아이디의 장르는 없습니다.');
+      }
+      // 위의 error로 존재하지 않은 아이디(10 이상의 숫자 아이디)를 가진 interestGenre는 생성되지 않음
+
+      return await this.interestGenreRepository.save({
         user,
-        genre_id: +element,
+        genre: inputGenre,
       });
     });
 
     return { message: `${createUserDto.nickname}님의 가입이 완료되었습니다.` };
+  }
+
+  // 장르 아이디로 장르 받아오는 함수
+  private async findGenre(id: number) {
+    return await this.genreRepository.findOne({ where: { id } });
   }
 
   /* 이메일로 로그인 */
@@ -71,10 +87,10 @@ export class UserService {
 
     const payload = { email, sub: user.id };
 
-    // const userId = user.id.toString();
-
     const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    await redisCache.set(`REFRESH_TOKEN:${user.id}`, refreshToken);
 
     return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
   }

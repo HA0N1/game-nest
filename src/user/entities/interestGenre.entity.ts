@@ -1,4 +1,4 @@
-import { User } from '../../user/entities/user.entity';
+import { User } from './user.entity';
 import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { Genre } from '../../game/entities/gameGenre.entity';
 

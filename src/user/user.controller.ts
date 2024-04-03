@@ -4,21 +4,16 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmailLoginDto } from './dto/emailLogin.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { RedisService } from 'auth/redis/redis.service';
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly redisService: RedisService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   /* 회원 가입 */
   @Post('sign-up')
   async create(@Body() createUserDto: CreateUserDto) {
-    console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaa');
     return await this.userService.create(createUserDto);
   }
 
@@ -30,8 +25,6 @@ export class UserController {
     const user = await this.userService.findUserByEmail(emailLoginDto.email);
 
     const userId = user.id.toString();
-
-    const registerRedis = await this.redisService.setValueToRedis(userId, login.refreshToken);
 
     return { message: login.message, accessToken: login.accessToken };
   }
