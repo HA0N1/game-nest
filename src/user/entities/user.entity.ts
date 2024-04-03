@@ -24,8 +24,8 @@ export class User {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'int' })
-  imageId?: number;
+  // @Column({ type: 'int' })
+  // imageId?: number;
 
   @Column({ type: 'varchar' })
   email: string;

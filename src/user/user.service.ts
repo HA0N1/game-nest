@@ -55,7 +55,7 @@ export class UserService {
   /* 이메일로 로그인 */
   async emailLogin(emailLoginDto: EmailLoginDto) {
     const user = await this.userRepository.findOne({
-      select: ['id', 'email', 'password'],
+      select: ['id', 'email', 'password', 'nickname'],
       where: { email: emailLoginDto.email },
     });
 
@@ -71,12 +71,12 @@ export class UserService {
 
     const payload = { email, sub: user.id };
 
-    const userId = user.id.toString();
+    // const userId = user.id.toString();
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
+    return { message: `${user.nickname}님 로그인 완료!`, accessToken };
   }
 
   /* 유저 조회 */

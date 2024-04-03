@@ -5,9 +5,14 @@ import { UserController } from 'src/user/user.controller';
 import { RedisRepository } from './redis.repository';
 
 @Module({
-  imports: [ConfigModule, RedisRepository],
-  controllers: [UserController],
-  providers: [RedisService],
+  imports: [ConfigModule],
+  providers: [
+    RedisService,
+    {
+      provide: 'RedisRepository',
+      useClass: RedisRepository,
+    },
+  ],
   exports: [RedisService],
 })
 export class RedisModule {}

@@ -6,15 +6,15 @@ import { RedisRepository } from './redis.repository';
 @Injectable()
 export class RedisService {
   constructor(
-    @Inject(RedisRepository)
+    @Inject('RedisRepository')
     private readonly redisRepository: RedisRepository, // RedisRepository 연결
   ) {}
 
   async getValueFromRedis(key: string) {
-    return this.redisRepository.get(key);
+    return await this.redisRepository.get(key);
   }
 
   async setValueToRedis(key: string, value: string) {
-    return this.redisRepository.set(key, value);
+    return await this.redisRepository.set(key, value);
   }
 }
