@@ -5,14 +5,10 @@ import { GameService } from './game.service';
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 
-  @Get()
-  async gameList() {
-    return await this.gameService.gameList();
-  }
-
+  //스팀 게임 정보 저장
   @Get('filteredGames')
   async filteredGames() {
     await this.gameService.filteredGames();
-    return { message: 'hi' };
+    return { message: '스팀 게임 정보가 저장되었습니다.' };
   }
 }

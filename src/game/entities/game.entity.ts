@@ -39,9 +39,6 @@ export class Game {
   @Column({ type: 'varchar' })
   publisher: string;
 
-  @Column({ type: 'json' })
-  rawData: any;
-
   @ManyToOne(() => Genre, genre => genre.game)
   @JoinColumn({ name: 'genre_id' })
   genre: Genre;
