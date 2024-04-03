@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: '이메일을 입력해주세요.' })
@@ -11,6 +11,10 @@ export class CreateUserDto {
   @IsNotEmpty({ message: '비밀번호를 입력해주세요.' })
   password: string;
 
+  @IsString()
   @IsNotEmpty({ message: '비밀번호 확인을 입력해주세요.' })
-  checkPw: string;
+  passwordCheck: string;
+
+  @IsArray()
+  interestGenre: string[];
 }
