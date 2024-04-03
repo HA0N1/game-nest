@@ -21,7 +21,6 @@ import { GameComment } from './game/entities/gameComment.entity';
 import { ChannelModule } from './channel/channel.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { RedisModule } from './auth/redis/redis.module';
 import { CommentModule } from './comment/comment.module';
 import { GameService } from './game/game.service';
 import { PostModule } from './post/post.module';
@@ -78,7 +77,6 @@ const typeOrmModuleOptions = {
     ChannelModule,
     UserModule,
     AuthModule,
-    RedisModule,
     PostModule,
     CommentModule,
   ],

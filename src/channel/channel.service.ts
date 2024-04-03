@@ -9,7 +9,7 @@ import { ChannelChat } from './entities/channelChat.entity';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { User } from 'src/user/entities/user.entity';
 import { MemberRole } from './type/MemberRole.type';
-import crypto from 'crypto';
+import redisCache from 'src/redis/config';
 @Injectable()
 export class ChannelService {
   constructor(
@@ -115,6 +115,11 @@ export class ChannelService {
      * 링크를 해독하여 user와 channel 아이디를 가진 멤버테이블 생성하기
      */
     const user = await this.userRepository.findOne({ where: { email }, select: ['id'] });
+
+    await redisCache.set(`user:${user}`, email);
+    const a = await redisCache.get(`user:${user}`);
+
+    console.log('ChannelService ~ inviteMember ~ a:', a);
     return user;
   }
   // 초대 수락
