@@ -9,7 +9,7 @@ import { ChannelChat } from './entities/channelChat.entity';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { User } from 'src/user/entities/user.entity';
 import { MemberRole } from './type/MemberRole.type';
-
+import crypto from 'crypto';
 @Injectable()
 export class ChannelService {
   constructor(
@@ -63,6 +63,7 @@ export class ChannelService {
     const channel = await this.ChannelfindById(id);
     return channel;
   }
+
   // TODO: 관리자 넘기기
   // 채널 수정
   async updateChannel(id: number, updateChannelDto: UpdateChannelDto) {
