@@ -6,9 +6,10 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { InterestGenre } from './entities/interestGenre.entity';
-import { RedisService } from 'auth/redis/redis.service';
-import { RedisModule } from 'auth/redis/redis.module';
+
 import { Redis } from 'ioredis';
+import { RedisModule } from 'src/auth/redis/redis.module';
+import { RedisService } from 'src/auth/redis/redis.service';
 
 @Module({
   imports: [
