@@ -5,6 +5,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -12,6 +13,7 @@ import { User } from '../../user/entities/user.entity';
 import { PostComment } from '../../comment/entities/comment.entity';
 import { Like } from '../../user/entities/like.entity';
 import { Category } from './type/post.type';
+
 @Entity({ name: 'post' })
 export class Post {
   @PrimaryGeneratedColumn({ unsigned: true })

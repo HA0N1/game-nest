@@ -18,6 +18,12 @@ import { ChannelMember } from './channel/entities/channelMember.entity';
 import { ChannelDMs } from './channel/entities/channelDMs.entity';
 import { PostModule } from './post/post.module';
 import { GameService } from './game/game.service';
+import { Genre } from './game/entities/gameGenre.entity';
+import { InterestGenre } from './user/entities/interestGenre.entity';
+import { GameComment } from './game/entities/gameComment.entity';
+import { UserModule } from './user/user.module';
+import { AuthModule } from 'auth/auth.module';
+import { RedisModule } from 'auth/redis/redis.module';
 import { CommentModule } from './comment/comment.module';
 import { UserModule } from './user/user.module';
 
@@ -43,6 +49,9 @@ const typeOrmModuleOptions = {
       Post,
       PostComment,
       Game,
+      Genre,
+      InterestGenre,
+      GameComment,
     ],
     synchronize: configService.get('DB_SYNC'),
     logging: true, // row query 출력
@@ -67,6 +76,14 @@ const typeOrmModuleOptions = {
     }),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     ChannelModule,
+<<<<<<< HEAD
+=======
+    UserModule,
+    AuthModule,
+    RedisModule,
+    PostModule,
+    CommentModule,
+>>>>>>> 1bbb4e23a419543976966bfe35f1e93b8c6c0f8e
   ],
   controllers: [],
   providers: [GameService],
