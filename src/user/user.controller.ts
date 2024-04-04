@@ -56,7 +56,18 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Patch('interest-genre')
   async updateInterestGenre(@UserInfo() user: User, @Body() InterestGenre: any) {
-    return await this.userService.updateIG(user.id, InterestGenre);
+    const genresObject = Object.values(InterestGenre);
+    const genres = genresObject.join();
+
+    if (InterestGenre.interestGenre.length === 0) {
+      // 기존의 관심 장르들 모두 삭제
+      return await this.userService.removeAll(user.id);
+    } else {
+      // 겹치지 않은 기존의 관심 장르 삭제
+      const removeInterestGenre = await this.userService.removeIG(user.id, genres);
+      // 새 관심 장르 생성
+      return await this.userService.addIG(user.id, removeInterestGenre);
+    }
   }
 
   /* 회원 탈퇴 */
