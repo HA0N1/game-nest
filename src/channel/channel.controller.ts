@@ -8,7 +8,9 @@ import redisCache from 'src/redis/config';
 import { User } from 'src/user/entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { AuthGuard } from '@nestjs/passport';
-import { RolesGuard } from 'src/auth/guard/member-role';
+import { Roles } from 'src/utils/decorators/member-role.decorator';
+import { MemberRole } from './type/MemberRole.type';
+import { RolesGuard } from 'src/auth/guard/member-roles.guard';
 
 @Controller('channel')
 export class ChannelController {
@@ -38,13 +40,13 @@ export class ChannelController {
     const channel = await this.channelService.updateChannel(user.id, +id, updateChannelDto);
     return channel;
   }
-  // TODO: 추후 관리자일때만 삭제하게 수정해야 함
 
   @UseGuards(AuthGuard('jwt'))
-  @UseGuards(RolesGuard)
+  // @Roles(MemberRole.Admin)
+  // @UseGuards(RolesGuard)
   @Delete(':id')
   async removeChannel(@UserInfo() user: User, @Param('id') id: string) {
-    await this.channelService.deleteChannel(+id);
+    await this.channelService.deleteChannel(+user.id, +id);
     return { message: '성공적으로 삭제되었습니다.' };
   }
   // 채널 초대

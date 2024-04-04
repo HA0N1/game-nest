@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, Pr
 import { User } from '../../user/entities/user.entity';
 import { ChannelChat } from './channelChat.entity';
 
-@Entity({ name: 'channelDMs' })
+@Entity({ name: 'channel_dms' })
 export class ChannelDMs {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
@@ -17,7 +17,7 @@ export class ChannelDMs {
   @JoinColumn({ name: 'sender_id' })
   user: User;
 
-  @ManyToOne(() => ChannelChat, channelChat => channelChat.channelDMs, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ChannelChat, channelChat => channelChat.channelDMs)
   @JoinColumn({ name: 'channel_chat_id' })
   channelChat: ChannelChat[];
 }

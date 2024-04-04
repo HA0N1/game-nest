@@ -85,7 +85,6 @@ export class ChannelService {
         where: { channel: { id } }, // 채널 테이블
         relations: ['user', 'channel'], // 사용자 정보를 가져오기 위해 관계 로드
       });
-      console.log('ChannelService ~ updateChannel ~ channelMembers:', channelMembers);
 
       const channelMember = channelMembers.find(member => member.user.id === userId && member.role === 'admin');
 
@@ -103,14 +102,39 @@ export class ChannelService {
     }
   }
   // 채널 삭제
-  async deleteChannel(id: number) {
-    const channel = await this.ChannelfindById(id);
-    if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
+  // TODO: 채널 수정에서 관리자가 변경 되었어도 삭제가 되게 해야함
+  async deleteChannel(userId: number, id: number) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const channel = await this.ChannelfindById(id);
+      if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
+      const channelMembers = await this.channelMemberRepository.find({
+        where: { channel: { id } },
+        relations: ['user', 'channel'],
+      });
 
-    // const user = await this.channelMemberRepository.findOne({where: {userId}})
-    // if(user.id !== userId) throw new ForbiddenException('삭제할 권한이 없습니다.');
+      const channelMember = channelMembers.find(member => member.user.id === userId && member.role === 'admin');
 
-    await this.channelRepository.delete(id);
+      if (!channelMember) throw new UnauthorizedException('권한이 없습니다.');
+
+      // 멤버 삭제
+      await this.channelMemberRepository
+        .createQueryBuilder()
+        .delete()
+        .from(ChannelMember)
+        .where('id = :id', { id })
+        .execute();
+
+      await this.channelRepository.delete(id);
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async ChannelfindById(id: number) {
