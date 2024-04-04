@@ -38,7 +38,7 @@ export class GameService {
 
         if (appData && appData.success) {
           const details = appData.data;
-          if (details.type === 'game' && /Korean|한국어/.test(details.supported_languages)) {
+          if (details.type === 'game' && details.supported_languages.includes('Korean')) {
             const genreMapping = {
               Action: 1,
               Shooting: 2,
@@ -55,6 +55,7 @@ export class GameService {
               .map(genre => genreMapping[genre.description])
               .filter(id => id !== undefined);
 
+            // 매핑된 장르 9개 돌면서 처음으로 맞는 장르로 매핑
             const gameGenre = genreIds.length > 0 ? genreIds[0] : null;
             const pc = PlatformEnum.PC;
 
@@ -169,7 +170,7 @@ export class GameService {
   //TODO: 장르별 조회
   async getGameByGenre(genre_id: number) {
     try {
-      const games = await this.gameRepository.find({ where: { genre_id: genre_id } });
+      const games = await this.gameRepository.find(genre_id);
 
       if (!games) {
         throw new NotFoundException('해당하는 장르의 게임을 찾을 수 없습니다.');
