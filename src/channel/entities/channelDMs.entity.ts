@@ -17,7 +17,7 @@ export class ChannelDMs {
   @JoinColumn({ name: 'sender_id' })
   user: User;
 
-  @ManyToOne(() => ChannelChat, channelChat => channelChat.channelDMs)
+  @ManyToOne(() => ChannelChat, channelChat => channelChat.channelDMs, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_chat_id' })
   channelChat: ChannelChat[];
 }

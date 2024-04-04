@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { Channel } from './entities/channel.entity';
@@ -38,7 +38,6 @@ export class ChannelService {
       if (channel) throw new BadRequestException('이미 존재하는 채널명입니다.');
 
       const newChannel = await this.channelRepository.save(createChannelDto);
-      console.log('ChannelService ~ createChannel ~ channel:', newChannel);
 
       const user = await this.userRepository.findOneBy({ id: userId });
 
@@ -53,6 +52,7 @@ export class ChannelService {
       await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      throw error;
     } finally {
       await queryRunner.release();
     }
@@ -77,11 +77,20 @@ export class ChannelService {
     await queryRunner.startTransaction();
     try {
       const channel = await this.ChannelfindById(id);
+      console.log('ChannelService ~ updateChannel ~ channel:', channel);
+
       if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
-      // const result = await this.channelRepository.find({ relations: ['channelMember'], select: [''] });
-      // console.log('2222222222222222222222222222222222:', result);
-      const channelRole = await this.channelMemberRepository.findOne({ where: { id: channel.id } });
-      console.log('ChannelService ~ updateChannel ~ channelRole:', channelRole);
+
+      const channelMembers = await this.channelMemberRepository.find({
+        where: { channel: { id } }, // 채널 테이블
+        relations: ['user', 'channel'], // 사용자 정보를 가져오기 위해 관계 로드
+      });
+      console.log('ChannelService ~ updateChannel ~ channelMembers:', channelMembers);
+
+      const channelMember = channelMembers.find(member => member.user.id === userId && member.role === 'admin');
+
+      if (!channelMember) throw new UnauthorizedException('권한이 없습니다.');
+
       await this.channelRepository.update({ id }, { name });
       const updatedChannel = await this.ChannelfindById(id);
 

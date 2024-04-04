@@ -8,6 +8,7 @@ import redisCache from 'src/redis/config';
 import { User } from 'src/user/entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/auth/guard/member-role';
 
 @Controller('channel')
 export class ChannelController {
@@ -16,8 +17,8 @@ export class ChannelController {
   // channel
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  createChannel(@UserInfo() user: User, @Body() createChannelDto: CreateChannelDto) {
-    this.channelService.createChannel(user.id, createChannelDto);
+  async createChannel(@UserInfo() user: User, @Body() createChannelDto: CreateChannelDto) {
+    await this.channelService.createChannel(user.id, createChannelDto);
     return { message: '채널 생성이 완료되었습니다.' };
   }
 
@@ -34,12 +35,15 @@ export class ChannelController {
   @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
   async updateChannel(@UserInfo() user: User, @Param('id') id: string, @Body() updateChannelDto: UpdateChannelDto) {
-    const channel = await this.channelService.updateChannel(+user, +id, updateChannelDto);
+    const channel = await this.channelService.updateChannel(user.id, +id, updateChannelDto);
     return channel;
   }
   // TODO: 추후 관리자일때만 삭제하게 수정해야 함
+
+  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(RolesGuard)
   @Delete(':id')
-  async removeChannel(@Param('id') id: string) {
+  async removeChannel(@UserInfo() user: User, @Param('id') id: string) {
     await this.channelService.deleteChannel(+id);
     return { message: '성공적으로 삭제되었습니다.' };
   }
@@ -52,8 +56,8 @@ export class ChannelController {
   // 수락
   @Post('accept')
   async acceptInvite(@Query('code') code: string) {
-    const data = await this.channelService.getUserIdAndChannelIdFromLink(code);
-    return { message: '채널에 정상적으로 입장하였습니다.', data };
+    await this.channelService.getUserIdAndChannelIdFromLink(code);
+    return { message: '채널에 정상적으로 입장하였습니다.' };
   }
 
   // chat

@@ -42,7 +42,6 @@
     "connect-redis": "^7.1.1",
     "cookie": "^0.6.0",
     "express-session": "^1.18.0",
-    "ioredis": "^5.3.2",
     "joi": "^17.12.2",
     "lodash": "^4.17.21",
     "mysql2": "^3.9.3",

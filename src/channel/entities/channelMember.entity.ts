@@ -12,7 +12,7 @@ export class ChannelMember {
   @Column({ type: 'enum', enum: MemberRole })
   role: MemberRole;
 
-  @ManyToOne(() => User, user => user.channelMember)
+  @ManyToOne(() => User, user => user.channelMember, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 

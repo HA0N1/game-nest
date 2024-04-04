@@ -14,7 +14,7 @@ export class Channel {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => Game, game => game.channel)
+  @ManyToOne(() => Game, game => game.channel, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'game_id' })
   game: Game;
 
