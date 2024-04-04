@@ -24,7 +24,7 @@ export class Game {
   @Column({ type: 'int' })
   metacritic: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'text' })
   supported_languages: string;
 
   @Column({ type: 'varchar' })
