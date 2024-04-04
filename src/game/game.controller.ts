@@ -26,9 +26,9 @@ export class GameController {
     return game;
   }
 
-  @Get(':genre_id')
-  async getGameByGenre(@Param('genre_id') genre_id: number) {
-    const games = await this.gameService.getGameByGenre(genre_id);
-    return games;
-  }
+  // @Get(':genre_id')
+  // async getGameByGenre(@Param('genre_id') genre_id: number) {
+  //   const games = await this.gameService.getGameByGenre(genre_id);
+  //   return games;
+  // }
 }

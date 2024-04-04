@@ -38,25 +38,34 @@ export class GameService {
 
         if (appData && appData.success) {
           const details = appData.data;
-          if (details.type === 'game' && details.supported_languages.includes('Korean')) {
-            const genreMapping = {
-              Action: 1,
-              Shooting: 2,
-              RolePlaying: 3,
-              Strategy: 4,
-              Adventure: 5,
-              Simulation: 6,
-              SportsRacing: 7,
-              Puzzle: 8,
-              Music: 9,
+          if (
+            details.type === 'game' &&
+            details.supported_languages &&
+            details.supported_languages.includes('Korean')
+          ) {
+            const mapGenreToId = genres => {
+              const genreMapping = {
+                Action: 1,
+                Shooting: 2,
+                RolePlaying: 3,
+                Strategy: 4,
+                Adventure: 5,
+                Simulation: 6,
+                SportsRacing: 7,
+                Puzzle: 8,
+                Music: 9,
+              };
+
+              for (const genre of genres) {
+                for (const [key, value] of Object.entries(genreMapping)) {
+                  if (genre.description === key) {
+                    return value;
+                  }
+                }
+              }
+              return null;
             };
-
-            const genreIds = details.genres
-              .map(genre => genreMapping[genre.description])
-              .filter(id => id !== undefined);
-
-            // 매핑된 장르 9개 돌면서 처음으로 맞는 장르로 매핑
-            const gameGenre = genreIds.length > 0 ? genreIds[0] : null;
+            const gameGenre = mapGenreToId(details.genres);
             const pc = PlatformEnum.PC;
 
             const gameToSave = {
@@ -70,13 +79,13 @@ export class GameService {
               release_date: new Date(details.release_date.date),
               platform: pc,
               publisher: details.publishers.join(', '),
-              genre: gameGenre,
+              genre: { id: gameGenre },
             };
             await this.gameRepository.save(gameToSave);
           }
         }
       } catch (error) {
-        throw new Error('게임을 저장하던 중 오류가 발생했습니다.');
+        error;
       }
     }
   }
@@ -168,19 +177,19 @@ export class GameService {
   //TODO: 플랫폼별 조회
 
   //TODO: 장르별 조회
-  async getGameByGenre(genre_id: number) {
-    try {
-      const games = await this.gameRepository.find(genre_id);
+  // async getGameByGenre(genre_id: number) {
+  //   try {
+  //     const games = await this.gameRepository.find(genre_id);
 
-      if (!games) {
-        throw new NotFoundException('해당하는 장르의 게임을 찾을 수 없습니다.');
+  //     if (!games) {
+  //       throw new NotFoundException('해당하는 장르의 게임을 찾을 수 없습니다.');
 
-        return games;
-      }
-    } catch (error) {
-      throw new Error('게임 조회 중 오류가 발생했습니다.');
-    }
-  }
+  //       return games;
+  //     }
+  //   } catch (error) {
+  //     throw new Error('게임 조회 중 오류가 발생했습니다.');
+  //   }
+  // }
 
   //TODO: 인기순 조회 - 스팀 API 찾아보기
 
