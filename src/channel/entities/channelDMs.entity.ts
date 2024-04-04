@@ -1,24 +1,23 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
-import { User } from "../../user/entities/user.entity"
-import { ChannelChat } from "./channelChat.entity"
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from '../../user/entities/user.entity';
+import { ChannelChat } from './channelChat.entity';
 
-
-@Entity({name: 'channelDMs'})
+@Entity({ name: 'channelDMs' })
 export class ChannelDMs {
-@PrimaryGeneratedColumn({unsigned :true})
-id : number
-    
-@Column({type : 'text'})
-content : string
+  @PrimaryGeneratedColumn({ unsigned: true })
+  id: number;
 
-@CreateDateColumn()
-createdAt : Date
+  @Column({ type: 'text' })
+  content: string;
 
-@ManyToOne(()=> User, (user)=> user.friendDms)
-@JoinColumn({name : 'sender_id'})
-user : User
+  @CreateDateColumn()
+  createdAt: Date;
 
-@ManyToOne(()=> ChannelChat, (channelChat)=> channelChat.channelDMs)
-@JoinColumn({name : 'channel_chat_id'})
-channelChat : ChannelChat[]
+  @ManyToOne(() => User, user => user.friendDms)
+  @JoinColumn({ name: 'sender_id' })
+  user: User;
+
+  @ManyToOne(() => ChannelChat, channelChat => channelChat.channelDMs, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'channel_chat_id' })
+  channelChat: ChannelChat[];
 }
