@@ -151,11 +151,16 @@ export class GameService {
 
   //TODO: Xbox 게임 정보 스크래핑
 
-  //TODO: 페이지네이션 게임 목록 조회
+  // 게임 목록 조회
+  //TODO: 페이지네이션
   async getGameList() {
     try {
       const games = await this.gameRepository.find();
-      return games;
+      const gameList = games.map(game => ({
+        title: game.title,
+        screen_shot: game.screen_shot,
+      }));
+      return gameList;
     } catch (error) {
       throw new Error('게임 목록을 조회하는 중 오류가 발생했습니다.');
     }
@@ -163,33 +168,24 @@ export class GameService {
 
   // 게임 상세 조회
   async getGameDetail(id: number) {
-    try {
-      const game = await this.gameRepository.findOneBy({ id });
-      if (!game) {
-        throw new NotFoundException(`id가 ${id}인 게임을 찾을 수 없습니다.`);
-      }
-      return game;
-    } catch (error) {
-      throw new Error('게임 상세 조회하는 중 오류가 발생했습니다.');
+    const game = await this.gameRepository.findOneBy({ id });
+    if (!game) {
+      throw new NotFoundException(`id가 ${id}인 게임을 찾을 수 없습니다.`);
     }
+    return game;
   }
 
   //TODO: 플랫폼별 조회
 
   //TODO: 장르별 조회
-  // async getGameByGenre(genre_id: number) {
-  //   try {
-  //     const games = await this.gameRepository.find(genre_id);
+  async getGameByGenre(genre_id: number) {
+    const games = await this.gameRepository.find({ where: { genre: { id: genre_id } } });
 
-  //     if (!games) {
-  //       throw new NotFoundException('해당하는 장르의 게임을 찾을 수 없습니다.');
-
-  //       return games;
-  //     }
-  //   } catch (error) {
-  //     throw new Error('게임 조회 중 오류가 발생했습니다.');
-  //   }
-  // }
+    if (games.length === 0) {
+      throw new NotFoundException('해당하는 장르의 게임을 찾을 수 없습니다.');
+    }
+    return games;
+  }
 
   //TODO: 인기순 조회 - 스팀 API 찾아보기
 

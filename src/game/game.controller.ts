@@ -26,9 +26,10 @@ export class GameController {
     return game;
   }
 
-  // @Get(':genre_id')
-  // async getGameByGenre(@Param('genre_id') genre_id: number) {
-  //   const games = await this.gameService.getGameByGenre(genre_id);
-  //   return games;
-  // }
+  // 장르별 게임 조회
+  @Get('/genre/:genre_id')
+  async getGameByGenre(@Param('genre_id') genre_id: number) {
+    const games = await this.gameService.getGameByGenre(genre_id);
+    return games;
+  }
 }
