@@ -11,6 +11,9 @@ import { User } from 'src/user/entities/user.entity';
 import { MemberRole } from './type/MemberRole.type';
 import redisCache from 'src/redis/config';
 import { RedisCache } from 'cache-store-manager/redis';
+import { EventGateway } from 'src/event/event.gateway';
+import { ChannelDMs } from './entities/channelDMs.entity';
+import { CreateDMsDto } from './dto/create-dm.dto';
 @Injectable()
 export class ChannelService {
   constructor(
@@ -20,9 +23,12 @@ export class ChannelService {
     private channelMemberRepository: Repository<ChannelMember>,
     @InjectRepository(ChannelChat)
     private channelChatRepository: Repository<ChannelChat>,
+    @InjectRepository(ChannelDMs)
+    private channelDMsRepository: Repository<ChannelDMs>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private dataSource: DataSource,
+    private eventGateway: EventGateway,
   ) {}
 
   // 채널 생성
@@ -120,12 +126,13 @@ export class ChannelService {
       if (!channelMember) throw new UnauthorizedException('권한이 없습니다.');
 
       // 멤버 삭제
-      await this.channelMemberRepository
-        .createQueryBuilder()
-        .delete()
-        .from(ChannelMember)
-        .where('id = :id', { id })
-        .execute();
+      await this.channelMemberRepository.delete({ channel });
+      // await this.channelMemberRepository
+      //   .createQueryBuilder()
+      //   .delete()
+      //   .from(ChannelMember)
+      //   .where('id = :id', { id })
+      //   .execute();
 
       await this.channelRepository.delete(id);
       await queryRunner.commitTransaction();
@@ -154,7 +161,6 @@ export class ChannelService {
     await redisCache.set(`randomKey:${uuid}`, userIdAndChannelId);
 
     const url = `http://localhost:3000/channel/accept?code=${uuid}`;
-    const a = await this.getUserIdAndChannelIdFromLink(uuid);
 
     return url;
   }
@@ -168,7 +174,7 @@ export class ChannelService {
     await this.createMember(userId, channelId);
   }
 
-  //TODO: 호출 형식 여쭤보기
+  // TODO: 호출 형식 여쭤보기
   // 링크 클릭 시 멤버 생성
   async createMember(user: number, channel: number) {
     const newMember = this.channelMemberRepository.create({
@@ -182,16 +188,18 @@ export class ChannelService {
   }
 
   //chat
-  async createChat(id: number, createChatDto: CreateChatDto) {
+  async createChat(userId: number, channelId: number, createChatDto: CreateChatDto) {
     const { title, chatType, maximumPeople = 8 } = createChatDto;
-    const channel = await this.ChannelfindById(id);
+    const channel = await this.ChannelfindById(channelId);
     if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
-    const chat = await this.channelChatRepository.insert({
-      id,
+
+    const chat = this.channelChatRepository.create({
+      channel: channelId,
       title,
       chatType,
       maximumPeople,
-    });
+    } as any);
+    await this.channelChatRepository.save(chat);
     return chat;
     // await this.channelChatRepository.save(chat);
   }
@@ -204,5 +212,38 @@ export class ChannelService {
     if (!chat) throw new NotFoundException('존재하지 않는 채팅입니다.');
 
     await this.channelChatRepository.remove(chat);
+  }
+
+  // socket.io로 메시지 전송
+  /**
+   * 채널과 채팅방이 존재하는지 확인 후 채팅방에 message을 넣어야함.
+   *
+   * chatId, senderId, content를 저장.
+   *
+   */
+  async sendMessage(channelId: number, senderId: number, createDMsDto: CreateDMsDto) {
+    const { content, ChatId } = createDMsDto;
+    const channel = this.ChannelfindById(channelId);
+    if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
+
+    const newMessage = this.channelDMsRepository.create({
+      content,
+      user: senderId,
+      channelChat: { id: ChatId },
+    } as any);
+
+    const a = this.eventGateway.server.to(`${ChatId}`).emit('message', { ChatId, content });
+    console.log('ChannelService ~ sendMessage ~ a:', a);
+    return this.channelDMsRepository.save(newMessage);
+  }
+
+  async getMessagesForChannel(channelId: number): Promise<ChannelDMs[]> {
+    // Assuming you want to fetch messages for a specific channel
+    return this.channelDMsRepository.find({
+      where: {
+        channelChat: { channel: { id: channelId } },
+      },
+      order: { createdAt: 'ASC' }, // Order by createdAt ASC or DESC as needed
+    });
   }
 }

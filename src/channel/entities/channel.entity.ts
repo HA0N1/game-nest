@@ -21,6 +21,6 @@ export class Channel {
   @OneToMany(() => ChannelChat, channelChat => channelChat.channel)
   channelChat: ChannelChat[];
 
-  @OneToMany(() => ChannelMember, channelMember => channelMember.channel)
+  @OneToMany(() => ChannelMember, channelMember => channelMember.channel, { onDelete: 'CASCADE' })
   channelMember: ChannelMember[];
 }

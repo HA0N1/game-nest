@@ -11,12 +11,13 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/utils/decorators/member-role.decorator';
 import { MemberRole } from './type/MemberRole.type';
 import { RolesGuard } from 'src/auth/guard/member-roles.guard';
+import { CreateDMsDto } from './dto/create-dm.dto';
 
 @Controller('channel')
 export class ChannelController {
   constructor(private readonly channelService: ChannelService) {}
 
-  // channel
+  //* channel
   @UseGuards(AuthGuard('jwt'))
   @Post()
   async createChannel(@UserInfo() user: User, @Body() createChannelDto: CreateChannelDto) {
@@ -29,30 +30,34 @@ export class ChannelController {
     return this.channelService.findAllChannel();
   }
 
-  @Get(':id')
-  findOneChannel(@Param('id') id: string) {
-    return this.channelService.findOneChannel(+id);
+  @Get(':ichannelIdd')
+  findOneChannel(@Param('channelId') channelId: string) {
+    return this.channelService.findOneChannel(+channelId);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Patch(':id')
-  async updateChannel(@UserInfo() user: User, @Param('id') id: string, @Body() updateChannelDto: UpdateChannelDto) {
-    const channel = await this.channelService.updateChannel(user.id, +id, updateChannelDto);
+  @Patch(':channelId')
+  async updateChannel(
+    @UserInfo() user: User,
+    @Param('channelId') channelId: string,
+    @Body() updateChannelDto: UpdateChannelDto,
+  ) {
+    const channel = await this.channelService.updateChannel(user.id, +channelId, updateChannelDto);
     return channel;
   }
 
   @UseGuards(AuthGuard('jwt'))
   // @Roles(MemberRole.Admin)
   // @UseGuards(RolesGuard)
-  @Delete(':id')
-  async removeChannel(@UserInfo() user: User, @Param('id') id: string) {
-    await this.channelService.deleteChannel(+user.id, +id);
+  @Delete(':channelId')
+  async removeChannel(@UserInfo() user: User, @Param('channelId') channelId: string) {
+    await this.channelService.deleteChannel(+user.id, +channelId);
     return { message: '성공적으로 삭제되었습니다.' };
   }
   // 채널 초대
-  @Post('invite/:id')
-  async inviteChannel(@Param('id') id: string, @Body('email') email: string) {
-    const url = await this.channelService.linkToInvite(+id, email);
+  @Post('invite/:channelId')
+  async inviteChannel(@Param('channelId') channelId: string, @Body('email') email: string) {
+    const url = await this.channelService.linkToInvite(+channelId, email);
     return { url };
   }
   // 수락
@@ -62,10 +67,15 @@ export class ChannelController {
     return { message: '채널에 정상적으로 입장하였습니다.' };
   }
 
-  // chat
-  @Post(':id/chat')
-  async createChat(@Param('id') id: string, @Body() createChatDto: CreateChatDto) {
-    await this.channelService.createChat(+id, createChatDto);
+  //* chat
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':channelId/chat')
+  async createChat(
+    @UserInfo() user: User,
+    @Param('channelId') channelId: string,
+    @Body() createChatDto: CreateChatDto,
+  ) {
+    await this.channelService.createChat(+user.id, +channelId, createChatDto);
     return { message: '채팅방 생성이 완료되었습니다.' };
   }
 
@@ -73,5 +83,12 @@ export class ChannelController {
   async removeChat(@Param('channelId') channelId: string, @Param('chatId') chatId: string) {
     await this.channelService.deleteChat(+channelId, +chatId);
     return { message: '성공적으로 삭제되었습니다.' };
+  }
+
+  //* dms
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':channelId/chat/dm')
+  async sendMessage(@Param('channelId') channelId: string, @UserInfo() user: User, @Body() createDMsDto: CreateDMsDto) {
+    await this.channelService.sendMessage(+channelId, +user, createDMsDto);
   }
 }
