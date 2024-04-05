@@ -70,10 +70,20 @@ export class UserController {
     }
   }
   /* 로그아웃 */
+  @UseGuards(AuthGuard('jwt'))
+  @Post('logout')
+  async logout(@UserInfo() user: User) {
+    const userId = user.id;
+    console.log('컨트롤러 이상 무');
+
+    return await this.userService.logout(userId);
+  }
 
   /* 회원 탈퇴 */
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return await this.userService.remove(+id);
+  async remove(@UserInfo() user: User) {
+    const userId = user.id;
+    return await this.userService.remove(userId);
   }
 }

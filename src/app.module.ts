@@ -24,6 +24,7 @@ import { GameComment } from './game/entities/gameComment.entity';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { CommentModule } from './comment/comment.module';
+import { RedisAppModule } from './redis/redis.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -78,6 +79,7 @@ const typeOrmModuleOptions = {
     AuthModule,
     PostModule,
     CommentModule,
+    RedisAppModule,
   ],
   controllers: [],
   providers: [GameService],

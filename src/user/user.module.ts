@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { JwtModule } from '@nestjs/jwt';
@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { Genre } from 'src/game/entities/gameGenre.entity';
+import { RedisAppModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { Genre } from 'src/game/entities/gameGenre.entity';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User, InterestGenre, Genre]),
+    RedisAppModule,
   ],
   controllers: [UserController],
   providers: [UserService],

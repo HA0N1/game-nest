@@ -16,9 +16,11 @@ import { User } from './entities/user.entity';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RedisCache } from 'cache-store-manager/redis';
-import redisClient from 'src/redis/config';
+// import redisClient from 'src/redis/config';
 import { Genre } from 'src/game/entities/gameGenre.entity';
 import { UpdatePWDto } from './dto/update-pw.dto';
+import Redis from 'ioredis';
+import { InjectRedis } from '@nestjs-modules/ioredis';
 
 @Injectable()
 export class UserService {
@@ -30,6 +32,7 @@ export class UserService {
     private interestGenreRepository: Repository<InterestGenre>,
     @InjectRepository(Genre)
     private genreRepository: Repository<Genre>,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   /* 회원가입 */
@@ -96,7 +99,7 @@ export class UserService {
     const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    await redisClient.setEx(`REFRESH_TOKEN:${user.id}`, 604800, refreshToken); // 일주일 기한 설정
+    await this.redis.setex(`REFRESH_TOKEN:${user.id}`, 604800, refreshToken);
 
     return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
   }
@@ -258,26 +261,28 @@ export class UserService {
   }
 
   /* 로그아웃 */
-  async logout(id: number) {}
+  async logout(id: number) {
+    console.log(id);
+    console.log(`REFRESH_TOKEN:${id}`);
+
+    const getRefreshToken = await this.redis.get(`REFRESH_TOKEN:${id}`);
+
+    if (!getRefreshToken) {
+      throw new NotFoundException(401, '로그인 내역이 없습니다. 로그인 내역을 확인해주세요.');
+    }
+
+    await this.redis.del(`REFRESH_TOKEN:${id}`);
+
+    return { message: '로그아웃 완료' };
+  }
 
   /* 유저 탈퇴 */
   async remove(id: number) {
-    return `This action removes a #${id} user`;
+    return { message: 'test 성공' };
   }
 
   /* 장르 아이디로 장르 받아오는 함수 */
   private async findGenre(id: number) {
     return await this.genreRepository.findOne({ where: { id } });
-  }
-
-  /* 장르 아이디 받아서 관심 장르 삭제(soft delete)하는 함수 */
-  private async deleteGenre(userId: number, genreId: number) {
-    return await this.interestGenreRepository
-      .createQueryBuilder()
-      .update()
-      .where('user_id = :user_id', { user_id: userId })
-      .andWhere('genre_id = :genre_id', { genre_id: genreId })
-      .set({ deleteAt: new Date() })
-      .execute();
   }
 }
