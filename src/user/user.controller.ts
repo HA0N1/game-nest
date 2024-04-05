@@ -5,6 +5,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { EmailLoginDto } from './dto/emailLogin.dto';
 import { UpdatePWDto } from './dto/update-pw.dto';
 import { AuthGuard } from '@nestjs/passport';
+
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { InterestGenre } from './entities/interestGenre.entity';
