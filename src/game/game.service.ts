@@ -4,8 +4,8 @@ import axios from 'axios';
 import { Game } from './entities/game.entity';
 import { Repository } from 'typeorm';
 import { PlatformEnum } from './type/game-platform.type';
-import * as cheerio from 'cheerio';
-import { GameGenre } from './type/game-genre.type';
+// import * as cheerio from 'cheerio';
+// import { GameGenre } from './type/game-genre.type';
 
 @Injectable()
 export class GameService {
@@ -45,15 +45,15 @@ export class GameService {
           ) {
             const mapGenreToId = genres => {
               const genreMapping = {
-                Action: 1,
-                Shooting: 2,
-                RolePlaying: 3,
+                Adventure: 1,
+                RPG: 2,
+                Action: 3,
                 Strategy: 4,
-                Adventure: 5,
-                Simulation: 6,
-                SportsRacing: 7,
-                Puzzle: 8,
-                Music: 9,
+                Simulation: 5,
+                Casual: 6,
+                Indie: 7,
+                Racing: 8,
+                Sports: 9,
               };
 
               for (const genre of genres) {
