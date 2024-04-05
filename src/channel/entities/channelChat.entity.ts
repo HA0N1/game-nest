@@ -1,33 +1,32 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm"
-import { ChannelDMs } from "./channelDMs.entity"
-import { Channel } from "./channel.entity"
-import { ChannelMember } from "./channelMember.entity"
-import { ChatType } from "../type/channel-chat.type"
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { ChannelDMs } from './channelDMs.entity';
+import { Channel } from './channel.entity';
+import { ChannelMember } from './channelMember.entity';
+import { ChatType } from '../type/channel-chat.type';
 
-
-@Entity({name: 'channelChat'})
+@Entity({ name: 'channel_chat' })
 export class ChannelChat {
-@PrimaryGeneratedColumn({unsigned :true})
-id : number
-    
-@Column({type : 'enum', enum : ChatType})
-chatType:ChatType
+  @PrimaryGeneratedColumn({ unsigned: true })
+  id: number;
 
-@Column({type : 'bigint'})
-maximum_people : number
+  @Column({ type: 'enum', enum: ChatType })
+  chatType: ChatType;
 
-@CreateDateColumn()
-createdAt : Date
+  @Column({ type: 'bigint' })
+  maximum_people: number;
 
-@ManyToOne(()=> Channel, (channel)=> channel.channelChat)
-@JoinColumn({name : 'channel_id'})
-channel : Channel
+  @CreateDateColumn()
+  createdAt: Date;
 
-@OneToMany(()=> ChannelDMs, (channelDMs)=> channelDMs.channelChat)
-@JoinColumn({name : 'channel_chat_id'})
-channelDMs : ChannelDMs[]
+  @ManyToOne(() => Channel, channel => channel.channelChat)
+  @JoinColumn({ name: 'channel_id' })
+  channel: Channel;
 
-@ManyToOne(()=> ChannelMember, (channelMember)=> channelMember.channelChat)
-@JoinColumn({name : 'channel_member_id'})
-channelMember : ChannelMember
+  @OneToMany(() => ChannelDMs, channelDMs => channelDMs.channelChat)
+  @JoinColumn({ name: 'channel_chat_id' })
+  channelDMs: ChannelDMs[];
+
+  @ManyToOne(() => ChannelMember, channelMember => channelMember.channelChat)
+  @JoinColumn({ name: 'channel_member_id' })
+  channelMember: ChannelMember;
 }

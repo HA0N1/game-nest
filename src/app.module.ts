@@ -12,11 +12,16 @@ import { Channel } from './channel/entities/channel.entity';
 import { DMRoom } from './user/entities/DM-room.entity';
 import { Like } from './user/entities/like.entity';
 import { Post } from './post/entities/post.entity';
-import { PostComment } from './post/entities/postComment.entity';
+import { PostComment } from './comment/entities/comment.entity';
 import { Game } from './game/entities/game.entity';
 import { ChannelMember } from './channel/entities/channelMember.entity';
 import { ChannelDMs } from './channel/entities/channelDMs.entity';
+import { PostModule } from './post/post.module';
 import { GameService } from './game/game.service';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { CommentModule } from './comment/comment.module';
+import { RedisAppModule } from './redis/redis.module';
 import { GameModule } from './game/game.module';
 import { Genre } from './game/entities/gameGenre.entity';
 import { InterestGenre } from './game/entities/interestGenre.entity';
@@ -71,6 +76,11 @@ const typeOrmModuleOptions = {
     }),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     ChannelModule,
+    UserModule,
+    AuthModule,
+    PostModule,
+    CommentModule,
+    RedisAppModule,
     GameModule,
   ],
   controllers: [],
