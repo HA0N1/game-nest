@@ -82,9 +82,9 @@ export class UserController {
 
   /* 회원 탈퇴 */
   @UseGuards(AuthGuard('jwt'))
-  @Delete(':id')
-  async remove(@UserInfo() user: User) {
+  @Delete('delete')
+  async remove(@UserInfo() user: User, @Body() password: string) {
     const userId = user.id;
-    return await this.userService.remove(userId);
+    return await this.userService.remove(userId, password);
   }
 }

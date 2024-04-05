@@ -15,8 +15,6 @@ import { Repository, Brackets } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RedisCache } from 'cache-store-manager/redis';
-// import redisClient from 'src/redis/config';
 import { Genre } from 'src/game/entities/gameGenre.entity';
 import { UpdatePWDto } from './dto/update-pw.dto';
 import Redis from 'ioredis';
@@ -96,12 +94,19 @@ export class UserService {
 
     const payload = { email, sub: user.id };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    // 리프레시 토큰 조회 시 있으면 리프레시 토큰으로 새 accessToken 발급, 없으면 둘다 새로 발급
+    const resistRefreshToken = await this.redis.get(`REFRESH_TOKEN:${user.id}`);
+    if (resistRefreshToken) {
+      const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+      return { message: `${user.nickname}님 로그인 완료!`, accessToken, resistRefreshToken };
+    } else {
+      const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+      const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    await this.redis.setex(`REFRESH_TOKEN:${user.id}`, 604800, refreshToken);
+      await this.redis.setex(`REFRESH_TOKEN:${user.id}`, 604800, refreshToken);
 
-    return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
+      return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
+    }
   }
 
   /* 유저 조회 */
@@ -277,8 +282,23 @@ export class UserService {
   }
 
   /* 유저 탈퇴 */
-  async remove(id: number) {
-    return { message: 'test 성공' };
+  async remove(id: number, password: string) {
+    const pw = Object.values(password);
+    const stringPw = pw.toString();
+
+    const user = await this.userRepository.findOneBy({
+      id,
+    });
+
+    if (!(await compare(stringPw, user.password))) {
+      throw new UnauthorizedException('비밀번호가 틀렸습니다.');
+    }
+
+    await this.userRepository.delete({ id });
+
+    await this.redis.del(`REFRESH_TOKEN:${id}`);
+
+    return { message: '유저 탈퇴에 성공했습니다.' };
   }
 
   /* 장르 아이디로 장르 받아오는 함수 */
