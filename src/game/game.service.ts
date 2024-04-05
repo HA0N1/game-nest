@@ -155,12 +155,8 @@ export class GameService {
   //TODO: 페이지네이션
   async getGameList() {
     try {
-      const games = await this.gameRepository.find();
-      const gameList = games.map(game => ({
-        title: game.title,
-        screen_shot: game.screen_shot,
-      }));
-      return gameList;
+      const games = await this.gameRepository.find({ select: ['title', 'screen_shot'] });
+      return games;
     } catch (error) {
       throw new Error('게임 목록을 조회하는 중 오류가 발생했습니다.');
     }
@@ -179,8 +175,10 @@ export class GameService {
 
   //TODO: 장르별 조회
   async getGameByGenre(genre_id: number) {
-    const games = await this.gameRepository.find({ where: { genre: { id: genre_id } } });
-
+    const games = await this.gameRepository.find({
+      where: { genre: { id: genre_id } },
+      select: ['title', 'screen_shot'],
+    });
     if (games.length === 0) {
       throw new NotFoundException('해당하는 장르의 게임을 찾을 수 없습니다.');
     }
