@@ -69,6 +69,7 @@ export class UserController {
       return await this.userService.addIG(user.id, removeInterestGenre);
     }
   }
+  /* 로그아웃 */
 
   /* 회원 탈퇴 */
   @Delete(':id')

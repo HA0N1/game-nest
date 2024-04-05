@@ -16,7 +16,7 @@ import { User } from './entities/user.entity';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RedisCache } from 'cache-store-manager/redis';
-import redisCache from 'src/redis/config';
+import redisClient from 'src/redis/config';
 import { Genre } from 'src/game/entities/gameGenre.entity';
 import { UpdatePWDto } from './dto/update-pw.dto';
 
@@ -96,7 +96,7 @@ export class UserService {
     const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    await redisCache.set(`REFRESH_TOKEN:${user.id}`, refreshToken);
+    await redisClient.setEx(`REFRESH_TOKEN:${user.id}`, 604800, refreshToken); // 일주일 기한 설정
 
     return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
   }
@@ -256,6 +256,9 @@ export class UserService {
 
     return { message: '관심 장르 수정이 완료되었습니다.' };
   }
+
+  /* 로그아웃 */
+  async logout(id: number) {}
 
   /* 유저 탈퇴 */
   async remove(id: number) {

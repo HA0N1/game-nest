@@ -1,12 +1,23 @@
-import { Cache } from 'cache-store-manager';
+import * as redis from 'redis';
 import { configDotenv } from 'dotenv';
 configDotenv();
-
-const redisCache = Cache.create('redis', {
-  host: process.env.REDIS_HOST,
-  port: parseInt(process.env.REDIS_PORT),
+const redisClient = redis.createClient({
+  socket: {
+    host: process.env.REDIS_HOST,
+    port: parseInt(process.env.REDIS_PORT),
+  },
   password: process.env.REDIS_PASSWORD,
-  db: 0,
+  legacyMode: true,
 });
 
-export default redisCache;
+redisClient.connect();
+
+redisClient.on('ready', () => {
+  console.log('redis is ready');
+});
+
+redisClient.on('error', err => {
+  console.error(err);
+});
+
+export default redisClient;
