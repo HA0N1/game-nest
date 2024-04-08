@@ -13,6 +13,7 @@ import { User } from '../../user/entities/user.entity';
 import { PostComment } from '../../comment/entities/comment.entity';
 import { Like } from '../../user/entities/like.entity';
 import { Category } from './type/post.type';
+import { File } from 'src/aws/entities/file.entity';
 
 @Entity({ name: 'post' })
 export class Post {
@@ -31,6 +32,9 @@ export class Post {
   @Column({ type: 'bigint' })
   view_count: number;
 
+  @Column({ default: 0 })
+  likes: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -46,4 +50,8 @@ export class Post {
 
   @OneToMany(() => Like, like => like.post)
   like: Like;
+
+  @ManyToOne(() => File, file => file.post)
+  @JoinColumn({ name: 'file_id' })
+  file: File;
 }
