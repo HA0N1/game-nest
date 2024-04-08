@@ -9,10 +9,21 @@ import { DMRoom } from './entities/DM-room.entity';
 import { UserModule } from 'src/user/user.module';
 import { JwtStrategy } from 'src/auth/jwt.strategy';
 import { UserService } from 'src/user/user.service';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Friendship, FriendDMs, DMRoom]), UserModule],
+  imports: [
+    JwtModule.registerAsync({
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET_KEY'),
+      }),
+      inject: [ConfigService],
+    }),
+    TypeOrmModule.forFeature([User, Friendship, FriendDMs, DMRoom]),
+    UserModule,
+  ],
   controllers: [FriendController],
-  providers: [FriendService, JwtStrategy, UserService],
+  providers: [FriendService],
 })
 export class FriendModule {}

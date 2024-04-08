@@ -35,14 +35,6 @@ export class FriendService {
       throw new NotFoundException('해당 이메일을 가진 유저가 존재하지 않습니다.');
     }
 
-    // TODO: 튜터님께 디엠 오면 다시 확인!
-    // /* 이전에 친구 맺었던 적이 있는지 확인 -> 있다면 soft delete된 상태이므로 되돌리고 soft delete 취소함 */
-    // await this.friendshipRepository
-    //   .createQueryBuilder()
-    //   .restore()
-    //   .where('user_id = :user_id', { user_id: user.id })
-    //   .execute();
-
     await this.friendshipRepository.save({
       user,
       friend,
@@ -106,6 +98,15 @@ export class FriendService {
     return { message: '친구 수락이 완료되었습니다.' };
   }
 
-  /* 친구 삭제 */
-  async deleteFriend(user: User, email: string) {}
+  /* 친구 취소 */
+  async deleteFriend(id: number) {
+    const resist = await this.friendshipRepository.findOneBy({ id });
+    if (!resist) {
+      throw new NotFoundException('존재하지 않는 친구입니다.');
+    }
+
+    await this.friendshipRepository.delete({ id });
+
+    return { message: '친구 관계를 취소했습니다.' };
+  }
 }

@@ -9,6 +9,8 @@ import { InterestGenre } from './entities/interestGenre.entity';
 import { Redis } from 'ioredis';
 import { Genre } from 'src/game/entities/gameGenre.entity';
 import { RedisAppModule } from 'src/redis/redis.module';
+import { FriendService } from 'src/friend/friend.service';
+import { FriendModule } from 'src/friend/friend.module';
 
 @Module({
   imports: [

@@ -113,6 +113,15 @@ export class UserService {
     return user;
   }
 
+  /* 관심 장르 조회 */
+  async findInterestGenres(user: User) {
+    return await this.interestGenreRepository
+      .createQueryBuilder('ig')
+      .leftJoinAndSelect('ig.genre', 'genre')
+      .select(['genre.id', 'genre.gameGenre'])
+      .where('ig.user_id = :user_id', { user_id: user.id })
+      .getRawMany();
+  }
   /* 닉네임 수정 */
   async updateNN(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.findOneBy({

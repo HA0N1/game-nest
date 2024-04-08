@@ -27,8 +27,6 @@ export class UserController {
 
     const user = await this.userService.findUserByEmail(emailLoginDto.email);
 
-    const userId = user.id.toString();
-
     return { message: login.message, accessToken: login.accessToken };
   }
 
@@ -36,7 +34,8 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Get('userinfo')
   async findOne(@UserInfo() user: User) {
-    return { id: user.id, email: user.email, nickname: user.nickname };
+    const interestGenres = await this.userService.findInterestGenres(user);
+    return { id: user.id, email: user.email, nickname: user.nickname, interestGenres };
   }
 
   /* 닉네임 수정 */

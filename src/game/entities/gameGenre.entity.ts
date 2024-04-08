@@ -9,7 +9,7 @@ export class Genre {
   id: number;
 
   @Column({ type: 'varchar' })
-  gameGenre: string;
+  gameGenre: GameGenre;
 
   @OneToMany(() => InterestGenre, interestGenre => interestGenre.genre)
   @JoinColumn({ name: 'interestGenre_id' })

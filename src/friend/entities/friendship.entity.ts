@@ -10,9 +10,6 @@ export class Friendship {
   @Column({ default: false })
   is_friend: boolean;
 
-  @DeleteDateColumn({ default: null })
-  deleteAt: Date;
-
   @ManyToOne(() => User, user => user.friendshipsAsUser)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
