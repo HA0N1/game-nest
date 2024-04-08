@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { FriendService } from './friend.service';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -41,14 +41,14 @@ export class FriendController {
   /* 친구 수락 */
   @UseGuards(AuthGuard('jwt'))
   @Patch('accept')
-  async accept(@UserInfo() user: User, @Param() id: number) {
+  async accept(@UserInfo() user: User, @Query() id: number) {
     return await this.friendService.accept(user, id);
   }
 
   /* 친구 삭제 */
   @UseGuards(AuthGuard('jwt'))
   @Delete()
-  async deleteFriend(@Param() id: number) {
+  async deleteFriend(@Query() id: number) {
     return await this.friendService.deleteFriend(id);
   }
 }

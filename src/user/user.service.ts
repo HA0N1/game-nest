@@ -147,6 +147,10 @@ export class UserService {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
     }
 
+    if (!updatePWDTO.originPassword || !updatePWDTO.newPassword || !updatePWDTO.passwordCheck) {
+      throw new BadRequestException('body에 originPassword, newPassword, passwordCheck을 올바르게 입력하세요');
+    }
+
     if (updatePWDTO.newPassword !== updatePWDTO.passwordCheck) {
       throw new BadRequestException('비밀번호와 비밀번호 확인이 다릅니다.');
     }

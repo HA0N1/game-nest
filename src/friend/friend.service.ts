@@ -46,14 +46,14 @@ export class FriendService {
   /* 친구창 조회 */
   async allFriend(user: User) {
     return await this.friendshipRepository
-      .createQueryBuilder('me')
-      .select(['me.id', 'me.is_friend', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
-      .where('me.user_id = :user_id', { user_id: user.id })
-      .andWhere('me.is_friend = true')
-      .leftJoin('me.user', 'us')
-      .leftJoin('me.friend', 'fr')
-      .addSelect(['us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
-      .getMany();
+      .createQueryBuilder('friendship')
+      .select(['friendship.id', 'friendship.is_friend', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
+      .where('friendship.user_id = :user_id', { user_id: user.id })
+      .orWhere('friendship.friend_id = :friend_id', { friend_id: user.id })
+      .andWhere('friendship.is_friend = true')
+      .leftJoin('friendship.user', 'us')
+      .leftJoin('friendship.friend', 'fr')
+      .getRawMany();
   }
 
   /* 내가 보낸 친구 요청 조회 */
@@ -65,7 +65,7 @@ export class FriendService {
       .leftJoin('me.user', 'us')
       .leftJoin('me.friend', 'fr')
       .select(['me.id', 'me.is_friend', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
-      .getMany();
+      .getRawMany();
   }
 
   /* 나에게 온 친구 요청 조회 */
@@ -77,7 +77,7 @@ export class FriendService {
       .leftJoin('me.user', 'us')
       .leftJoin('me.friend', 'fr')
       .select(['me.id', 'me.is_friend', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
-      .getMany();
+      .getRawMany();
   }
 
   /* 친구 수락 */
@@ -90,8 +90,7 @@ export class FriendService {
     await this.friendshipRepository
       .createQueryBuilder()
       .update(Friendship)
-      .set({ is_friend: true })
-      .where('me.friend_id = :friend_id', { friend_id: user.id })
+      .where('friend_id = :friend_id', { friend_id: user.id })
       .andWhere('id = :id', { id })
       .execute();
 
