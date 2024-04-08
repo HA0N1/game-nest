@@ -1,6 +1,6 @@
 import { User } from './user.entity';
 import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Column, DeleteDateColumn } from 'typeorm';
-import { Genre } from '../../game/entities/gameGenre.entity';
+import { Genre } from '../../game/entities/game-genre.entity';
 
 @Entity({ name: 'interest_genre' })
 export class InterestGenre {

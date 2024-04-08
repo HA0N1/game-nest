@@ -8,7 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { InterestGenre } from 'src/user/entities/interestGenre.entity';
-import { Genre } from 'src/game/entities/gameGenre.entity';
+import { Genre } from 'src/game/entities/game-genre.entity';
 configDotenv();
 
 @Module({

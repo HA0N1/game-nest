@@ -1,4 +1,13 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  DefaultValuePipe,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { GameService } from './game.service';
 
 @Controller('game')
@@ -14,8 +23,16 @@ export class GameController {
 
   // 게임 목록 조회
   @Get()
-  async getGameList() {
-    const games = await this.gameService.getGameList();
+  async getGameList(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    const maxLimit = 50;
+    if (limit > maxLimit) {
+      throw new HttpException(`최대 검색 가능 개수는 ${maxLimit}개입니다.`, HttpStatus.BAD_REQUEST);
+    }
+
+    const games = await this.gameService.getGameList(page, limit);
     return games;
   }
 

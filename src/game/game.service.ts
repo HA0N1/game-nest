@@ -27,7 +27,7 @@ export class GameService {
   }
 
   // 스팀 게임 저장
-  //FIXME: 스케줄러 적용하기
+  //FIXME: 스케줄러 적용하기(redis를 통해 적용하려면 불큐 사용해야함)
   async saveFilteredGames() {
     const gameIds = await this.findAllGameIds();
 
@@ -67,6 +67,11 @@ export class GameService {
             };
             const gameGenre = mapGenreToId(details.genres);
             const pc = PlatformEnum.PC;
+            const existingGame = await this.gameRepository.findOne({ where: { title: details.name } });
+            if (existingGame) {
+              console.log(`${details.name}은 이미 저장된 게임입니다.`);
+              continue;
+            }
 
             const gameToSave = {
               developer: details.developers.join(', '),
@@ -152,11 +157,24 @@ export class GameService {
   //TODO: Xbox 게임 정보 스크래핑
 
   // 게임 목록 조회
-  //TODO: 페이지네이션
-  async getGameList() {
+  async getGameList(page = 1, limit = 10) {
     try {
-      const games = await this.gameRepository.find({ select: ['title', 'screen_shot'] });
-      return games;
+      page = Math.max(page, 1);
+      limit = Math.max(limit, 1);
+
+      const offset = (page - 1) * limit;
+
+      const [games, total] = await this.gameRepository.findAndCount({
+        select: ['title', 'screen_shot'],
+        skip: offset,
+        take: limit,
+      });
+      return {
+        data: games,
+        total: total,
+        page: page,
+        lastPage: Math.ceil(total / limit),
+      };
     } catch (error) {
       throw new Error('게임 목록을 조회하는 중 오류가 발생했습니다.');
     }

@@ -23,9 +23,9 @@ import { AuthModule } from './auth/auth.module';
 import { CommentModule } from './comment/comment.module';
 import { RedisAppModule } from './redis/redis.module';
 import { GameModule } from './game/game.module';
-import { Genre } from './game/entities/gameGenre.entity';
-import { InterestGenre } from './game/entities/interestGenre.entity';
-import { GameComment } from './game/entities/gameComment.entity';
+import { Genre } from './game/entities/game-genre.entity';
+import { InterestGenre } from './user/entities/interestGenre.entity';
+import { GameComment } from './game/entities/game-comment.entity';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({

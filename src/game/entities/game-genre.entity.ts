@@ -16,11 +16,6 @@ export class Genre {
   interestGenre: InterestGenre[];
 
   @OneToMany(() => Game, game => game.genre)
-<<<<<<< HEAD
   @JoinColumn({ name: 'game_id' })
-  game: Game;
-=======
-  @JoinColumn({ name: 'genre_id' })
   game: Game[];
->>>>>>> 6be5370e2e12996ed5f8abda7194ea1de051e4f2
 }

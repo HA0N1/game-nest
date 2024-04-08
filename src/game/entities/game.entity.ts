@@ -1,8 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Channel } from '../../channel/entities/channel.entity';
 import { PlatformEnum } from '../type/game-platform.type';
-import { GameComment } from './gameComment.entity';
-import { Genre } from './gameGenre.entity';
+import { GameComment } from './game-comment.entity';
+import { Genre } from './game-genre.entity';
 
 @Entity({ name: 'game' })
 export class Game {

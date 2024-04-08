@@ -17,7 +17,7 @@ import { InterestGenre } from './entities/interestGenre.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RedisCache } from 'cache-store-manager/redis';
 // import redisClient from 'src/redis/config';
-import { Genre } from 'src/game/entities/gameGenre.entity';
+import { Genre } from 'src/game/entities/game-genre.entity';
 import { UpdatePWDto } from './dto/update-pw.dto';
 import Redis from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
