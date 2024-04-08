@@ -11,23 +11,35 @@ export class FriendController {
   constructor(private readonly friendService: FriendService) {}
 
   /* 친구 요청 */
-  @Post('request')
+  @Post('send')
   async beFriend(@UserInfo() user: User, @Body() beFriendDto: BeFriendDto) {
     return await this.friendService.beFriend(user, beFriendDto.email);
+  }
+
+  /* 친구창 조회 */
+  @UseGuards(AuthGuard('jwt'))
+  @Get('friends')
+  async allFriend(@UserInfo() user: User) {
+    return await this.friendService.allFriend(user);
+  }
+
+  /* 내가 보낸 친구 요청 조회 */
+  @Get('sentFriends')
+  async sent(@UserInfo() user: User) {
+    return await this.friendService.sent(user);
+  }
+
+  /* 나에게 온 친구 요청 조회 */
+  @Get('beFriends')
+  async findRequests(@UserInfo() user: User) {
+    return await this.friendService.requests(user);
   }
 
   /* 친구 수락 */
   @UseGuards(AuthGuard('jwt'))
   @Patch('accept')
-  async accept(@UserInfo() user: User) {
-    return await this.friendService.accept(user);
-  }
-
-  /* 친구 조회 */
-  @UseGuards(AuthGuard('jwt'))
-  @Get()
-  async findFriends(@UserInfo() user: User) {
-    return await this.friendService.findFriends(user);
+  async accept(@UserInfo() user: User, id: number) {
+    return await this.friendService.accept(user, id);
   }
 
   /* 친구 삭제 */

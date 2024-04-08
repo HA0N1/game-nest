@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { DMRoom } from './DM-room.entity';
 
@@ -9,6 +9,9 @@ export class Friendship {
 
   @Column({ default: false })
   is_friend: boolean;
+
+  @DeleteDateColumn({ default: null })
+  deleteAt: Date;
 
   @ManyToOne(() => User, user => user.friendshipsAsUser)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
