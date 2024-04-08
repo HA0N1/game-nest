@@ -8,8 +8,8 @@ export class Genre {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'enum', enum: GameGenre })
-  gameGenre: GameGenre;
+  @Column({ type: 'varchar' })
+  gameGenre: string;
 
   @OneToMany(() => InterestGenre, interestGenre => interestGenre.genre)
   @JoinColumn({ name: 'interestGenre_id' })

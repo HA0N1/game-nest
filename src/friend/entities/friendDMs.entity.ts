@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from './user.entity';
+import { User } from 'src/user/entities/user.entity';
 import { DMRoom } from './DM-room.entity';
 
 //TODO:file id는 어떻게 넣을지 상의해보기

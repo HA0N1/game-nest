@@ -94,19 +94,12 @@ export class UserService {
 
     const payload = { email, sub: user.id };
 
-    // 리프레시 토큰 조회 시 있으면 리프레시 토큰으로 새 accessToken 발급, 없으면 둘다 새로 발급
-    const resistRefreshToken = await this.redis.get(`REFRESH_TOKEN:${user.id}`);
-    if (resistRefreshToken) {
-      const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
-      return { message: `${user.nickname}님 로그인 완료!`, accessToken, resistRefreshToken };
-    } else {
-      const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
-      const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-      await this.redis.setex(`REFRESH_TOKEN:${user.id}`, 604800, refreshToken);
+    await this.redis.setex(`REFRESH_TOKEN:${user.id}`, 604800, refreshToken);
 
-      return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
-    }
+    return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
   }
 
   /* 유저 조회 */

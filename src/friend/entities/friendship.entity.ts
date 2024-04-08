@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from './user.entity';
+import { User } from 'src/user/entities/user.entity';
 import { DMRoom } from './DM-room.entity';
 
 @Entity({ name: 'friendship' })
