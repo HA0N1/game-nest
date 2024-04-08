@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { JwtModule } from '@nestjs/jwt';
@@ -8,6 +8,9 @@ import { User } from './entities/user.entity';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { Redis } from 'ioredis';
 import { Genre } from 'src/game/entities/gameGenre.entity';
+import { RedisAppModule } from 'src/redis/redis.module';
+import { FriendService } from 'src/friend/friend.service';
+import { FriendModule } from 'src/friend/friend.module';
 
 @Module({
   imports: [
@@ -18,6 +21,7 @@ import { Genre } from 'src/game/entities/gameGenre.entity';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User, InterestGenre, Genre]),
+    RedisAppModule,
   ],
   controllers: [UserController],
   providers: [UserService],

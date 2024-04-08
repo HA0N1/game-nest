@@ -4,15 +4,15 @@ import { User } from 'src/user/entities/user.entity';
 import { Channel } from './channel.entity';
 import { ChannelChat } from './channelChat.entity';
 
-@Entity({ name: 'channelMember' })
+@Entity({ name: 'channel_member' })
 export class ChannelMember {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'enum', enum: MemberRole })
+  @Column({ type: 'enum', enum: MemberRole, default: MemberRole.User })
   role: MemberRole;
 
-  @ManyToOne(() => User, user => user.channelMember, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, user => user.channelMember)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
