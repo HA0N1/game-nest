@@ -1,6 +1,7 @@
 import { User } from './user.entity';
-import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Column, DeleteDateColumn } from 'typeorm';
 import { Genre } from '../../game/entities/gameGenre.entity';
+
 @Entity({ name: 'interest_genre' })
 export class InterestGenre {
   @PrimaryGeneratedColumn({ unsigned: true })
@@ -13,4 +14,7 @@ export class InterestGenre {
   @ManyToOne(() => Genre, genre => genre.interestGenre)
   @JoinColumn({ name: 'genre_id', referencedColumnName: 'id' })
   genre: Genre;
+
+  @DeleteDateColumn({ default: null })
+  deleteAt: Date;
 }

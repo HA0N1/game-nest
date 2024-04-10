@@ -4,14 +4,9 @@ import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UseGuards } from '@nestjs/common';
-import redisCache from 'src/redis/config';
 import { User } from 'src/user/entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { AuthGuard } from '@nestjs/passport';
-import { Roles } from 'src/utils/decorators/member-role.decorator';
-import { MemberRole } from './type/MemberRole.type';
-import { RolesGuard } from 'src/auth/guard/member-roles.guard';
-import { CreateDMsDto } from './dto/create-dm.dto';
 
 @Controller('channel')
 export class ChannelController {

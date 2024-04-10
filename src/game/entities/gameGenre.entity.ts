@@ -8,7 +8,7 @@ export class Genre {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'enum', enum: GameGenre })
+  @Column({ type: 'varchar' })
   gameGenre: GameGenre;
 
   @OneToMany(() => InterestGenre, interestGenre => interestGenre.genre)
