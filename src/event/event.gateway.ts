@@ -12,6 +12,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { onlineMap } from './online-map';
 import { ChannelService } from 'src/channel/channel.service';
+import { Logger } from '@nestjs/common';
 /**
  * channel -> chat
  * socket.nsp.name  으로 접근 가능
@@ -54,41 +55,41 @@ import { ChannelService } from 'src/channel/channel.service';
 //     delete onlineMap[socket.nsp.name][socket.id];
 //     newNamespace.emit('onlineList', Object.values(onlineMap[socket.nsp.name]));
 //   }@WebSocketGateway()
-@WebSocketGateway()
+@WebSocketGateway({ namespace: 'channel/chat', cors: '*' })
 export class EventGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly channelService: ChannelService) {}
   @WebSocketServer() server: Server;
+  private logger: Logger = new Logger('EventsGateway');
 
   @SubscribeMessage('joinRoom')
   handleJoinRoom(@MessageBody() data: { channelId: string; chatId: string }, @ConnectedSocket() client: Socket) {
     const { channelId, chatId } = data;
     const roomName = `channel:${channelId}:chat:${chatId}`;
     client.join(roomName);
+    console.log('join', '참여완료');
   }
 
   @SubscribeMessage('sendMessage')
   async handleMessage(
-    @MessageBody() message: { channelId: string; chatId: string; content: string },
+    @MessageBody() message: { channelId: string; chatId: string; content: string; userId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    const { channelId, chatId, content } = message;
+    const { channelId, chatId, content, userId } = message;
     const roomName = `channel:${channelId}:chat:${chatId}`;
-    client.to(roomName).emit('receiveMessage', content);
+    client.to(roomName).emit('receiveMessage', { userId, content });
 
-    await this.channelService.saveMessage({ channelId, chatId, content });
+    await this.channelService.saveMessage(+channelId, +chatId, +userId, content);
   }
   //OnGatewayInit pair
-  afterInit(server: Server): any {
-    console.log('websocket server init');
+  afterInit(server: Server) {
+    this.logger.log('웹소켓 서버 초기화 ✅');
   }
   //OnGatewayConnection pair
-  handleConnection(@ConnectedSocket() socket: Socket) {
-    console.log('connected', socket.nsp.name);
-    // 지정된 하위 네임스페이스의 모든 클라이언트에게 브로드캐스트
-    socket.emit('hello', socket.nsp.name);
+  handleConnection(client: Socket, ...args: any[]) {
+    this.logger.log(`Client Connected : ${client.id}`);
   }
   //OnGatewayDisconnect pair
-  handleDisconnect(@ConnectedSocket() socket: Socket) {
-    console.log('disconnected', socket.nsp.name);
+  handleDisconnect(client: Socket) {
+    this.logger.log(`Client Disconnected : ${client.id}`);
   }
 }

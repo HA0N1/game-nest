@@ -14,7 +14,6 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 
 import { EventGateway } from 'src/event/event.gateway';
 import { ChannelDMs } from './entities/channelDMs.entity';
-import { CreateDMsDto } from './dto/create-dm.dto';
 @Injectable()
 export class ChannelService {
   constructor(
@@ -30,7 +29,6 @@ export class ChannelService {
     private userRepository: Repository<User>,
     private dataSource: DataSource,
     @InjectRedis() private readonly redis: Redis,
-    private eventGateway: EventGateway,
   ) {}
 
   // 채널 생성
@@ -239,9 +237,9 @@ export class ChannelService {
     // } as any);
 
     // const a = this.eventGateway.server.to(`${chatId}`).emit('message', { chatId, content });
-    const a = this.eventGateway.server.to(`${chatId}`).emit('message', { chatId, content });
-    console.log('ChannelService ~ sendMessage ~ a:', a);
-    return await this.channelDMsRepository.save(newMessage);
+    const a = await this.channelDMsRepository.save(newMessage);
+    console.log('aaaaaaaaaaaaaaa', a);
+    return a;
   }
 
   async getMessagesForChannel(channelId: number): Promise<ChannelDMs[]> {
