@@ -241,14 +241,4 @@ export class ChannelService {
     console.log('aaaaaaaaaaaaaaa', a);
     return a;
   }
-
-  async getMessagesForChannel(channelId: number): Promise<ChannelDMs[]> {
-    // Assuming you want to fetch messages for a specific channel
-    return this.channelDMsRepository.find({
-      where: {
-        channelChat: { channel: { id: channelId } },
-      },
-      order: { createdAt: 'ASC' }, // Order by createdAt ASC or DESC as needed
-    });
-  }
 }

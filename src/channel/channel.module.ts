@@ -10,9 +10,14 @@ import { JwtStrategy } from 'src/auth/jwt.strategy';
 import { EventModule } from 'src/event/event.module';
 import { ChannelDMs } from './entities/channelDMs.entity';
 import { Channel } from './entities/channel.entity';
+import { RedisAppModule } from 'src/redis/redis.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Channel, ChannelMember, ChannelChat, ChannelDMs]), UserModule],
+  imports: [
+    TypeOrmModule.forFeature([User, Channel, ChannelMember, ChannelChat, ChannelDMs]),
+    UserModule,
+    RedisAppModule,
+  ],
   controllers: [ChannelController],
   //EventGateway를 providers에 넣으면 채팅을 만들 때마다 웹소켓 서버가 생김
   providers: [ChannelService, JwtStrategy],
