@@ -7,5 +7,5 @@ export class CreateDMsDto {
 
   @IsNumber()
   @IsEmpty({ message: '메세지를 전송할 방을 입력해주세요' })
-  ChatId: number;
+  chatId: number;
 }

@@ -199,9 +199,11 @@ export class ChannelService {
       chatType,
       maximumPeople,
     } as any);
-    await this.channelChatRepository.save(chat);
+    const savedchat = await this.channelChatRepository.save(chat);
+    console.log('ChannelService ~ createChat ~ savedchat:', savedchat);
+    // const channelWithUser = await this.channelChatRepository.findOne({where:{id:savedchat.id}})
+    // this.eventGateway.server.to(`/ws-${}`)
     return chat;
-    // await this.channelChatRepository.save(chat);
   }
 
   async deleteChat(channelId: number, chatId: number) {
@@ -221,20 +223,23 @@ export class ChannelService {
    * chatId, senderId, content를 저장.
    *
    */
-  async sendMessage(channelId: number, senderId: number, createDMsDto: CreateDMsDto) {
-    const { content, ChatId } = createDMsDto;
+  async saveMessage(channelId: number, chatId: number, senderId: number, content: string) {
     const channel = this.ChannelfindById(channelId);
     if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
+    const newMessage = new ChannelDMs();
+    newMessage.sender_id = +senderId;
+    newMessage.content = content;
+    newMessage.channel_chat_id = +chatId;
+    // const newMessage = this.channelDMsRepository.create({
+    //   content,
+    //   user: senderId,
+    //   channelChat: { id: ChatId },
+    // } as any);
 
-    const newMessage = this.channelDMsRepository.create({
-      content,
-      user: senderId,
-      channelChat: { id: ChatId },
-    } as any);
-
-    const a = this.eventGateway.server.to(`${ChatId}`).emit('message', { ChatId, content });
+    // const a = this.eventGateway.server.to(`${chatId}`).emit('message', { chatId, content });
+    const a = this.eventGateway.server.to(`${chatId}`).emit('message', { chatId, content });
     console.log('ChannelService ~ sendMessage ~ a:', a);
-    return this.channelDMsRepository.save(newMessage);
+    return await this.channelDMsRepository.save(newMessage);
   }
 
   async getMessagesForChannel(channelId: number): Promise<ChannelDMs[]> {

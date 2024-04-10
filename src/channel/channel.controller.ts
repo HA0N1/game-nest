@@ -86,9 +86,15 @@ export class ChannelController {
   }
 
   //* dms
-  @UseGuards(AuthGuard('jwt'))
-  @Post(':channelId/chat/dm')
-  async sendMessage(@Param('channelId') channelId: string, @UserInfo() user: User, @Body() createDMsDto: CreateDMsDto) {
-    await this.channelService.sendMessage(+channelId, +user, createDMsDto);
-  }
+  // @UseGuards(AuthGuard('jwt'))
+  // @Post(':channelId/chat/:chatId')
+  // async sendMessage(
+  //   @Param('channelId') channelId: string,
+  //   @Param('chatId') chatId: string,
+  //   @UserInfo() user: User,
+  //   @Body() content: string,
+  // ) {
+  //   console.log('ChannelController ~ sendMessage ~ user:', user);
+  //   await this.channelService.sendMessage(+channelId, +chatId, user.id, content);
+  // }
 }
