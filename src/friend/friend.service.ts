@@ -84,7 +84,6 @@ export class FriendService {
     await this.friendshipRepository
       .createQueryBuilder()
       .update(Friendship)
-      .set({ is_friend: true })
       .where('friend_id = :friend_id', { friend_id: user.id })
       .andWhere('id = :id', { id })
       .execute();
@@ -102,20 +101,5 @@ export class FriendService {
     await this.friendshipRepository.delete({ id });
 
     return { message: '친구 관계를 취소했습니다.' };
-  }
-
-  /* 디엠 방 생성 */
-  async createDMRoom(userId: number, friendshipId: number) {
-    /* 본인이 있는 friendship인지 확인 */
-    const checkUserFriendship = await this.friendshipRepository
-      .createQueryBuilder('fr')
-      .select(['fr.id'])
-      .where('friendship.user_id = :user_id', { user_id: userId })
-      .orWhere('friendship.friend_id = :friend_id', { friend_id: userId })
-      .getRawMany();
-
-    return checkUserFriendship;
-
-    /* 이미 있으면 있다는 기존 방으로 return */
   }
 }
