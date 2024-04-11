@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
-import { FriendService } from './friend.service';
-import { FriendController } from './friend.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { Friendship } from './entities/friendship.entity';
 import { UserModule } from 'src/user/user.module';
-
+import { Friendship } from 'src/friend/entities/friendship.entity';
+import { FriendModule } from 'src/friend/friend.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { DMService } from './dm.service';
+import { DMController } from './dm.controller';
+import { FriendDMs } from './entities/friendDMs.entity';
+import { DMRoom } from './entities/DM-room.entity';
 
 @Module({
   imports: [
@@ -17,10 +19,11 @@ import { ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Friendship]),
+    TypeOrmModule.forFeature([User, Friendship, FriendDMs, DMRoom]),
     UserModule,
+    FriendModule,
   ],
-  controllers: [FriendController],
-  providers: [FriendService],
+  controllers: [DMController],
+  providers: [DMService],
 })
-export class FriendModule {}
+export class DMModule {}

@@ -4,13 +4,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from './user/entities/user.entity';
-import { FriendDMs } from './friend/entities/friendDMs.entity';
+import { FriendDMs } from './dm/entities/friendDMs.entity';
 import { Friendship } from './friend/entities/friendship.entity';
 import { Channel } from './channel/entities/channel.entity';
 import { ChannelChat } from './channel/entities/channelChat.entity';
 import { ChannelMember } from './channel/entities/channelMember.entity';
 import { ChannelDMs } from './channel/entities/channelDMs.entity';
-import { DMRoom } from './friend/entities/DM-room.entity';
+import { DMRoom } from './dm/entities/DM-room.entity';
 import { Like } from './user/entities/like.entity';
 import { Post } from './post/entities/post.entity';
 import { Game } from './game/entities/game.entity';
@@ -27,6 +27,7 @@ import { GameService } from './game/game.service';
 import { PostModule } from './post/post.module';
 import { PostComment } from './comment/entities/comment.entity';
 import { FriendModule } from './friend/friend.module';
+import { DMModule } from './dm/dm.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -83,6 +84,7 @@ const typeOrmModuleOptions = {
     CommentModule,
     RedisAppModule,
     FriendModule,
+    DMModule,
   ],
   controllers: [],
   providers: [GameService],
