@@ -20,5 +20,5 @@ export class FriendDMs {
 
   @ManyToOne(() => User, user => user.friendDms)
   @JoinColumn({ name: 'DM_room_id', referencedColumnName: 'id' })
-  DMRoom: DMRoom[];
+  DMRoom: DMRoom;
 }

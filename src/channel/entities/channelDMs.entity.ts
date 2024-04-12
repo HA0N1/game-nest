@@ -24,11 +24,6 @@ export class ChannelDMs {
   user: User;
 
   @ManyToOne(() => ChannelChat, channelChat => channelChat.channelDMs)
-<<<<<<< HEAD
-  @JoinColumn({ name: 'channel_chat_id' })
-  channelChat: ChannelChat[];
-=======
   @JoinColumn({ name: 'channel_chat_id', referencedColumnName: 'id' })
   channelChat: ChannelChat;
->>>>>>> 6571d254d8b0db02d24f7d62875768775fc9acfe
 }
