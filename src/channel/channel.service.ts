@@ -11,11 +11,14 @@ import { User } from 'src/user/entities/user.entity';
 import { MemberRole } from './type/MemberRole.type';
 import Redis from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-
-import { EventGateway } from 'src/event/event.gateway';
 import { ChannelDMs } from './entities/channelDMs.entity';
+import { Socket } from 'socket.io';
+import { v4 as uuidv4 } from 'uuid';
+import { chatRoomListDTO } from './dto/chatBackEnd.dto';
+import { ChatType } from './type/channel-chat.type';
 @Injectable()
 export class ChannelService {
+  private chatRoomList: Record<string, chatRoomListDTO>;
   constructor(
     @InjectRepository(Channel)
     private channelRepository: Repository<Channel>,
@@ -29,7 +32,15 @@ export class ChannelService {
     private userRepository: Repository<User>,
     private dataSource: DataSource,
     @InjectRedis() private readonly redis: Redis,
-  ) {}
+  ) {
+    this.chatRoomList = {
+      'room:lobby': {
+        roomId: 'room:lobby',
+        roomName: '로비',
+        cheifId: null,
+      },
+    };
+  }
 
   // 채널 생성
   async createChannel(userId: number, createChannelDto: CreateChannelDto) {
@@ -158,7 +169,7 @@ export class ChannelService {
     const user = await this.userRepository.findOne({ where: { email }, select: ['id'] });
     const uuid = crypto.randomUUID();
     const userIdAndChannelId = `${user.id}_${channelId}`;
-    await this.redis.set(`randomKey:${uuid}`, userIdAndChannelId);
+    await this.redis.setex(`randomKey:${uuid}`, 300, userIdAndChannelId);
 
     const url = `http://localhost:3000/channel/accept?code=${uuid}`;
 
@@ -176,12 +187,14 @@ export class ChannelService {
 
   // TODO: 호출 형식 여쭤보기
   // 링크 클릭 시 멤버 생성
-  async createMember(user: number, channel: number) {
+  async createMember(userId: number, channelId: number) {
     const newMember = this.channelMemberRepository.create({
       role: MemberRole.User,
-      user: user,
-      channel: channel,
-    } as any);
+      userId: +userId,
+      channelId: +channelId,
+    });
+
+    if (!newMember) throw new NotFoundException('존재하지 않는 user입니다.');
 
     await this.channelMemberRepository.save(newMember);
     return newMember;
@@ -193,16 +206,30 @@ export class ChannelService {
     const channel = await this.ChannelfindById(channelId);
     if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
 
+    const channelMembers = await this.channelMemberRepository.find();
+
+    // Use the map function to filter out members with channelId equal to the targetChannelId
+    const filteredMembers = channelMembers
+      .filter(member => member.channelId === channelId)
+      .map(member => ({
+        id: member.id,
+        role: member.role,
+        userId: member.userId,
+        channelId: member.channelId,
+      }));
+
+    console.log('Filtered members:', filteredMembers);
+
+    console.log('ChannelService ~ createChat ~ channelMembers:', channelMembers);
     const chat = this.channelChatRepository.create({
-      channel: channelId,
+      channelMemberId: userId,
+      channelId,
       title,
       chatType,
       maximumPeople,
-    } as any);
+    });
     const savedchat = await this.channelChatRepository.save(chat);
     console.log('ChannelService ~ createChat ~ savedchat:', savedchat);
-    // const channelWithUser = await this.channelChatRepository.findOne({where:{id:savedchat.id}})
-    // this.eventGateway.server.to(`/ws-${}`)
     return chat;
   }
 
@@ -214,31 +241,5 @@ export class ChannelService {
     if (!chat) throw new NotFoundException('존재하지 않는 채팅입니다.');
 
     await this.channelChatRepository.remove(chat);
-  }
-
-  // socket.io로 메시지 전송
-  /**
-   * 채널과 채팅방이 존재하는지 확인 후 채팅방에 message을 넣어야함.
-   *
-   * chatId, senderId, content를 저장.
-   *
-   */
-  async saveMessage(channelId: number, chatId: number, senderId: number, content: string) {
-    const channel = this.ChannelfindById(channelId);
-    if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
-    const newMessage = new ChannelDMs();
-    newMessage.sender_id = +senderId;
-    newMessage.content = content;
-    newMessage.channel_chat_id = +chatId;
-    // const newMessage = this.channelDMsRepository.create({
-    //   content,
-    //   user: senderId,
-    //   channelChat: { id: ChatId },
-    // } as any);
-
-    // const a = this.eventGateway.server.to(`${chatId}`).emit('message', { chatId, content });
-    const a = await this.channelDMsRepository.save(newMessage);
-    console.log('aaaaaaaaaaaaaaa', a);
-    return a;
   }
 }

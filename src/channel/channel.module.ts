@@ -11,6 +11,7 @@ import { EventModule } from 'src/event/event.module';
 import { ChannelDMs } from './entities/channelDMs.entity';
 import { Channel } from './entities/channel.entity';
 import { RedisAppModule } from 'src/redis/redis.module';
+import { EventGateway } from 'src/event/event.gateway';
 
 @Module({
   imports: [

@@ -3,6 +3,7 @@ import { User } from '../../user/entities/user.entity';
 import { ChannelChat } from './channelChat.entity';
 
 @Entity({ name: 'channel_dms' })
+@Entity({ name: 'channel_dms' })
 export class ChannelDMs {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
@@ -11,10 +12,10 @@ export class ChannelDMs {
   content: string;
 
   @Column({ type: 'int', name: 'sender_id', unsigned: true })
-  sender_id: number;
+  senderId: number;
 
   @Column({ type: 'int', name: 'channel_chat_id', unsigned: true })
-  channel_chat_id: number;
+  channelChatId: number;
 
   @CreateDateColumn()
   createdAt: Date;

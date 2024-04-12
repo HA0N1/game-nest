@@ -88,6 +88,6 @@ const typeOrmModuleOptions = {
     EventModule,
   ],
   controllers: [],
-  providers: [GameService, EventGateway],
+  providers: [GameService],
 })
 export class AppModule {}

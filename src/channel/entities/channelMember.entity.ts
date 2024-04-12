@@ -12,6 +12,12 @@ export class ChannelMember {
   @Column({ type: 'enum', enum: MemberRole, default: MemberRole.User })
   role: MemberRole;
 
+  @Column({ type: 'int', name: 'user_id', unsigned: true })
+  userId: number;
+
+  @Column({ type: 'int', name: 'channel_id', unsigned: true })
+  channelId: number;
+
   @ManyToOne(() => User, user => user.channelMember)
   @JoinColumn({ name: 'user_id' })
   user: User;

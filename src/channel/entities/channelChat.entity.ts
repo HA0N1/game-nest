@@ -9,14 +9,20 @@ export class ChannelChat {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', default: 'Untitled' })
   title: string;
 
   @Column({ type: 'enum', enum: ChatType })
   chatType: ChatType;
 
   @Column({ type: 'bigint' })
-  maximumPeople: number;
+  maximumPeople?: number;
+
+  @Column({ type: 'int', name: 'channel_id', unsigned: true })
+  channelId: number;
+
+  @Column({ type: 'int', name: 'channel_member_id', unsigned: true, nullable: true })
+  channelMemberId: number;
 
   @CreateDateColumn()
   createdAt: Date;
