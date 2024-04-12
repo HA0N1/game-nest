@@ -25,7 +25,7 @@ export class DMController {
     return await this.dmService.getDMRooms(user.id);
   }
 
-  /* 디엠 채팅 조회 */
+  /* 디엠 상세 조회 */
   @UseGuards(AuthGuard('jwt'))
   @Get('findDmRoom/:dmroomId')
   async findDMRoom(@UserInfo() user: User, @Param('dmroomId') dmroomId: number) {

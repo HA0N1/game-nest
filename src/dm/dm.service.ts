@@ -83,7 +83,22 @@ export class DMService {
 
   /* dmroomId로 디엠 상세 조회*/
   // 디엠 내역들 조회하는 함수
-  async findDMRoom(userId: number, dmRoomId: number) {}
+  async findDMRoom(userId: number, dmRoomId: number) {
+    const checkDmRoom = await this.dmRoomRepository
+      .createQueryBuilder('dmRoom')
+      .select(['dmRoom.id', 'fs.id', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
+      .where('dmroom.id = :id', { id: dmRoomId })
+      .leftJoin('dmRoom.friendship', 'fs')
+      .leftJoin('fs.user', 'us')
+      .leftJoin('fs.friend', 'fr')
+      .getRawOne();
+
+    if (!(checkDmRoom.us_id === userId || checkDmRoom.fr_id === userId)) {
+      throw new BadRequestException('본인이 소속된 디엠방만 조회할 수 있습니다.');
+    }
+
+    return checkDmRoom;
+  }
 
   /* 텍스트 채팅 보내기 */
   async sendTextDM(userId: number, dmRoomId: number) {}
