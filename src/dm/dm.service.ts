@@ -70,31 +70,15 @@ export class DMService {
 
   /* userId로 디엠 방 전체 조회 */
   async getDMRooms(userId: number) {
-    // friendship 아이디들 먼저 조회
-    const friendshipIds = await this.friendshipRepository
-      .createQueryBuilder('friendship')
-      .select('friendship.id')
-      .where('friendship.user_id = :user_id', { user_id: userId })
-      .orWhere('friendship.friend_id = :friend_id', { friend_id: userId })
-      .andWhere('friendship.is_friend = true')
-      .getMany();
-
-    console.log(friendshipIds);
-
-    // map 사용해서 해당 friendship 아이디마다 찾아오기
-    // const dmRooms = friendshipIds.map(async fId => {
-    //   return await this.dmRoomRepository
-    //     .createQueryBuilder('dmRoom')
-    //     // .select(['dmRoom.id', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
-    //     .select()
-    //     .where('fs.id = :friendship_id', { friendship_id: fId })
-    //     .leftJoinAndSelect('dmRoom.friendship', 'fs')
-    //     .leftJoinAndSelect('fs.user', 'us')
-    //     .leftJoinAndSelect('fs.friend', 'fr')
-    //     .getRawMany();
-    // });
-
-    // return dmRooms;
+    return await this.dmRoomRepository
+      .createQueryBuilder('dmRoom')
+      .select(['dmRoom.id', 'fs.id', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
+      .where('us.id = :id', { id: userId })
+      .orWhere('fr.id = :id', { id: userId })
+      .leftJoin('dmRoom.friendship', 'fs')
+      .leftJoin('fs.user', 'us')
+      .leftJoin('fs.friend', 'fr')
+      .getRawMany();
   }
 
   /* dmroomId로 디엠 상세 조회*/
