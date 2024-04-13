@@ -26,9 +26,9 @@ import { GameService } from './game/game.service';
 import { PostModule } from './post/post.module';
 import { PostComment } from './comment/entities/comment.entity';
 import { DMModule } from './dm/dm.module';
-import { EventModule } from './event/event.module';
-import { EventGateway } from './event/event.gateway';
 import { FriendModule } from './friend/friend.module';
+import { ChatGateway, RoomGateway } from './event/event.gateway';
+import { EventModule } from './event/event.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -89,6 +89,6 @@ const typeOrmModuleOptions = {
     EventModule,
   ],
   controllers: [],
-  providers: [GameService, EventGateway],
+  providers: [GameService],
 })
 export class AppModule {}

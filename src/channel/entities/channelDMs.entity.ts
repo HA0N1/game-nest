@@ -11,10 +11,10 @@ export class ChannelDMs {
   content: string;
 
   @Column({ type: 'int', name: 'sender_id', unsigned: true })
-  sender_id: number;
+  senderId: number;
 
   @Column({ type: 'int', name: 'channel_chat_id', unsigned: true })
-  channel_chat_id: number;
+  channelChatId: number;
 
   @CreateDateColumn()
   createdAt: Date;
