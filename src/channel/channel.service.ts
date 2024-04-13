@@ -127,12 +127,6 @@ export class ChannelService {
 
       // 멤버 삭제
       await this.channelMemberRepository.delete({ channel });
-      // await this.channelMemberRepository
-      //   .createQueryBuilder()
-      //   .delete()
-      //   .from(ChannelMember)
-      //   .where('id = :id', { id })
-      //   .execute();
 
       await this.channelRepository.delete(id);
       await queryRunner.commitTransaction();
@@ -174,7 +168,6 @@ export class ChannelService {
     await this.createMember(userId, channelId);
   }
 
-  // TODO: 호출 형식 여쭤보기
   // 링크 클릭 시 멤버 생성
   async createMember(userId: number, channelId: number) {
     const newMember = this.channelMemberRepository.create({
@@ -190,35 +183,29 @@ export class ChannelService {
   }
 
   //chat
-  async createChat(userId: number, channelId: number, createChatDto: CreateChatDto) {
-    const { title, chatType, maximumPeople = 8 } = createChatDto;
+  async createChat(channelId: number, createChatDto: CreateChatDto) {
+    const { title, chatType, maximumPeople } = createChatDto;
     const channel = await this.ChannelfindById(channelId);
     if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
 
-    const channelMembers = await this.channelMemberRepository.find();
+    const chatMembers = await this.channelMemberRepository.find({ where: { channelId } });
+    const memberIds = chatMembers.map(member => member.id);
 
-    // Use the map function to filter out members with channelId equal to the targetChannelId
-    const filteredMembers = channelMembers
-      .filter(member => member.channelId === channelId)
-      .map(member => ({
-        id: member.id,
-        role: member.role,
-        userId: member.userId,
-        channelId: member.channelId,
-      }));
-
-    console.log('Filtered members:', filteredMembers);
-
-    console.log('ChannelService ~ createChat ~ channelMembers:', channelMembers);
     const chat = this.channelChatRepository.create({
-      channelMemberId: userId,
-      channelId,
+      channelMemberId: memberIds,
+      channelId: +channelId,
       title,
       chatType,
       maximumPeople,
     });
+
     const savedchat = await this.channelChatRepository.save(chat);
     console.log('ChannelService ~ createChat ~ savedchat:', savedchat);
+    return chat;
+  }
+
+  async findAllChat() {
+    const chat = await this.channelChatRepository.find();
     return chat;
   }
 

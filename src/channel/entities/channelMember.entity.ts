@@ -26,6 +26,6 @@ export class ChannelMember {
   @JoinColumn({ name: 'channel_id' })
   channel: Channel;
 
-  @OneToMany(() => ChannelChat, channelChat => channelChat.channelMember)
-  channelChat: ChannelChat[];
+  @ManyToOne(() => ChannelChat, channelChat => channelChat.channelMember)
+  channelChat: ChannelChat;
 }

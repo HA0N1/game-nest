@@ -12,7 +12,7 @@
       <ul id="rooms"></ul>
     </div>
 
-    <div id="chat">Nest Chat</div>
+    <div id="chat">Chat</div>
 
     <input type="text" id="message" placeholder="메시지 입력" />
     <button onclick="sendMessage()">전송</button>
@@ -51,8 +51,21 @@
     // 방 생성 클릭 시 방 생성
     function createRoom() {
       const room = prompt('방이름');
-      roomSocket.emit('createRoom', { room, nickname });
+      const chatType = prompt('채팅 타입');
+      const maximumPeople = prompt('최대 인원');
+      const channelId = prompt('채널');
+      // 방 생성 시 필요한 데이터를 createRoom 이벤트에 함께 전달
+      roomSocket.emit('createRoom', {
+        room,
+        nickname,
+        createChatDto: { title: room, chatType, maximumPeople, channelId },
+      });
     }
+
+    roomSocket.on('roomCreated', function (data) {
+      // 방이 생성되면 서버로부터 새로운 방 목록을 요청
+      roomSocket.emit('requestRooms');
+    });
 
     // 공지
     socket.on('notice', data => {
@@ -64,13 +77,24 @@
       $('#chat').append(`<div>${data.message}</div>`);
     });
     // 클라이언트 측 채팅방 추가
-    roomSocket.on('rooms', data => {
-      console.log(data);
-      $('#rooms').empty(); // 채팅방 갱신 시 초기화
-      data.forEach(room => {
-        $('#rooms').append(`<li>${room} <button onclick="joinRoom('${room}')">join</button></li>`);
+    $(document).ready(function () {
+      // Request chat rooms from the server
+      roomSocket.emit('requestRooms');
+
+      // Handle receiving chat rooms from the server
+      roomSocket.on('rooms', function (data) {
+        updateRoomList(data);
       });
     });
+
+    function updateRoomList(rooms) {
+      // Clear existing room list
+      $('#rooms').empty();
+      // Append received chat rooms to the list
+      rooms.forEach(room => {
+        $('#rooms').append(`<li>${room.title} <button onclick="joinRoom('${room.title}')">join</button></li>`);
+      });
+    }
 
     function joinRoom(room) {
       roomSocket.emit('joinRoom', { room, nickname });
