@@ -7,10 +7,11 @@ import { DMRoom } from 'src/dm/entities/DM-room.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DMModule } from 'src/dm/dm.module';
 import { DMService } from 'src/dm/dm.service';
+import { UserService } from 'src/user/user.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Friendship, FriendDMs, DMRoom]), DMModule],
-  providers: [DMGateway, DMService],
+  providers: [DMGateway, DMService, UserService],
   exports: [DMGateway],
 })
 export class DmEventModule {}

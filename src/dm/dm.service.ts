@@ -100,6 +100,30 @@ export class DMService {
     return checkDmRoom;
   }
 
+  /* 텍스트 채팅 저장 */
+  async saveDM(dmRoomId: string, senderId: string, content: string) {
+    const intSenderId = +senderId;
+    const intDmRoomId = +dmRoomId;
+
+    const sender = await this.userRepository.findOneBy({ id: intSenderId });
+
+    if (!sender) {
+      throw new NotFoundException('조회되지 않는 사용자입니다.');
+    }
+
+    const dmRoom = await this.dmRoomRepository.findOneBy({ id: intDmRoomId });
+
+    if (!dmRoom) {
+      throw new NotFoundException('존재하지 않는 디엠방입니다.');
+    }
+
+    const newMessage = await this.friendDMsRepository.save({
+      content,
+      user: sender,
+      DMRoom: dmRoom,
+    });
+  }
+
   /* 텍스트 채팅 보내기 */
   async sendTextDM(userId: number, dmRoomId: number) {}
 
