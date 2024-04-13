@@ -12,13 +12,10 @@ import { MemberRole } from './type/MemberRole.type';
 import Redis from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { ChannelDMs } from './entities/channelDMs.entity';
-import { Socket } from 'socket.io';
-import { v4 as uuidv4 } from 'uuid';
 import { chatRoomListDTO } from './dto/chatBackEnd.dto';
-import { ChatType } from './type/channel-chat.type';
+
 @Injectable()
 export class ChannelService {
-  private chatRoomList: Record<string, chatRoomListDTO>;
   constructor(
     @InjectRepository(Channel)
     private channelRepository: Repository<Channel>,
@@ -32,15 +29,7 @@ export class ChannelService {
     private userRepository: Repository<User>,
     private dataSource: DataSource,
     @InjectRedis() private readonly redis: Redis,
-  ) {
-    this.chatRoomList = {
-      'room:lobby': {
-        roomId: 'room:lobby',
-        roomName: '로비',
-        cheifId: null,
-      },
-    };
-  }
+  ) {}
 
   // 채널 생성
   async createChannel(userId: number, createChannelDto: CreateChannelDto) {

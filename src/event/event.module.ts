@@ -1,17 +1,15 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { EventGateway } from './event.gateway';
+import { Module } from '@nestjs/common';
+import { ChatGateway, RoomGateway } from './event.gateway';
 import { ChannelModule } from 'src/channel/channel.module';
-import { ChannelService } from 'src/channel/channel.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Channel } from 'src/channel/entities/channel.entity';
-import { ChannelMember } from 'src/channel/entities/channelMember.entity';
-import { ChannelChat } from 'src/channel/entities/channelChat.entity';
-import { ChannelDMs } from 'src/channel/entities/channelDMs.entity';
 import { User } from 'src/user/entities/user.entity';
+import { ChannelDMs } from 'src/channel/entities/channelDMs.entity';
+import { ChannelChat } from 'src/channel/entities/channelChat.entity';
+import { ChannelMember } from 'src/channel/entities/channelMember.entity';
+import { Channel } from 'diagnostics_channel';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Channel, ChannelMember, ChannelChat, ChannelDMs, User]), ChannelModule],
-  providers: [EventGateway, ChannelService],
-  exports: [EventGateway],
+  imports: [TypeOrmModule.forFeature([User, Channel, ChannelMember, ChannelChat, ChannelDMs]), ChannelModule],
+  providers: [ChatGateway, RoomGateway],
 })
 export class EventModule {}

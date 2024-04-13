@@ -3,7 +3,6 @@ import { User } from '../../user/entities/user.entity';
 import { ChannelChat } from './channelChat.entity';
 
 @Entity({ name: 'channel_dms' })
-@Entity({ name: 'channel_dms' })
 export class ChannelDMs {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;

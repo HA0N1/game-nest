@@ -7,10 +7,13 @@ import {
   WebSocketGateway,
   WebSocketServer,
   OnGatewayInit,
+  MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChannelService } from 'src/channel/channel.service';
-import { CreateChatDto } from 'src/channel/dto/create-chat.dto';
+import { ChannelDMs } from 'src/channel/entities/channelDMs.entity';
+import { Repository } from 'typeorm';
+
 /**
  * 게이트 웨이 설정
  * WebSocketGateway() : 기본 포트 3000
@@ -22,45 +25,51 @@ import { CreateChatDto } from 'src/channel/dto/create-chat.dto';
  * WebSocketServer()
  */
 @WebSocketGateway({ namespace: 'chat' })
-export class EventGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly channelService: ChannelService) {}
-
+export class ChatGateway {
+  constructor(
+    private readonly channelService: ChannelService,
+    @InjectRepository(ChannelDMs)
+    private DMsRepo: Repository<ChannelDMs>,
+  ) {}
   @WebSocketServer() server: Server;
-
-  // 새로운 클라이언트가 웹소켓 서버에 연결될 때 호출되는 메소드
-  afterInit(): void {
-    console.log('준비완료');
-  }
-
-  // 웹소켓 서버에 연결될 때 호출되는 메소드
-  handleConnection(socket: Socket) {
-    console.log(`Client connected: ${socket.id}`);
-  }
-
-  // 웹소켓 연결이 종료되었을 때 호출되는 메소드
-  handleDisconnect(socket: Socket) {
-    console.log(`Client disconnected: ${socket.id}`);
-  }
-
-  // @SubscribeMessage('createChat')
-  // async handleCreateChat(
-  //   client: Socket,
-  //   payload: { channelMemberId: number; channelId: number; createChatDto: CreateChatDto },
-  // ): Promise<void> {
-  //   try {
-  //     const chat = await this.channelService.createChat(
-  //       payload.channelMemberId,
-  //       payload.channelId,
-  //       payload.createChatDto,
-  //     );
-  //     this.server.emit('chatCreated', chat);
-  //   } catch (error) {
-  //     client.emit('exception', { message: error.message });
-  //   }
-  // }
 
   @SubscribeMessage('message')
   handleMessage(socket: Socket, data: any): void {
-    this.server.emit('message', `client-${socket.id.substring(0, 4)}: ${data}`);
+    const { message, nickname } = data;
+    socket.broadcast.emit('message', `${nickname}: ${message}`); // 브로드캐스트
+    // this.server.emit('message', `client-${socket.id.substring(0, 4)}: ${data}`);
+  }
+}
+//* ROOM
+@WebSocketGateway({ namespace: 'room' })
+export class RoomGateway {
+  constructor(private readonly chatGateway: ChatGateway) {}
+  rooms = [];
+
+  @WebSocketServer()
+  server: Server;
+
+  @SubscribeMessage('createRoom')
+  handleMessage(@MessageBody() data) {
+    const { nickname, room } = data;
+    console.log('RoomGateway ~ handleMessage ~ room:', room);
+    // 방 생성 시 이벤트
+    this.chatGateway.server.emit('notice', { message: `${nickname}님이 ${room}방을 만들었습니다.` });
+    this.rooms.push(room);
+    this.server.emit('rooms', this.rooms);
+  }
+
+  @SubscribeMessage('joinRoom')
+  handleJoinRoom(socket: Socket, data) {
+    const { nickname, room } = data;
+    this.chatGateway.server.emit('notice', { message: `${nickname}님이 ${room}방에 입장하였습니다` });
+    socket.join(room);
+  }
+
+  @SubscribeMessage('message')
+  handleMessageToRoom(socket: Socket, data: any): void {
+    const { message, room, nickname } = data;
+    console.log(data);
+    socket.broadcast.to(room).emit('message', { message: `${nickname}: ${message}` });
   }
 }

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div>
+      <h2>채팅방 목록</h2>
+      <ul id="rooms"></ul>
+    </div>
+
+    <div id="chat">Nest Chat</div>
+
+    <input type="text" id="message" placeholder="메시지 입력" />
+    <button onclick="sendMessage()">전송</button>
+    <button onclick="createRoom()">채팅 만들기</button>
+
+    <div>
+      <h2>공지</h2>
+      <div id="notice"></div>
+    </div>
+  </body>
+  <!-- 제이쿼리 로드 -->
+  <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
+  <!-- 소켓 클라이언트 로드 -->
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <!-- <script src="./script.js"></script> -->
+  <script>
+    const socket = io('http://localhost:3000/chat');
+    const roomSocket = io('http://localhost:3000/room');
+    let currentRoom = '';
+    const nickname = prompt('닉네임');
+
+    // 메시지 전송
+    function sendMessage() {
+      if (currentRoom === '') {
+        alert('방을 선택해주세요');
+        return;
+      }
+      const message = $('#message').val();
+      const data = { message, nickname, room: currentRoom };
+      $('#chat').append(`<div>나:${message}</div>`);
+      roomSocket.emit('message', data);
+      return false;
+      // socket.emit('message', { message, nickname });
+    }
+
+    // 방 생성 클릭 시 방 생성
+    function createRoom() {
+      const room = prompt('방이름');
+      roomSocket.emit('createRoom', { room, nickname });
+    }
+
+    // 공지
+    socket.on('notice', data => {
+      $('#notice').append(`<div>${data.message}</div>`);
+    });
+    // 채팅방 내에서 대화 나눌 때 사용
+    roomSocket.on('message', data => {
+      console.log(data);
+      $('#chat').append(`<div>${data.message}</div>`);
+    });
+    // 클라이언트 측 채팅방 추가
+    roomSocket.on('rooms', data => {
+      console.log(data);
+      $('#rooms').empty(); // 채팅방 갱신 시 초기화
+      data.forEach(room => {
+        $('#rooms').append(`<li>${room} <button onclick="joinRoom('${room}')">join</button></li>`);
+      });
+    });
+
+    function joinRoom(room) {
+      roomSocket.emit('joinRoom', { room, nickname });
+      $('#chat').html(''); // 채팅방 이동 시 기존 메시지 삭제
+      currentRoom = room;
+    }
+
+    socket.on('connect', () => {
+      console.log('connected');
+    });
+
+    socket.on('message', message => {
+      $('#chat').append(`<div>${message}</div>`);
+    });
+  </script>
+</html>
