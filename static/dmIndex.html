@@ -13,11 +13,13 @@
           <input placeholder="dmRoomId" , type="number" />
           <button>DM Room 입장</button>
         </form>
+        <h4>DM Rooms:</h4>
+        <ul></ul>
       </div>
 
       <div id="dmRoom">
         <h3></h3>
-        <ul>
+        <ul></ul>
         <form id="message">
           <input placeholder="메세지를 입력하세요." , type="text" />
           <button>전송</button>
@@ -28,10 +30,10 @@
   <script src="http://localhost:3000/socket.io/socket.io.js"></script>
   <script>
     const socket = io('http://localhost:3000/direct-message', {
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    reconnectionAttempts: Infinity,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: Infinity,
     });
     const nickname = prompt('닉네임');
     const dmMain = document.getElementById('dmMain');
@@ -49,48 +51,63 @@
       ul.appendChild(li);
     }
 
-    function handleDMSubmit(event){
-        event.preventDefault();
-        const input = dmRoom.querySelector('#message input');
-        const value = input.value;
-        socket.emit('new_message', value, dmRoomId, ()=>{
-            sendDM(`${nickname}:${value}`);
-        })
-        input.value = '';
+    function handleDMSubmit(event) {
+      event.preventDefault();
+      const input = dmRoom.querySelector('#message input');
+      const value = input.value;
+      socket.emit('new_message', value, dmRoomId, () => {
+        sendDM(`${nickname}:${value}`);
+      });
+      input.value = '';
     }
 
-    function createDMRoom(){
-        dmMain.hidden = true;
-        dmRoom.hidden = false;
-        const h3 = dmRoom.querySelector('h3');
-        h3.innerText = `DMRoom ${dmRoomId}`;
+    function createDMRoom() {
+      dmMain.hidden = true;
+      dmRoom.hidden = false;
+      const h3 = dmRoom.querySelector('h3');
+      h3.innerText = `DMRoom ${dmRoomId}`;
 
-        const messageForm = dmRoom.querySelector('#message');
-        messageForm.addEventListener('submit', handleDMSubmit);
+      const messageForm = dmRoom.querySelector('#message');
+      messageForm.addEventListener('submit', handleDMSubmit);
     }
 
-    function handleDMRoomSubmit(event){
-        event.preventDefault();
-        const input = form.querySelector('input');
-        socket.emit('enter_DMroom', input.value, createDMRoom);
-        dmRoomId = input.value;
-        input.value = '';
+    function handleDMRoomSubmit(event) {
+      event.preventDefault();
+      const input = form.querySelector('input');
+      socket.emit('enter_DMroom', input.value, createDMRoom);
+      dmRoomId = input.value;
+      input.value = '';
     }
 
     form.addEventListener('submit', handleDMRoomSubmit);
 
-    socket.on('welcome', (user)=>{
-        const h3 = dmRoom.querySelector('h3');
-        h3.innerText = `DMRoom ${dmRoomId}`;
-        sendDM(`${user}이 입장했습니다.`);
-    })
+    socket.on('welcome', user => {
+      const h3 = dmRoom.querySelector('h3');
+      h3.innerText = `DMRoom ${dmRoomId}`;
+      sendDM(`${user}이 입장했습니다.`);
+    });
 
-    socket.on('bye', (user)=>{
-        const h3 = dmRoom.querySelector('h3');
-        h3.innerText = `DMRoom ${dmRoomId}`;
-        sendDM(`${user}이 퇴장했습니다.`);
-    })
+    socket.on('bye', user => {
+      const h3 = dmRoom.querySelector('h3');
+      h3.innerText = `DMRoom ${dmRoomId}`;
+      sendDM(`${user}이 퇴장했습니다.`);
+    });
 
-    socket.on('new_message', sendDM)
+    socket.on('new_message', sendDM);
+
+    socket.on('DMRoom_change', dmRooms => {
+      const dmRoomList = dmMain.querySelector('ul');
+      dmRoomList.innerHTML = '';
+      if (dmRooms.length === 0) {
+        dmRoomList.innerHTML = '';
+        return;
+      }
+
+      dmRooms.forEach(room => {
+        const li = document.createElement('li');
+        li.innerText = room;
+        dmRoomList.append(li);
+      });
+    });
   </script>
 </html>
