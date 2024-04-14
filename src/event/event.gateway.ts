@@ -76,10 +76,9 @@ export class RoomGateway implements OnGatewayConnection {
 
   @SubscribeMessage('createRoom')
   async handleMessage(@MessageBody() data) {
-    const { room, nickname, createChatDto } = data;
+    const { room, createChatDto } = data;
     const { title, chatType, channelId, maximumPeople } = createChatDto;
     console.log('RoomGateway ~ handleMessage ~ room:', room);
-    this.server.emit('notice', { message: `${nickname}님이 ${room}방을 만들었습니다.` });
     // 채널 서비스의 createChat 함수 호출
     await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
     const rooms = await this.channelService.findAllChat();
@@ -97,26 +96,7 @@ export class RoomGateway implements OnGatewayConnection {
       console.error('Error fetching chat rooms:', error);
     }
   }
-  // @SubscribeMessage('getDms')
-  // async handleGetDms(socket: Socket, data: any): Promise<void> {
-  //   const { room } = data;
-  //   const channelRoom = await this.channelService.findOneChat(room);
-  //   const channelChatId = channelRoom.id;
 
-  //   // DM 데이터 베이스에서 해당 방의 모든 메시지와 발신자 정보 함께 가져오기
-  //   const dms = await this.DMsRepo.createQueryBuilder('dm')
-  //     .leftJoinAndSelect('dm.user', 'user') // 'sender'는 DM 엔티티 내에서 사용자 엔티티를 참조하는 필드명
-  //     .where('dm.channelChatId = :channelChatId', { channelChatId })
-  //     .getMany();
-
-  //   // 클라이언트에게 DM 리스트와 각 메시지의 발신자 닉네임 전송
-  //   const dmsWithNickname = dms.map(dm => ({
-  //     ...dm,
-  //     senderNickname: dm.user.nickname, // 'nickname'은 사용자 엔티티의 닉네임 필드명
-  //   }));
-
-  //   socket.emit('dmHistory', dmsWithNickname);
-  // }
   @SubscribeMessage('requestChatHistory')
   async handleRequestChatHistory(socket: Socket, data: any): Promise<void> {
     const { room } = data;
@@ -155,6 +135,16 @@ export class RoomGateway implements OnGatewayConnection {
 
     this.server.emit('notice', { message: `${nickname}님이 ${room}방에 입장하였습니다` });
     socket.join(room);
+  }
+
+  @SubscribeMessage('chatType')
+  async handleChatType(socket: Socket, data: any) {
+    const { room } = data;
+    const channelRoom = await this.channelService.findOneChat(room);
+    console.log('RoomGateway ~ handleJoinRoom ~ channelRoom:', channelRoom);
+    const chatType = channelRoom.chatType;
+
+    this.server.emit('chatType', chatType);
   }
 
   @SubscribeMessage('message')

@@ -20,4 +20,11 @@ export class AppController {
     const filePath = join(process.cwd(), 'dist', staticPath, 'chat.html');
     res.sendFile(filePath);
   }
+
+  @Get('test')
+  getcallPage(@Res() res: Response) {
+    const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
+    const filePath = join(process.cwd(), 'dist', staticPath, 'test.html');
+    res.sendFile(filePath);
+  }
 }
