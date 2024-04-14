@@ -15,6 +15,7 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import Redis from 'ioredis';
+import { nextTick } from 'process';
 import { Server, Socket } from 'socket.io';
 import { WsGuard } from 'src/auth/guard/ws.guard';
 import { ChannelService } from 'src/channel/channel.service';
@@ -54,26 +55,23 @@ export class RoomGateway implements OnGatewayConnection {
 
   async handleConnection(socket: Socket & { user: User }) {
     console.log(`connect: ${socket.id}`);
-
     const cookie = socket.handshake.headers.cookie;
-    if (!cookie) throw new WsException('no쿠키');
-    // const headers = socket.handshake.headers;
-    // const rawToken = headers['authorization'];
-    // if (!rawToken) {
-    //   throw new WsException('토큰이 없습니다.');
-    // }
-    // try {
-    //   const token = rawToken.split(' ')[1];
+    if (!cookie) {
+      throw new WsException('토큰이 없습니다.');
+    }
+    try {
+      const token = cookie.split('=')[1];
+      const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
+      const user = await this.userService.findUserByEmail(payload.email);
 
-    //   const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
-    //   const user = await this.userService.findUserByEmail(payload.email);
-
-    //   socket.user = user;
-    //   return true;
-    // } catch (error) {
-    //   socket.disconnect();
-    //   throw new WsException(error.message);
-    // }
+      socket.user = user;
+      const userId = socket.user.id;
+      await this.redis.set(`socketId:${socket.id}`, +userId);
+      // const user = await this.redis.get(`socketId:${socket.id}`);
+      return true;
+    } catch (error) {
+      throw new WsException(error.message);
+    }
   }
 
   @SubscribeMessage('createRoom')
@@ -99,27 +97,78 @@ export class RoomGateway implements OnGatewayConnection {
       console.error('Error fetching chat rooms:', error);
     }
   }
+  // @SubscribeMessage('getDms')
+  // async handleGetDms(socket: Socket, data: any): Promise<void> {
+  //   const { room } = data;
+  //   const channelRoom = await this.channelService.findOneChat(room);
+  //   const channelChatId = channelRoom.id;
 
+  //   // DM 데이터 베이스에서 해당 방의 모든 메시지와 발신자 정보 함께 가져오기
+  //   const dms = await this.DMsRepo.createQueryBuilder('dm')
+  //     .leftJoinAndSelect('dm.user', 'user') // 'sender'는 DM 엔티티 내에서 사용자 엔티티를 참조하는 필드명
+  //     .where('dm.channelChatId = :channelChatId', { channelChatId })
+  //     .getMany();
+
+  //   // 클라이언트에게 DM 리스트와 각 메시지의 발신자 닉네임 전송
+  //   const dmsWithNickname = dms.map(dm => ({
+  //     ...dm,
+  //     senderNickname: dm.user.nickname, // 'nickname'은 사용자 엔티티의 닉네임 필드명
+  //   }));
+
+  //   socket.emit('dmHistory', dmsWithNickname);
+  // }
+  @SubscribeMessage('requestChatHistory')
+  async handleRequestChatHistory(socket: Socket, data: any): Promise<void> {
+    const { room } = data;
+
+    try {
+      // 채널 정보 조회
+      const channelRoom = await this.channelService.findOneChat(room);
+      const channelChatId = channelRoom.id;
+
+      // 해당 채널의 채팅 내역 조회
+      const dms = await this.DMsRepo.createQueryBuilder('dm')
+        .leftJoinAndSelect('dm.user', 'user')
+        .where('dm.channelChatId = :channelChatId', { channelChatId })
+        .getMany();
+
+      // 발신자 닉네임과 함께 클라이언트에 전송
+      const dmsWithNickname = dms.map(dm => ({
+        ...dm,
+        senderNickname: dm.user.nickname,
+      }));
+
+      // 클라이언트에게 채팅 내역 전송
+      socket.emit('dmHistory', dmsWithNickname);
+    } catch (error) {
+      // 에러 처리
+      console.error('Error fetching chat history:', error);
+    }
+  }
   @SubscribeMessage('joinRoom')
-  async handleJoinRoom(socket: Socket, data) {
-    const { nickname, room } = data;
+  async handleJoinRoom(socket: Socket & { user: User }, data: any) {
+    const { room } = data;
+
+    const senderId = +(await this.redis.get(`socketId:${socket.id}`));
+    const foundUser = await this.userService.findUserById(+senderId);
+    const nickname = foundUser.nickname;
+
     this.server.emit('notice', { message: `${nickname}님이 ${room}방에 입장하였습니다` });
     socket.join(room);
   }
 
-  @UseGuards(WsGuard)
   @SubscribeMessage('message')
   async handleMessageToRoom(socket: Socket & { user: User }, data: any): Promise<void> {
     const { message, room } = data;
     console.log(data);
 
     const userId = socket.user.id;
-    await this.redis.set(`socketId:${socket.id}`, +userId);
-    const user = await this.redis.get(`socketId:${socket.id}`);
-    const foundUser = await this.userService.findUserById(+user);
-    console.log('RoomGateway ~ handleMessageToRoom ~ foundUser:', foundUser);
+
     const channelRoom = await this.channelService.findOneChat(room);
+    const foundUser = await this.userService.findUserById(+userId);
     const nickname = foundUser.nickname;
+
+    // 메시지 저장
     const dm = this.DMsRepo.create({
       content: message,
       senderId: socket.user.id,

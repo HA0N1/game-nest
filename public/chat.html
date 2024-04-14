@@ -82,15 +82,23 @@
           $('#rooms').append(`<li>${room.title} <button onclick="joinRoom('${room.title}')">join</button></li>`);
         });
       }
-
       function joinRoom(room) {
-        roomSocket.emit('joinRoom', { room, nickname });
+        roomSocket.emit('joinRoom', { room });
         $('#chat').html('');
         currentRoom = room;
+        roomSocket.emit('requestChatHistory', { room });
       }
 
       roomSocket.on('connect', () => {
         console.log('connected', roomSocket.id);
+      });
+
+      roomSocket.on('dmHistory', function (dms) {
+        $('#chat').html('');
+        dms.forEach(dm => {
+          // 각 메시지의 발신자 닉네임을 사용하여 표시
+          $('#chat').append(`<div>${dm.senderNickname}: ${dm.content}</div>`);
+        });
       });
     </script>
   </body>
