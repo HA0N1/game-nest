@@ -152,7 +152,7 @@ export class ChannelService {
     const user = await this.userRepository.findOne({ where: { email }, select: ['id'] });
     const uuid = crypto.randomUUID();
     const userIdAndChannelId = `${user.id}_${channelId}`;
-    await this.redis.setex(`randomKey:${uuid}`, 300, userIdAndChannelId);
+    await this.redis.set(`randomKey:${uuid}`, userIdAndChannelId);
 
     const url = `http://localhost:3000/channel/accept?code=${uuid}`;
 
@@ -170,6 +170,10 @@ export class ChannelService {
 
   // 링크 클릭 시 멤버 생성
   async createMember(userId: number, channelId: number) {
+    const existingMember = await this.channelMemberRepository.findOne({ where: { userId, channelId } });
+    if (existingMember) {
+      throw new NotFoundException('이미 채널에 있는 유저입니다.');
+    }
     const newMember = this.channelMemberRepository.create({
       role: MemberRole.User,
       userId: +userId,
@@ -177,8 +181,17 @@ export class ChannelService {
     });
 
     if (!newMember) throw new NotFoundException('존재하지 않는 user입니다.');
-
     await this.channelMemberRepository.save(newMember);
+    // 채팅방에도 추가
+    const channelChats = await this.channelChatRepository.find({ where: { channelId } });
+
+    await Promise.all(
+      channelChats.map(async chat => {
+        chat.channelMemberId.push(newMember.userId);
+        await this.channelChatRepository.save(chat);
+      }),
+    );
+
     return newMember;
   }
 
@@ -189,7 +202,7 @@ export class ChannelService {
     if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
 
     const chatMembers = await this.channelMemberRepository.find({ where: { channelId } });
-    const memberIds = chatMembers.map(member => member.id);
+    const memberIds = chatMembers.map(member => member.userId);
 
     const chat = this.channelChatRepository.create({
       channelMemberId: memberIds,
@@ -209,6 +222,11 @@ export class ChannelService {
     return chat;
   }
 
+  async findOneChat(title: string) {
+    const sameTitle = await this.channelChatRepository.findOne({ where: { title } });
+
+    return sameTitle;
+  }
   async deleteChat(channelId: number, chatId: number) {
     const channel = await this.ChannelfindById(channelId);
     if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');

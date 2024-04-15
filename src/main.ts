@@ -1,3 +1,4 @@
+//main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -7,18 +8,18 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  /**
+   * useStaticAssets : 정적 파일 경로 지정
+   */
 
-  // // CORS 설정
-  // const corsOptions: CorsOptions = {
-  //   origin: '*',
-  //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  //   credentials: true,
-  // };
-  // app.enableCors(corsOptions);
-  // //소켓 어뎁터로 연결 합니다.
-  // app.useWebSocketAdapter(new IoAdapter(app));
+  app.enableCors({
+    origin: 'http://example.com',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
 
-  app.useStaticAssets(join(__dirname, '..', 'static'));
+  app.useStaticAssets('public');
   await app.listen(3000);
 }
 bootstrap();

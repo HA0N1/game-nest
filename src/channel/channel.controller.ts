@@ -63,16 +63,16 @@ export class ChannelController {
   }
 
   //* chat
-  // @UseGuards(AuthGuard('jwt'))
-  // @Post(':channelId/chat')
-  // async createChat(
-  //   @UserInfo() user: User,
-  //   @Param('channelId') channelId: string,
-  //   @Body() createChatDto: CreateChatDto,
-  // ) {
-  //   await this.channelService.createChat(+user.id, +channelId, createChatDto);
-  //   return { message: '채팅방 생성이 완료되었습니다.' };
-  // }
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':channelId/chat')
+  async createChat(
+    @UserInfo() user: User,
+    @Param('channelId') channelId: string,
+    @Body() createChatDto: CreateChatDto,
+  ) {
+    await this.channelService.createChat(+channelId, createChatDto);
+    return { message: '채팅방 생성이 완료되었습니다.' };
+  }
 
   @Delete(':channelId/chat/:chatId')
   async removeChat(@Param('channelId') channelId: string, @Param('chatId') chatId: string) {

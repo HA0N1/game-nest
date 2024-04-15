@@ -19,7 +19,7 @@ export class ChannelDMs {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User, user => user.friendDms)
+  @ManyToOne(() => User, user => user.channelDMs)
   @JoinColumn({ name: 'sender_id', referencedColumnName: 'id' })
   user: User;
 
