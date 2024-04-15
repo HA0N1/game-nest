@@ -17,7 +17,11 @@
     <input type="text" id="message" placeholder="메시지 입력" />
     <button onclick="sendMessage()">전송</button>
     <button onclick="createRoom()">채팅 만들기</button>
-
+    <div id="container">
+      <video id="gum-local" autoplay playsinline></video>
+      <button id="toggleVideo">카메라 켜기/끄기</button>
+      <!-- 버튼 수정 -->
+    </div>
     <div>
       <h2>공지</h2>
       <div id="notice"></div>
@@ -25,12 +29,13 @@
 
     <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
     <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 
     <script>
+      document.getElementById('container').style.display = 'none';
       const token = document.cookie;
       const roomSocket = io('http://localhost:3000/room', { auth: { token: token } });
       let currentRoom = '';
-      const nickname = prompt('닉네임');
 
       function sendMessage() {
         if (currentRoom === '') {
@@ -38,20 +43,19 @@
           return;
         }
         const message = $('#message').val();
-        const data = { message, nickname, room: currentRoom };
+        const data = { message, room: currentRoom };
         $('#chat').append(`<div>나:${message}</div>`);
         roomSocket.emit('message', data);
         return false;
       }
 
       function createRoom() {
-        const room = prompt('방이름');
-        const chatType = prompt('채팅 타입');
-        const maximumPeople = prompt('최대 인원');
-        const channelId = prompt('채널');
+        const room = prompt('방이름을 입력해주세요.');
+        const chatType = prompt('채팅 타입을 입력해주세요.');
+        const maximumPeople = prompt('최대 인원을 입력해주세요.');
+        const channelId = prompt('만드려는 채팅의 채널ID를 입력해주세요.');
         roomSocket.emit('createRoom', {
           room,
-          nickname,
           createChatDto: { title: room, chatType, maximumPeople, channelId },
         });
       }
@@ -82,12 +86,22 @@
           $('#rooms').append(`<li>${room.title} <button onclick="joinRoom('${room.title}')">join</button></li>`);
         });
       }
+
       function joinRoom(room) {
         roomSocket.emit('joinRoom', { room });
         $('#chat').html('');
         currentRoom = room;
         roomSocket.emit('requestChatHistory', { room });
+        roomSocket.emit('chatType', { room });
       }
+
+      roomSocket.on('chatType', type => {
+        if (type === 'voice') {
+          document.getElementById('container').style.display = 'block';
+        } else {
+          document.getElementById('container').style.display = 'none';
+        }
+      });
 
       roomSocket.on('connect', () => {
         console.log('connected', roomSocket.id);
@@ -100,6 +114,36 @@
           $('#chat').append(`<div>${dm.senderNickname}: ${dm.content}</div>`);
         });
       });
+
+      const constraints = (window.constraints = {
+        audio: true,
+        video: true,
+      });
+      let isCameraOn = true;
+
+      function toggleCamera() {
+        const video = document.querySelector('video');
+        if (isCameraOn) {
+          // 카메라 켜져 있으면 끄기
+          video.srcObject = null;
+          isCameraOn = false;
+          document.querySelector('#toggleVideo').textContent = '카메라 켜기';
+        } else {
+          // 꺼져 있으면 켜기
+          navigator.mediaDevices
+            .getUserMedia(constraints)
+            .then(stream => {
+              video.srcObject = stream;
+              isCameraOn = true;
+              document.querySelector('#toggleVideo').textContent = '카메라 끄기';
+            })
+            .catch(error => {
+              console.error('Error accessing camera:', error);
+            });
+        }
+      }
+
+      document.querySelector('#toggleVideo').addEventListener('click', toggleCamera);
     </script>
   </body>
 </html>

@@ -6,20 +6,15 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   OnGatewayConnection,
-  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  OnGatewayInit,
   MessageBody,
   WsException,
 } from '@nestjs/websockets';
 import Redis from 'ioredis';
-import { nextTick } from 'process';
 import { Server, Socket } from 'socket.io';
-import { WsGuard } from 'src/auth/guard/ws.guard';
 import { ChannelService } from 'src/channel/channel.service';
-import { CreateChatDto } from 'src/channel/dto/create-chat.dto';
 import { ChannelDMs } from 'src/channel/entities/channelDMs.entity';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
@@ -56,6 +51,7 @@ export class RoomGateway implements OnGatewayConnection {
   async handleConnection(socket: Socket & { user: User }) {
     console.log(`connect: ${socket.id}`);
     const cookie = socket.handshake.headers.cookie;
+
     if (!cookie) {
       throw new WsException('토큰이 없습니다.');
     }
@@ -79,10 +75,17 @@ export class RoomGateway implements OnGatewayConnection {
     const { room, createChatDto } = data;
     const { title, chatType, channelId, maximumPeople } = createChatDto;
     console.log('RoomGateway ~ handleMessage ~ room:', room);
-    // 채널 서비스의 createChat 함수 호출
-    await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
-    const rooms = await this.channelService.findAllChat();
-    this.server.emit('rooms', rooms);
+    try {
+      const chat = await this.channelService.findOneChat(room);
+      console.log('RoomGateway ~ handleMessage ~ chat:', chat);
+      if (chat) throw new WsException('채팅방 이름이 중복되었습니다.');
+      // 채널 서비스의 createChat 함수 호출
+      await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
+      const rooms = await this.channelService.findAllChat();
+      this.server.emit('rooms', rooms);
+    } catch (error) {
+      throw new WsException(error.message);
+    }
   }
 
   @SubscribeMessage('requestRooms')
@@ -138,7 +141,7 @@ export class RoomGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('chatType')
-  async handleChatType(socket: Socket, data: any) {
+  async handleChatType(data: any) {
     const { room } = data;
     const channelRoom = await this.channelService.findOneChat(room);
     console.log('RoomGateway ~ handleJoinRoom ~ channelRoom:', channelRoom);
