@@ -2,7 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="WebRTC code samples" />
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1" />
+    <meta itemprop="description" content="Client-side WebRTC code samples" />
+    <meta itemprop="name" content="WebRTC code samples" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta id="theme-color" name="theme-color" content="#ffffff" />
+
+    <base target="_blank" />
     <title>Chat Application</title>
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -15,17 +22,40 @@
     <div id="chat">Chat</div>
 
     <input type="text" id="message" placeholder="메시지 입력" />
-    <button onclick="sendMessage()">전송</button>
-    <button onclick="createRoom()">채팅 만들기</button>
-    <div id="container">
-      <video id="gum-local" autoplay playsinline></video>
-      <button id="toggleVideo">카메라 켜기/끄기</button>
-      <!-- 버튼 수정 -->
+    <div>
+      <button onclick="sendMessage()">전송</button>
+      <button onclick="createRoom()">채팅 만들기</button>
     </div>
+    <div id="container">
+      <div>
+        <video id="gum-local" autoplay playsinline></video>
+        <button id="toggleVideo" onclick="toggleCamera()">카메라</button>
+      </div>
+      <div>
+        <video id="video2" autoplay playsinline muted></video>
+        <button id="startButton" disabled>화면공유 시작</button>
+        <fieldset id="options" style="display: none">
+          <legend>Advanced options</legend>
+          <select id="displaySurface">
+            <option value="default" selected>화면공유 옵션</option>
+            <option value="browser">브라우저 탭</option>
+            <option value="window">윈도우</option>
+            <option value="monitor">스크린</option>
+          </select>
+        </fieldset>
+        <div id="errorMsg"></div>
+        <!-- 버튼 수정 -->
+      </div>
+    </div>
+
     <div>
       <h2>공지</h2>
       <div id="notice"></div>
     </div>
+
+    <!-- <div id="container2">
+
+    </div> -->
 
     <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
     <script src="http://localhost:3000/socket.io/socket.io.js"></script>
@@ -33,6 +63,7 @@
 
     <script>
       document.getElementById('container').style.display = 'none';
+
       const token = document.cookie;
       const roomSocket = io('http://localhost:3000/room', { auth: { token: token } });
       let currentRoom = '';
@@ -43,6 +74,7 @@
           return;
         }
         const message = $('#message').val();
+
         const data = { message, room: currentRoom };
         $('#chat').append(`<div>나:${message}</div>`);
         roomSocket.emit('message', data);
@@ -59,10 +91,6 @@
           createChatDto: { title: room, chatType, maximumPeople, channelId },
         });
       }
-
-      roomSocket.on('roomCreated', function (data) {
-        roomSocket.emit('requestRooms');
-      });
 
       roomSocket.on('notice', data => {
         $('#notice').append(`<div>${data.message}</div>`);
@@ -93,9 +121,11 @@
         currentRoom = room;
         roomSocket.emit('requestChatHistory', { room });
         roomSocket.emit('chatType', { room });
+        roomSocket.emit('broadcastScreenSharing', { room });
       }
 
       roomSocket.on('chatType', type => {
+        console.log('type:', type);
         if (type === 'voice') {
           document.getElementById('container').style.display = 'block';
         } else {
@@ -106,7 +136,9 @@
       roomSocket.on('connect', () => {
         console.log('connected', roomSocket.id);
       });
-
+      roomSocket.on('screenSharingStream', data => {
+        console.log('test1', data);
+      });
       roomSocket.on('dmHistory', function (dms) {
         $('#chat').html('');
         dms.forEach(dm => {
@@ -142,8 +174,102 @@
             });
         }
       }
+      const preferredDisplaySurface = document.getElementById('displaySurface');
+      const startButton = document.getElementById('startButton');
 
-      document.querySelector('#toggleVideo').addEventListener('click', toggleCamera);
+      if (adapter.browserDetails.browser === 'chrome' && adapter.browserDetails.version >= 107) {
+        // See https://developer.chrome.com/docs/web-platform/screen-sharing-controls/
+        document.getElementById('options').style.display = 'block';
+      } else if (adapter.browserDetails.browser === 'firefox') {
+        // Polyfill in Firefox.
+        // See https://blog.mozilla.org/webrtc/getdisplaymedia-now-available-in-adapter-js/
+        adapter.browserShim.shimGetDisplayMedia(window, 'screen');
+      }
+
+      function handleError(error) {
+        errorMsg(`디스플레이를 불러오지 못하였습니다.: ${error.name}`, error);
+      }
+
+      function errorMsg(msg, error) {
+        const errorElement = document.querySelector('#errorMsg');
+        errorElement.innerHTML += `<p>${msg}</p>`;
+        if (typeof error !== 'undefined') {
+          console.error(error);
+        }
+      }
+      // 화면공유
+      function handleSuccess(stream) {
+        console.log('handleSuccess ~ stream:', stream);
+        startButton.disabled = true;
+        preferredDisplaySurface.disabled = true;
+        const video = document.getElementById('video2');
+        video.srcObject = stream;
+        const room = currentRoom;
+        roomSocket.emit('broadcastScreenSharing', {
+          room,
+          streamId: stream.id,
+          trackIds: stream.getTracks().map(track => track.id),
+        });
+        // 사용자가 멈췄는지 감지하는 방법
+        // 브라우저 UI를 통해 화면을 공유
+        stream.getVideoTracks()[0].addEventListener('ended', () => {
+          errorMsg('사용자가 화면 공유를 종료했습니다.');
+          startButton.disabled = false;
+          preferredDisplaySurface.disabled = false;
+        });
+      }
+      // function handleSuccess(stream) {
+      //   console.log('handleSuccess ~ stream:', stream);
+      //   startButton.disabled = true;
+      //   preferredDisplaySurface.disabled = true;
+      //   const video = document.getElementById('video2');
+      //   video.srcObject = stream;
+      //   const room = currentRoom;
+      //   // 스트림의 id만을 전송
+      //   roomSocket.emit('broadcastScreenSharing', { room, streamId: stream.id });
+      //   // 사용자가 멈췄는지 감지하는 방법
+      //   // 브라우저 UI를 통해 화면을 공유
+      //   stream.getVideoTracks()[0].addEventListener('ended', () => {
+      //     errorMsg('사용자가 화면 공유를 종료했습니다.');
+      //     startButton.disabled = false;
+      //     preferredDisplaySurface.disabled = false;
+      //   });
+      // }
+      startButton.addEventListener('click', () => {
+        const options = { audio: true, video: true };
+        const displaySurface = preferredDisplaySurface.options[preferredDisplaySurface.selectedIndex].value;
+        if (displaySurface !== 'default') {
+          options.video = { displaySurface };
+        }
+
+        // Start screen sharing
+        navigator.mediaDevices
+          .getDisplayMedia(options)
+          .then(handleSuccess) // Pass the stream to handleSuccess function
+          .catch(handleError);
+      });
+
+      // Check if screen sharing is supported
+      if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
+        startButton.disabled = false;
+      } else {
+        errorMsg('getDisplayMedia is not supported');
+      }
+      // startButton.addEventListener('click', () => {
+      //   const options = { audio: true, video: true };
+      //   const displaySurface = preferredDisplaySurface.options[preferredDisplaySurface.selectedIndex].value;
+      //   if (displaySurface !== 'default') {
+      //     options.video = { displaySurface };
+      //   }
+      //   navigator.mediaDevices.getDisplayMedia(options).then(handleSuccess, handleError);
+      // });
+
+      // if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
+      //   startButton.disabled = false;
+      // } else {
+      //   errorMsg('getDisplayMedia is not supported');
+      // }
     </script>
+    <script></script>
   </body>
 </html>

@@ -41,14 +41,12 @@ export class RoomGateway implements OnGatewayConnection {
 
     @InjectRepository(ChannelDMs)
     private DMsRepo: Repository<ChannelDMs>,
-    @InjectRepository(User)
-    private userRepo: Repository<User>,
     @InjectRedis() private readonly redis: Redis,
   ) {}
   rooms = [];
   @WebSocketServer() server: Server;
 
-  async handleConnection(socket: Socket & { user: User }) {
+  async handleConnection(socket: Socket & { user: User }, data: any) {
     console.log(`connect: ${socket.id}`);
     const cookie = socket.handshake.headers.cookie;
 
@@ -63,7 +61,8 @@ export class RoomGateway implements OnGatewayConnection {
       socket.user = user;
       const userId = socket.user.id;
       await this.redis.set(`socketId:${socket.id}`, +userId);
-      // const user = await this.redis.get(`socketId:${socket.id}`);
+      // TODO: 브라우저에서 서버 연결 시 채널멤버 추가 해야 함
+      // await this.channelService.createMember(userId, channelId);
       return true;
     } catch (error) {
       throw new WsException(error.message);
@@ -71,7 +70,7 @@ export class RoomGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('createRoom')
-  async handleMessage(@MessageBody() data) {
+  async handleMessage(socket: Socket & { user: User }, @MessageBody() data) {
     const { room, createChatDto } = data;
     const { title, chatType, channelId, maximumPeople } = createChatDto;
     console.log('RoomGateway ~ handleMessage ~ room:', room);
@@ -81,6 +80,8 @@ export class RoomGateway implements OnGatewayConnection {
       if (chat) throw new WsException('채팅방 이름이 중복되었습니다.');
       // 채널 서비스의 createChat 함수 호출
       await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
+      const userId = +(await this.redis.get(`socketId:${socket.id}`));
+      await this.channelService.createMember(+userId, +channelId);
       const rooms = await this.channelService.findAllChat();
       this.server.emit('rooms', rooms);
     } catch (error) {
@@ -128,6 +129,7 @@ export class RoomGateway implements OnGatewayConnection {
       console.error('Error fetching chat history:', error);
     }
   }
+  // * 채팅방
   @SubscribeMessage('joinRoom')
   async handleJoinRoom(socket: Socket & { user: User }, data: any) {
     const { room } = data;
@@ -135,13 +137,12 @@ export class RoomGateway implements OnGatewayConnection {
     const senderId = +(await this.redis.get(`socketId:${socket.id}`));
     const foundUser = await this.userService.findUserById(+senderId);
     const nickname = foundUser.nickname;
-
     this.server.emit('notice', { message: `${nickname}님이 ${room}방에 입장하였습니다` });
     socket.join(room);
   }
 
   @SubscribeMessage('chatType')
-  async handleChatType(data: any) {
+  async handleChatType(socket: Socket, data: any) {
     const { room } = data;
     const channelRoom = await this.channelService.findOneChat(room);
     console.log('RoomGateway ~ handleJoinRoom ~ channelRoom:', channelRoom);
