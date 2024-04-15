@@ -2,7 +2,7 @@ import { Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 
 import { Friendship } from './friendship.entity';
 import { FriendDMs } from './friendDMs.entity';
 
-@Entity({ name: 'DMRoom' })
+@Entity({ name: 'dm_room' })
 export class DMRoom {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;

@@ -9,8 +9,9 @@ import { ChannelChat } from './entities/channelChat.entity';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { User } from 'src/user/entities/user.entity';
 import { MemberRole } from './type/MemberRole.type';
-import redisCache from 'src/redis/config';
-import { RedisCache } from 'cache-store-manager/redis';
+import Redis from 'ioredis';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+
 @Injectable()
 export class ChannelService {
   constructor(
@@ -23,6 +24,7 @@ export class ChannelService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private dataSource: DataSource,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   // 채널 생성
@@ -126,7 +128,7 @@ export class ChannelService {
     const user = await this.userRepository.findOne({ where: { email }, select: ['id'] });
     const uuid = crypto.randomUUID();
     const userIdAndChannelId = `${user.id}_${channelId}`;
-    await redisCache.set(`randomKey:${uuid}`, userIdAndChannelId);
+    await this.redis.set(`randomKey:${uuid}`, userIdAndChannelId);
 
     const url = `http://localhost:3000/channel/accept?code=${uuid}`;
     const a = await this.getUserIdAndChannelIdFromLink(uuid);
@@ -137,7 +139,7 @@ export class ChannelService {
   // 링크를 해독하여 user와 channel id를 추출, 멤버 생성 함수로 연결
 
   async getUserIdAndChannelIdFromLink(uuid: string) {
-    const Info = await redisCache.get(`randomKey:${uuid}`);
+    const Info = await this.redis.get(`randomKey:${uuid}`);
     const userId = +Info.split('_')[0];
     const channelId = +Info.split('_')[1];
     await this.createMember(userId, channelId);

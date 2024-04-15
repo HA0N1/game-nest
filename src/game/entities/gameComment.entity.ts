@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { Game } from './game.entity';
 
-@Entity({ name: 'gameComment' })
+@Entity({ name: 'game_comment' })
 export class GameComment {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;

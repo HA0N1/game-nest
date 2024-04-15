@@ -27,8 +27,6 @@ export class UserController {
 
     const user = await this.userService.findUserByEmail(emailLoginDto.email);
 
-    const userId = user.id.toString();
-
     return { message: login.message, accessToken: login.accessToken };
   }
 
@@ -36,7 +34,8 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Get('userinfo')
   async findOne(@UserInfo() user: User) {
-    return { id: user.id, email: user.email, nickname: user.nickname };
+    const interestGenres = await this.userService.findInterestGenres(user);
+    return { id: user.id, email: user.email, nickname: user.nickname, interestGenres };
   }
 
   /* 닉네임 수정 */
@@ -57,13 +56,34 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Patch('interest-genre')
   async updateInterestGenre(@UserInfo() user: User, @Body() InterestGenre: any) {
-    return await this.userService.updateIG(user.id, InterestGenre);
+    const genresObject = Object.values(InterestGenre);
+    const genres = genresObject.join();
+
+    if (InterestGenre.interestGenre.length === 0) {
+      // 기존의 관심 장르들 모두 삭제
+      return await this.userService.removeAll(user.id);
+    } else {
+      // 겹치지 않은 기존의 관심 장르 삭제
+      const removeInterestGenre = await this.userService.removeIG(user.id, genres);
+      // 새 관심 장르 생성
+      return await this.userService.addIG(user.id, removeInterestGenre);
+    }
+  }
+  /* 로그아웃 */
+  @UseGuards(AuthGuard('jwt'))
+  @Post('logout')
+  async logout(@UserInfo() user: User) {
+    const userId = user.id;
+
+    return await this.userService.logout(userId);
   }
 
   /* 회원 탈퇴 */
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return await this.userService.remove(+id);
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('delete')
+  async remove(@UserInfo() user: User, @Body() password: string) {
+    const userId = user.id;
+    return await this.userService.remove(userId, password);
   }
 
   // 프로필 이미지 업로드

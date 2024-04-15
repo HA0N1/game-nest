@@ -1,11 +1,11 @@
 export enum GameGenre {
-  Action,
-  Shooting,
-  RolePlaying,
-  Strategy,
   Adventure,
+  RPG,
+  Action,
+  Strategy,
   Simulation,
-  SportsRacing,
-  Puzzle,
-  Music,
+  Casual,
+  Indie,
+  Racing,
+  Sports,
 }

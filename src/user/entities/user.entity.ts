@@ -10,13 +10,13 @@ import {
 } from 'typeorm';
 
 import { Exclude } from 'class-transformer';
-import { Friendship } from './friendship.entity';
+import { Friendship } from 'src/friend/entities/friendship.entity';
 import { Like } from './like.entity';
 import { Post } from '../../post/entities/post.entity';
 import { PostComment } from '../../comment/entities/comment.entity';
 import { ChannelDMs } from '../../channel/entities/channelDMs.entity';
 import { ChannelMember } from '../../channel/entities/channelMember.entity';
-import { FriendDMs } from './friendDMs.entity';
+import { FriendDMs } from 'src/friend/entities/friendDMs.entity';
 import { Channel } from 'src/channel/entities/channel.entity';
 import { InterestGenre } from './interestGenre.entity';
 import { GameComment } from 'src/game/entities/gameComment.entity';
