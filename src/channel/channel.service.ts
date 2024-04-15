@@ -80,7 +80,6 @@ export class ChannelService {
       console.log('ChannelService ~ updateChannel ~ channel:', channel);
 
       if (!channel) throw new NotFoundException('존재하지 않는 채널입니다.');
-
       const channelMembers = await this.channelMemberRepository.find({
         where: { channel: { id } }, // 채널 테이블
         relations: ['user', 'channel'], // 사용자 정보를 가져오기 위해 관계 로드

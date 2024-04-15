@@ -65,4 +65,12 @@ export class UserController {
   async remove(@Param('id') id: string) {
     return await this.userService.remove(+id);
   }
+
+  // 프로필 이미지 업로드
+  // @UseGuards(AuthGuard('jwt'))
+  // @UseInterceptors(FileInterceptor('profileImage'))
+  // @Post('upload-profile-image')
+  // async uploadProfileImage(@UserInfo() user: User, @UploadedFile() file: Express.Multer.File) {
+  //   return await this.userService.uploadProfileImage(user.id, file);
+  // }
 }

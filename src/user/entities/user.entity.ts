@@ -73,10 +73,11 @@ export class User {
 
   @OneToMany(() => InterestGenre, interestGenre => interestGenre.user)
   @JoinColumn({ name: 'interestGenre_id' })
-
-  // @OneToOne(()=>File, (file) => file.user)
-  // file:File
   interestGenre: InterestGenre[];
+
+  // @OneToMany(()=>File, (file) => file.user)
+  // @JoinColumn({ name: 'file_id' })
+  // file:File[]
 
   @OneToMany(() => FriendDMs, friendDMs => friendDMs.DMRoom)
   @JoinColumn({ name: 'friend_DM_id' })
