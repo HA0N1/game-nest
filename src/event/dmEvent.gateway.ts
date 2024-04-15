@@ -32,7 +32,7 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // clientNickname: { [socketId: string]: string } = {};
   // roomUsers: { [key: string]: string[] } = {};
 
-  // wsClients = [];
+  wsClients = [];
 
   @SubscribeMessage('joinDM')
   handleJoinDM(socket: Socket, data) {
@@ -51,7 +51,34 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const dmRoomName = `DMRoom: ${dmRoomId}`;
     socket.to(dmRoomName).emit('receiveMessage', { userId, content });
 
-    await this.dmService.saveDM(dmRoomId, content, userId);
+    await this.dmService.saveDM(dmRoomId, userId, content);
   }
+
+  async handleConnection(client: Socket) {
+    const socketId = client.id;
+    this.addClient(socketId);
+  }
+
+  async handleDisconnect(client: Socket) {
+    const socketId = +client.id;
+    this.removeClient(socketId);
+
+    const clientInfo = await this.userService.findUserById(socketId);
+    if (!clientInfo) {
+      return { code: 404, message: '유저 정보가 검색되지 않습니다.' };
+    }
+  }
+
+  addClient(client) {
+    this.wsClients.push(client);
+  }
+
+  removeClient(client) {
+    const index = this.wsClients.indexOf(client);
+    if (index !== -1) {
+      this.wsClients.splice(index, 1);
+    }
+  }
+
   // TODO: mongoDB 연결하기
 }
