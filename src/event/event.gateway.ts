@@ -73,18 +73,18 @@ export class RoomGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('createRoom')
-  async handleMessage(socket: Socket & { user: User }, @MessageBody() data) {
+  async handleMessage(socket: Socket & { user: User }, data: any) {
     const { room, createChatDto } = data;
     const { title, chatType, channelId, maximumPeople } = createChatDto;
-    console.log('RoomGateway ~ handleMessage ~ room:', room);
     try {
       const chat = await this.channelService.findOneChat(room);
       console.log('RoomGateway ~ handleMessage ~ chat:', chat);
       if (chat) throw new WsException('채팅방 이름이 중복되었습니다.');
       // 채널 서비스의 createChat 함수 호출
+      const socketId = socket.id;
       await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
       const userId = +(await this.redis.get(`socketId:${socket.id}`));
-      await this.channelService.createMember(+userId, +channelId);
+      // await this.channelService.createMember(+userId, +channelId);
       const rooms = await this.channelService.findAllChat();
       this.server.emit('rooms', rooms);
     } catch (error) {
