@@ -14,6 +14,7 @@ import {
 } from '@nestjs/websockets';
 import Redis from 'ioredis';
 import { Server, Socket } from 'socket.io';
+import { WsGuard } from 'src/auth/guard/ws.guard';
 import { ChannelService } from 'src/channel/channel.service';
 import { ChannelDMs } from 'src/channel/entities/channelDMs.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -41,6 +42,8 @@ export class RoomGateway implements OnGatewayConnection {
 
     @InjectRepository(ChannelDMs)
     private DMsRepo: Repository<ChannelDMs>,
+    @InjectRepository(User)
+    private userRepo: Repository<User>,
     @InjectRedis() private readonly redis: Redis,
   ) {}
   rooms = [];
@@ -129,7 +132,6 @@ export class RoomGateway implements OnGatewayConnection {
       console.error('Error fetching chat history:', error);
     }
   }
-  // * 채팅방
   @SubscribeMessage('joinRoom')
   async handleJoinRoom(socket: Socket & { user: User }, data: any) {
     const { room } = data;
@@ -170,5 +172,16 @@ export class RoomGateway implements OnGatewayConnection {
     });
     await this.DMsRepo.save(dm);
     socket.broadcast.to(room).emit('message', { message: `${nickname}: ${message}` });
+  }
+  @SubscribeMessage('broadcastScreenSharing')
+  async handleBroadcastScreenSharing(socket: Socket, data: any): Promise<void> {
+    const { room, stream } = data;
+    console.log('RoomGateway ~ handleBroadcastScreenSharing ~ room:', room);
+    console.log('RoomGateway ~ handleBroadcastScreenSharing ~ stream:', stream);
+
+    // Get the room of the user sharing the screen
+
+    // Broadcast the screen sharing stream to all users in the room
+    socket.to(room).emit('screenSharingStream', { stream });
   }
 }
