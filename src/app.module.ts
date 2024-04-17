@@ -30,6 +30,7 @@ import { FriendModule } from './friend/friend.module';
 import { RoomGateway } from './event/event.gateway';
 import { EventModule } from './event/event.module';
 import { AppController } from './app.controller';
+import { DmEventModule } from './event/dmEvent.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -88,6 +89,7 @@ const typeOrmModuleOptions = {
     FriendModule,
     DMModule,
     EventModule,
+    DmEventModule,
   ],
   controllers: [AppController],
   providers: [GameService],

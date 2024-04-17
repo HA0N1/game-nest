@@ -25,5 +25,6 @@ import { DMRoom } from './entities/DM-room.entity';
   ],
   controllers: [DMController],
   providers: [DMService],
+  exports: [DMService],
 })
 export class DMModule {}

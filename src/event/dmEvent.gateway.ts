@@ -13,10 +13,11 @@ import {
 import { Server, Socket } from 'socket.io';
 import { DMService } from 'src/dm/dm.service';
 import { FriendDMs } from 'src/dm/entities/friendDMs.entity';
+import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 
-@WebSocketGateway({ cors: 'localhost:3000', namespace: 'direct_message' })
+@WebSocketGateway({ namespace: 'friendDM' })
 export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
@@ -24,49 +25,20 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly dmService: DMService,
     private readonly userService: UserService,
-    @InjectRepository(FriendDMs)
-    private friendDMRepo: Repository<FriendDMs>,
   ) {}
-
-  // connectedClients: { [socketId: string]: boolean } = {};
-  // clientNickname: { [socketId: string]: string } = {};
-  // roomUsers: { [key: string]: string[] } = {};
 
   wsClients = [];
 
-  @SubscribeMessage('joinDM')
-  handleJoinDM(socket: Socket, data) {
-    const { dmRoomId } = data;
-    const dmRoomName = `DMRoom: ${dmRoomId}`;
-    socket.join(dmRoomName);
-    console.log('join', '참여 완료');
-  }
+  async handleConnection(@ConnectedSocket() client: Socket) {
+    console.log(`dm connect:${client.id}`);
 
-  @SubscribeMessage('sendMessage')
-  async handleMessage(
-    @MessageBody() message: { dmRoomId: string; content: string; userId: string },
-    @ConnectedSocket() socket: Socket,
-  ) {
-    const { dmRoomId, content, userId } = message;
-    const dmRoomName = `DMRoom: ${dmRoomId}`;
-    socket.to(dmRoomName).emit('receiveMessage', { userId, content });
-
-    await this.dmService.saveDM(dmRoomId, userId, content);
-  }
-
-  async handleConnection(client: Socket) {
     const socketId = client.id;
     this.addClient(socketId);
   }
 
-  async handleDisconnect(client: Socket) {
-    const socketId = +client.id;
+  async handleDisconnect(@ConnectedSocket() client: Socket) {
+    const socketId = client.id;
     this.removeClient(socketId);
-
-    const clientInfo = await this.userService.findUserById(socketId);
-    if (!clientInfo) {
-      return { code: 404, message: '유저 정보가 검색되지 않습니다.' };
-    }
   }
 
   addClient(client) {
@@ -80,5 +52,23 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  // TODO: mongoDB 연결하기
+  @SubscribeMessage('joinDM')
+  handleJoinDM(@ConnectedSocket() socket: Socket, @MessageBody() roomData: any) {
+    console.log('백엔드: ', roomData);
+    const dmRoomName = `DMRoom: ${roomData}`;
+    socket.join(dmRoomName);
+    console.log('join', '참여 완료');
+  }
+
+  @SubscribeMessage('sendMessage')
+  async handleMessage(
+    @MessageBody() message: { dmRoomId: string; content: string; userId: string },
+    @ConnectedSocket() socket: Socket,
+  ) {
+    const { dmRoomId, content, userId } = message;
+    const dmRoomName = `DMRoom: ${dmRoomId}`;
+    socket.to(dmRoomName).emit('receiveMessage', { userId, content });
+
+    // await this.dmService.saveDM(dmRoomId, userId, content);
+  }
 }

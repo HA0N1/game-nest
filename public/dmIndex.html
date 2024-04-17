@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FriendDm</title>
+    <title>FriendDM</title>
   </head>
   <body>
     <header><h1>FriendDM</h1></header>
     <main>
       <div id="dmMain">
         <form>
-          <input placeholder="dmRoomId" , type="number" />
+          <input id="dmRoomId" placeholder="dmRoomId" type="text" />
           <button>DM Room 입장</button>
         </form>
         <h4>DM Rooms:</h4>
@@ -29,18 +29,13 @@
   </body>
   <script src="http://localhost:3000/socket.io/socket.io.js"></script>
   <script>
-    const socket = io('http://localhost:3000/direct-message', {
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: Infinity,
-    });
-    const nickname = prompt('닉네임');
+    const socket = io('http://localhost:3000/friendDM');
+
     const dmMain = document.getElementById('dmMain');
     const form = dmMain.querySelector('form');
     const dmRoom = document.getElementById('dmRoom');
-
     dmRoom.hidden = true;
+    // const token = document.cookie;
 
     let dmRoomId = '';
 
@@ -56,7 +51,7 @@
       const input = dmRoom.querySelector('#message input');
       const value = input.value;
       socket.emit('new_message', value, dmRoomId, () => {
-        sendDM(`${nickname}:${value}`);
+        sendDM(`나:${value}`);
       });
       input.value = '';
     }
@@ -65,21 +60,25 @@
       dmMain.hidden = true;
       dmRoom.hidden = false;
       const h3 = dmRoom.querySelector('h3');
+      const input = form.querySelector('input');
+      const dmRoomId = input.value;
+      console.log('createDMRoom', dmRoomId);
       h3.innerText = `DMRoom ${dmRoomId}`;
+      input.value = '';
 
       const messageForm = dmRoom.querySelector('#message');
       messageForm.addEventListener('submit', handleDMSubmit);
     }
 
-    function handleDMRoomSubmit(event) {
+    function joinDM(event) {
       event.preventDefault();
       const input = form.querySelector('input');
-      socket.emit('enter_DMroom', input.value, createDMRoom);
-      dmRoomId = input.value;
-      input.value = '';
+      const roomData = input.value;
+      createDMRoom();
+      socket.emit('joinDM', roomData);
     }
 
-    form.addEventListener('submit', handleDMRoomSubmit);
+    form.addEventListener('submit', joinDM);
 
     socket.on('welcome', user => {
       const h3 = dmRoom.querySelector('h3');

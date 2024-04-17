@@ -7,11 +7,23 @@ import { DMRoom } from 'src/dm/entities/DM-room.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DMModule } from 'src/dm/dm.module';
 import { DMService } from 'src/dm/dm.service';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Friendship, FriendDMs, DMRoom]), DMModule],
-  providers: [DMGateway, DMService, UserService],
-  exports: [DMGateway],
+  imports: [
+    JwtModule.registerAsync({
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET_KEY'),
+      }),
+      inject: [ConfigService],
+    }),
+    TypeOrmModule.forFeature([User, Friendship, FriendDMs, DMRoom]),
+    DMModule,
+    UserModule,
+  ],
+  providers: [DMGateway],
 })
 export class DmEventModule {}
