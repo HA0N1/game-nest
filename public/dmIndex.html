@@ -6,7 +6,10 @@
     <title>FriendDM</title>
   </head>
   <body>
-    <header><h1>FriendDM</h1></header>
+    <header>
+      <h1>FriendDM</h1>
+      <div><button onclick="goBack()">메인 화면으로</button></div>
+    </header>
     <main>
       <div id="dmMain">
         <form>
@@ -14,10 +17,11 @@
           <button>DM Room 입장</button>
         </form>
         <h4>DM Rooms:</h4>
-        <ul></ul>
+        <ul id="rooms"></ul>
       </div>
 
       <div id="dmRoom">
+        <button id="toMain">전체 화면으로</button>
         <h3></h3>
         <ul></ul>
         <form id="message">
@@ -35,9 +39,28 @@
     const form = dmMain.querySelector('form');
     const dmRoom = document.getElementById('dmRoom');
     dmRoom.hidden = true;
-    // const token = document.cookie;
+    const token = document.cookie;
+
+    const messageForm = dmRoom.querySelector('#message');
+    messageForm.addEventListener('submit', handleDMSubmit);
 
     let dmRoomId = '';
+
+    const toMain = document.getElementById('toMain');
+    toMain.addEventListener('click', toDMRooms);
+
+    function toDMRooms() {
+      dmRoom.hidden = true;
+      dmMain.hidden = false;
+    }
+
+    function goBack() {
+      window.location.href = 'main.html';
+    }
+
+    socket.on('dmRoomsList', function () {
+      socket.emit('dmRoomList');
+    });
 
     function sendDM(message) {
       const ul = dmRoom.querySelector('ul');
@@ -50,7 +73,10 @@
       event.preventDefault();
       const input = dmRoom.querySelector('#message input');
       const value = input.value;
-      socket.emit('new_message', value, dmRoomId, () => {
+
+      console.log('handleDMSubmit', value);
+      console.log(room);
+      socket.emit('sendMessage', value, dmRoomId, () => {
         sendDM(`나:${value}`);
       });
       input.value = '';
@@ -62,12 +88,14 @@
       const h3 = dmRoom.querySelector('h3');
       const input = form.querySelector('input');
       const dmRoomId = input.value;
-      console.log('createDMRoom', dmRoomId);
+
+      if (!dmRoomId) {
+        alert('dmRoom 아이디를 입력하십시오');
+        window.location.href = 'dmIndex.html';
+      }
+
       h3.innerText = `DMRoom ${dmRoomId}`;
       input.value = '';
-
-      const messageForm = dmRoom.querySelector('#message');
-      messageForm.addEventListener('submit', handleDMSubmit);
     }
 
     function joinDM(event) {
@@ -80,10 +108,10 @@
 
     form.addEventListener('submit', joinDM);
 
-    socket.on('welcome', user => {
+    socket.on('welcome', data => {
+      const { user } = data;
       const h3 = dmRoom.querySelector('h3');
-      h3.innerText = `DMRoom ${dmRoomId}`;
-      sendDM(`${user}이 입장했습니다.`);
+      sendDM(`${user.nickname}님이 입장했습니다.`);
     });
 
     socket.on('bye', user => {
@@ -91,8 +119,6 @@
       h3.innerText = `DMRoom ${dmRoomId}`;
       sendDM(`${user}이 퇴장했습니다.`);
     });
-
-    socket.on('new_message', sendDM);
 
     socket.on('DMRoom_change', dmRooms => {
       const dmRoomList = dmMain.querySelector('ul');

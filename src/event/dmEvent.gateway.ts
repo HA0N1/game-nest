@@ -1,3 +1,5 @@
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   ConnectedSocket,
@@ -8,6 +10,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 
 import { Server, Socket } from 'socket.io';
@@ -25,15 +28,27 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly dmService: DMService,
     private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+    private readonly config: ConfigService,
   ) {}
 
   wsClients = [];
 
-  async handleConnection(@ConnectedSocket() client: Socket) {
-    console.log(`dm connect:${client.id}`);
+  async handleConnection(@ConnectedSocket() socket: Socket) {
+    console.log('dm connected!');
 
-    const socketId = client.id;
+    const socketId = socket.id;
     this.addClient(socketId);
+  }
+
+  async findUserByCookie(cookie: string) {
+    // const cookie = socket.handshake.headers.cookie; 로 미리 받아와야함
+
+    const token = cookie.split('=')[1];
+    const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
+    const user = await this.userService.findUserByEmail(payload.email);
+
+    return user;
   }
 
   async handleDisconnect(@ConnectedSocket() client: Socket) {
@@ -53,21 +68,29 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('joinDM')
-  handleJoinDM(@ConnectedSocket() socket: Socket, @MessageBody() roomData: any) {
+  async handleJoinDM(@ConnectedSocket() socket: Socket, @MessageBody() roomData: any) {
     console.log('백엔드: ', roomData);
     const dmRoomName = `DMRoom: ${roomData}`;
+
+    const cookie = socket.handshake.headers.cookie;
+    const user = await this.findUserByCookie(cookie);
+
+    this.server.emit('welcome', { user: user });
+
     socket.join(dmRoomName);
-    console.log('join', '참여 완료');
   }
 
   @SubscribeMessage('sendMessage')
-  async handleMessage(
-    @MessageBody() message: { dmRoomId: string; content: string; userId: string },
-    @ConnectedSocket() socket: Socket,
-  ) {
-    const { dmRoomId, content, userId } = message;
-    const dmRoomName = `DMRoom: ${dmRoomId}`;
-    socket.to(dmRoomName).emit('receiveMessage', { userId, content });
+  async handleMessage(@MessageBody() content: string, @ConnectedSocket() socket: Socket) {
+    const cookie = socket.handshake.headers.cookie;
+    const user = await this.findUserByCookie(cookie);
+
+    const userId = user.id;
+
+    console.log('sendMessage', content);
+
+    // const dmRoomName = `DMRoom: ${dmRoomId}`;
+    // socket.emit('receiveMessage', { userId, content });
 
     // await this.dmService.saveDM(dmRoomId, userId, content);
   }
