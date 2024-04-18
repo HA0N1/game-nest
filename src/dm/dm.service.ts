@@ -101,16 +101,15 @@ export class DMService {
   }
 
   /* 텍스트 채팅 저장 */
-  async saveDM(dmRoomId: string, senderId: number, content: string) {
-    const intDmRoomId = +dmRoomId;
-
+  async saveDM(dmRoomId: number, senderId: number, content: string) {
     const sender = await this.userRepository.findOneBy({ id: senderId });
 
     if (!sender) {
       throw new NotFoundException('조회되지 않는 사용자입니다.');
     }
+    console.log(dmRoomId, typeof dmRoomId);
 
-    const dmRoom = await this.dmRoomRepository.findOneBy({ id: intDmRoomId });
+    const dmRoom = await this.dmRoomRepository.findOneBy({ id: dmRoomId });
 
     if (!dmRoom) {
       throw new NotFoundException('존재하지 않는 디엠방입니다.');

@@ -54,6 +54,10 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleDisconnect(@ConnectedSocket() client: Socket) {
     const socketId = client.id;
     this.removeClient(socketId);
+
+    const cookie = client.handshake.headers.cookie;
+    const user = await this.findUserByCookie(cookie);
+    this.server.emit('bye', { user: user });
   }
 
   addClient(client) {
@@ -69,29 +73,51 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('joinDM')
   async handleJoinDM(@ConnectedSocket() socket: Socket, @MessageBody() roomData: any) {
-    console.log('백엔드: ', roomData);
     const dmRoomName = `DMRoom: ${roomData}`;
 
     const cookie = socket.handshake.headers.cookie;
     const user = await this.findUserByCookie(cookie);
 
-    this.server.emit('welcome', { user: user });
-
     socket.join(dmRoomName);
+
+    this.server.to(dmRoomName).emit('welcome', { user: user });
   }
 
   @SubscribeMessage('sendMessage')
-  async handleMessage(@MessageBody() content: string, @ConnectedSocket() socket: Socket) {
+  async handleMessage(@MessageBody() data, @ConnectedSocket() socket: Socket) {
     const cookie = socket.handshake.headers.cookie;
     const user = await this.findUserByCookie(cookie);
 
     const userId = user.id;
+    const nickname = user.nickname;
+    const content = data.value;
+    const dmRoomId = +data.dmRoomId;
 
-    console.log('sendMessage', content);
+    await this.dmService.saveDM(dmRoomId, userId, content);
+    socket.to(`DMRoom ${data.dmRoomId}`).emit('message', { nickname, content });
+  }
 
-    // const dmRoomName = `DMRoom: ${dmRoomId}`;
-    // socket.emit('receiveMessage', { userId, content });
+  @SubscribeMessage('dmRoomList')
+  async dmRoomList(socket: Socket) {
+    const cookie = socket.handshake.headers.cookie;
+    const user = await this.findUserByCookie(cookie);
+    const userId = user.id;
 
-    // await this.dmService.saveDM(dmRoomId, userId, content);
+    const dmRooms = await this.dmService.getDMRooms(user.id);
+
+    const promiseDmRoomIds = dmRooms.map(async e => {
+      const id = e.dmRoom_id;
+      const nickname = e.fr_nickname;
+      return { id, nickname };
+    });
+
+    const dmRoomIds = await Promise.all(promiseDmRoomIds);
+
+    socket.emit('rooms', dmRoomIds);
   }
 }
+
+// const ul = dmRoom.querySelector('ul');
+//       const li = document.createElement('li');
+//       li.innerText = message;
+//       ul.appendChild(li);
