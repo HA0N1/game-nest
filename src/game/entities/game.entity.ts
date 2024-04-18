@@ -39,6 +39,9 @@ export class Game {
   @Column({ type: 'varchar' })
   publisher: string;
 
+  @Column({ type: 'varchar' })
+  price: string;
+
   @OneToOne(() => Genre, genre => genre.game)
   @JoinColumn({ name: 'genre_id' })
   genre: Genre;

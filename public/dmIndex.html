@@ -47,8 +47,18 @@
     toMain.addEventListener('click', toDMRooms);
 
     function toDMRooms() {
+      sayBye();
       dmRoom.hidden = true;
       dmMain.hidden = false;
+    }
+
+    function sayBye() {
+      const room = document.querySelector('#room h3');
+      const inTitle = room.innerText;
+      const dmRoomId = inTitle.split(' ')[1];
+      socket.emit('sayBye', dmRoomId);
+      const message = document.querySelector('#dmRoom ul li');
+      console.log(message);
     }
 
     function goBack() {
@@ -77,7 +87,7 @@
       const data = { value, dmRoomId };
 
       socket.emit('sendMessage', data);
-      sendDM(`나: ${value}`);
+      // sendDM(`나: ${value}`);
       input.value = '';
     }
 
@@ -117,23 +127,20 @@
 
     socket.on('welcome', data => {
       const { user, dmRoomId } = data;
-      const h3 = dmRoom.querySelector('h3');
 
       sendDM(`${user.nickname}님이 입장했습니다.`, dmRoomId);
     });
 
     socket.on('bye', data => {
-      const { user } = data;
+      const { user, dmRoomId } = data;
       const h3 = dmRoom.querySelector('h3');
-      sendDM(`${user.nickname}이 퇴장했습니다.`);
+      sendDM(`${user.nickname}이 퇴장했습니다.`, dmRoomId);
     });
 
     socket.on('message', data => {
-      const { room, nickname, content } = data;
+      const { dmRoomId, nickname, content } = data;
 
-      console.log(room);
-      console.log('socket message: ', nickname, content);
-      sendDM(`${nickname}:${content}`);
+      sendDM(`${nickname}:${content}`, dmRoomId);
     });
 
     // socket.on('DMRoom_change', dmRooms => {

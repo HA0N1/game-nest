@@ -18,7 +18,7 @@ export class FriendDMs {
   @JoinColumn({ name: 'sender_id', referencedColumnName: 'id' })
   user: User;
 
-  @ManyToOne(() => User, user => user.friendDms)
+  @ManyToOne(() => DMRoom, dmRoom => dmRoom.friendDMs)
   @JoinColumn({ name: 'DM_room_id', referencedColumnName: 'id' })
   DMRoom: DMRoom;
 }

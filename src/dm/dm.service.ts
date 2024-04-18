@@ -58,12 +58,12 @@ export class DMService {
       friendship,
     });
 
-    await this.friendshipRepository
-      .createQueryBuilder()
-      .update(Friendship)
-      .set({ DMroom: dmRoom })
-      .where('id = :id', { id: friendshipId })
-      .execute();
+    // await this.friendshipRepository
+    //   .createQueryBuilder()
+    //   .update(Friendship)
+    //   .set({ DMroom: dmRoom })
+    //   .where('id = :id', { id: friendshipId })
+    //   .execute();
 
     return { message: 'DMroom을 생성했습니다.' };
   }
@@ -107,9 +107,9 @@ export class DMService {
     if (!sender) {
       throw new NotFoundException('조회되지 않는 사용자입니다.');
     }
-    console.log(dmRoomId, typeof dmRoomId);
 
     const dmRoom = await this.dmRoomRepository.findOneBy({ id: dmRoomId });
+    console.log(dmRoom.id);
 
     if (!dmRoom) {
       throw new NotFoundException('존재하지 않는 디엠방입니다.');

@@ -31,6 +31,9 @@ export class UserController {
     return { message: login.message, accessToken: login.accessToken };
   }
 
+  //TODO 토큰 관리 꼭 작성하기
+  /* refreshtoken으로 accesstoken 재발급하기 */
+
   /* 프로필 조회 */
   @UseGuards(AuthGuard('jwt'))
   @Get('userinfo')

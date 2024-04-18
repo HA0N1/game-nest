@@ -57,7 +57,6 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const cookie = client.handshake.headers.cookie;
     const user = await this.findUserByCookie(cookie);
-    this.server.emit('bye', { user: user });
   }
 
   addClient(client) {
@@ -71,10 +70,17 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('joinDM')
-  async handleJoinDM(@ConnectedSocket() socket: Socket, @MessageBody() dmRoomId: any) {
+  @SubscribeMessage('sayBye')
+  async leaveDMRoom(@ConnectedSocket() socket: Socket, @MessageBody() dmRoomId: string) {
+    const cookie = socket.handshake.headers.cookie;
+    const user = await this.findUserByCookie(cookie);
     console.log(dmRoomId);
 
+    this.server.to(dmRoomId).emit('bye', { user: user, dmRoomId });
+  }
+
+  @SubscribeMessage('joinDM')
+  async handleJoinDM(@ConnectedSocket() socket: Socket, @MessageBody() dmRoomId: any) {
     const cookie = socket.handshake.headers.cookie;
     const user = await this.findUserByCookie(cookie);
 
@@ -92,9 +98,13 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const nickname = user.nickname;
     const content = data.value;
     const dmRoomId = +data.dmRoomId;
+    console.log('!!!!!!!!!!!!!!');
+    console.log(dmRoomId, userId, content);
 
     await this.dmService.saveDM(dmRoomId, userId, content);
-    socket.to(`DMRoom ${data.dmRoomId}`).emit('message', { nickname, content });
+    socket.join(data.dmRoomId);
+
+    this.server.to(data.dmRoomId).emit('message', { dmRoomId, nickname, content });
   }
 
   @SubscribeMessage('dmRoomList')
@@ -107,8 +117,15 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const promiseDmRoomIds = dmRooms.map(async e => {
       const id = e.dmRoom_id;
-      const nickname = e.fr_nickname;
-      return { id, nickname };
+      const nickname1 = e.fr_nickname;
+      const nickname2 = e.us_nickname;
+      const userNickname = user.nickname;
+
+      if (userNickname === nickname1) {
+        return { id, nickname: nickname2 };
+      } else if (userNickname === nickname2) {
+        return { id, nickname: nickname1 };
+      }
     });
 
     const dmRoomIds = await Promise.all(promiseDmRoomIds);
