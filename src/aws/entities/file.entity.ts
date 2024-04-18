@@ -2,7 +2,6 @@ import { ChannelDMs } from 'src/channel/entities/channelDMs.entity';
 import { PostComment } from 'src/comment/entities/comment.entity';
 import { Game } from 'src/game/entities/game.entity';
 import { Post } from 'src/post/entities/post.entity';
-import { FriendDMs } from 'src/user/entities/friendDMs.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 

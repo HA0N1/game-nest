@@ -27,13 +27,14 @@ export class PostService {
       const imagename = this.awsService.getUUID();
       const ext = file.originalname.split('.').pop();
       const imageUrl = await this.awsService.imageUploadToS3(`${imagename}.${ext}`, file, ext);
+
       const filePath = await this.fileRepository.save({ filePath: imageUrl });
       const postimage = await this.postRepository.save({
         title,
         content,
         category,
         view_count: 0,
-        filePath: filePath,
+        file: filePath,
       });
       return { message: '게시글이 생성되었습니다.', postimage };
     }
@@ -91,7 +92,6 @@ export class PostService {
       const imagename = this.awsService.getUUID();
       const ext = file.originalname.split('.').pop();
       const imageUrl = await this.awsService.imageUploadToS3(`${imagename}.${ext}`, file, ext);
-      console.log(imageUrl);
 
       if (imageUrl) {
         if (post.file) {

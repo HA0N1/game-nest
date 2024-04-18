@@ -9,7 +9,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Exclude } from 'class-transformer';
 import { Friendship } from 'src/friend/entities/friendship.entity';
 import { Like } from './like.entity';
 import { Post } from '../../post/entities/post.entity';
