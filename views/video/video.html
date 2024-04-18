@@ -60,33 +60,11 @@
     <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
     <script src="http://localhost:3000/socket.io/socket.io.js"></script>
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-
+    <script src="https://cdn.socket.io/4.1.3/socket.io.min.js"></script>
+    <script src="main.js"></script>
     <script>
       document.getElementById('container').style.display = 'none';
-      let localVideo = document.getElementById('localVideo');
-      let remoteVideo = document.getElementById('remoteVideo');
 
-      let localStream;
-      let peerConnection;
-      let peerInfo = {};
-      let selectedCandidate = {};
-
-      const makePeerConnect = async userId => {
-        peerInfo[userId] = new Object();
-        peerInfo[userId].peerConnection = new RTCPeerConnection({
-          iceServers: [
-            {
-              urls: 'stun:stun.l.google.com:19302',
-            },
-          ],
-        });
-        peerInfo[userId].peerConnection.addEventListener('icecandidate', icecandidate);
-        peerInfo[userId].peerConnection.addEventListener('addstream', addStream);
-
-        for (let track of localStream.getTracks()) {
-          await peerInfo[userId].peerConnection.addTrack(track, localStream);
-        }
-      };
       const token = document.cookie;
       const socket = io('http://localhost:3000/room', { auth: { token: token } });
       let currentRoom = '';
@@ -115,22 +93,6 @@
         });
       }
 
-      socket.on('notice', data => {
-        $('#notice').append(`<div>${data.message}</div>`);
-      });
-
-      socket.on('message', data => {
-        $('#chat').append(`<div>${data.message}</div>`);
-      });
-
-      $(document).ready(function () {
-        socket.emit('requestRooms');
-
-        socket.on('rooms', function (data) {
-          updateRoomList(data);
-        });
-      });
-
       function updateRoomList(rooms) {
         $('#rooms').empty();
         rooms.forEach(room => {
@@ -156,12 +118,29 @@
         }
       });
 
+      socket.on('notice', data => {
+        $('#notice').append(`<div>${data.message}</div>`);
+      });
+
+      socket.on('message', data => {
+        $('#chat').append(`<div>${data.message}</div>`);
+      });
+
+      $(document).ready(function () {
+        socket.emit('requestRooms');
+
+        socket.on('rooms', function (data) {
+          updateRoomList(data);
+        });
+      });
+
       socket.on('connect', () => {
         console.log('connected', socket.id);
       });
       socket.on('screenSharingStream', data => {
-        console.log('test1', data);
+        console.log(data);
       });
+
       socket.on('dmHistory', function (dms) {
         $('#chat').html('');
         dms.forEach(dm => {
@@ -220,7 +199,7 @@
           console.error(error);
         }
       }
-      // 화면공유
+
       function handleSuccess(stream) {
         console.log('handleSuccess ~ stream:', stream);
         startButton.disabled = true;
@@ -228,11 +207,8 @@
         const video = document.getElementById('video2');
         video.srcObject = stream;
         const room = currentRoom;
-        socket.emit('broadcastScreenSharing', {
-          room,
-          streamId: stream.id,
-          trackIds: stream.getTracks().map(track => track.id),
-        });
+        // 스트림의 id만을 전송
+        socket.emit('broadcastScreenSharing', { room, streamId: stream.id });
         // 사용자가 멈췄는지 감지하는 방법
         // 브라우저 UI를 통해 화면을 공유
         stream.getVideoTracks()[0].addEventListener('ended', () => {
@@ -241,23 +217,6 @@
           preferredDisplaySurface.disabled = false;
         });
       }
-      // function handleSuccess(stream) {
-      //   console.log('handleSuccess ~ stream:', stream);
-      //   startButton.disabled = true;
-      //   preferredDisplaySurface.disabled = true;
-      //   const video = document.getElementById('video2');
-      //   video.srcObject = stream;
-      //   const room = currentRoom;
-      //   // 스트림의 id만을 전송
-      //   socket.emit('broadcastScreenSharing', { room, streamId: stream.id });
-      //   // 사용자가 멈췄는지 감지하는 방법
-      //   // 브라우저 UI를 통해 화면을 공유
-      //   stream.getVideoTracks()[0].addEventListener('ended', () => {
-      //     errorMsg('사용자가 화면 공유를 종료했습니다.');
-      //     startButton.disabled = false;
-      //     preferredDisplaySurface.disabled = false;
-      //   });
-      // }
       startButton.addEventListener('click', () => {
         const options = { audio: true, video: true };
         const displaySurface = preferredDisplaySurface.options[preferredDisplaySurface.selectedIndex].value;
@@ -278,104 +237,6 @@
       } else {
         errorMsg('getDisplayMedia is not supported');
       }
-      // startButton.addEventListener('click', () => {
-      //   const options = { audio: true, video: true };
-      //   const displaySurface = preferredDisplaySurface.options[preferredDisplaySurface.selectedIndex].value;
-      //   if (displaySurface !== 'default') {
-      //     options.video = { displaySurface };
-      //   }
-      //   navigator.mediaDevices.getDisplayMedia(options).then(handleSuccess, handleError);
-      // });
-
-      // if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
-      //   startButton.disabled = false;
-      // } else {
-      //   errorMsg('getDisplayMedia is not supported');
-      // }
-
-      socket.on('enter', async ({ userId }) => {
-        await makePeerConnect(userId);
-        const offer = await peerInfo[userId].peerConnection.createOffer();
-        await peerInfo[userId].peerConnection.setLocalDescription(offer);
-        socket.emit('offer', offer);
-      });
-
-      socket.on('offer', async ({ userId, offer }) => {
-        if (!peerInfo[userId]) {
-          await makePeerConnect(userId);
-          await peerInfo[userId].peerConnection.setRemoteDescription(offer);
-
-          const answer = await peerInfo[userId].peerConnection.createAnswer(offer);
-
-          await peerInfo[userId].peerConnection.setLocalDescription(answer);
-          socket.emit('answer', {
-            answer,
-            offer,
-            toUserId: userId,
-          });
-        }
-      });
-
-      socket.on('answer', async ({ userId, answer, responseOffer, toUserId }) => {
-        if (peerInfo[toUserId] === undefined) {
-          await peerInfo[userId].peerConnection.setRemoteDescription(answer);
-        }
-      });
-
-      socket.on('icecandidate', async ({ userId, candidate }) => {
-        if (selectedCandidate[candidate.candidate] === undefined) {
-          selectedCandidate[candidate.candidate] = true;
-          await peerInfo[userId].peerConnection.addIceCandidate(candidate);
-        }
-      });
-
-      socket.on('userDisconnect', ({ userId }) => {
-        delete peerInfo[userId];
-        //const disconnectUser = document.getElementById(userId);
-        //disconnectUser.remove();
-      });
-
-      const useMedia = async () => {
-        await getMedia();
-      };
-
-      const share = async () => {
-        socket.emit('join', '1234');
-      };
-
-      // 내 비디오 & 오디오 정보를 가져옵니다.
-      const getMedia = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: true,
-          });
-
-          localStream = stream;
-          localVideo.srcObject = stream;
-        } catch (error) {
-          console.log(error);
-        }
-      };
-
-      // 연결 후보 교환
-      const icecandidate = data => {
-        if (data.candidate) {
-          socket.emit('icecandidate', data.candidate);
-        }
-      };
-
-      // 상대 영상 & 비디오 추가
-      const addStream = data => {
-        let videoArea = document.createElement('video');
-        videoArea.autoplay = true;
-        videoArea.srcObject = data.stream;
-
-        let container = document.getElementById('container');
-        container.appendChild(videoArea);
-      };
-
-      useMedia();
     </script>
   </body>
 </html>

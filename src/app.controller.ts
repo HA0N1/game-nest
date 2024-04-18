@@ -1,4 +1,4 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get, Render, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
@@ -7,24 +7,9 @@ import { join } from 'path';
 export class AppController {
   constructor(private readonly configService: ConfigService) {}
 
-  @Get('login')
-  getLoginPage(@Res() res: Response) {
-    const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
-    const filePath = join(process.cwd(), 'dist', staticPath, 'login.html');
-    res.sendFile(filePath);
-  }
-
-  @Get('chat')
-  getChatPage(@Res() res: Response) {
-    const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
-    const filePath = join(process.cwd(), 'dist', staticPath, 'chat.html');
-    res.sendFile(filePath);
-  }
-
   @Get('test')
-  getcallPage(@Res() res: Response) {
-    const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
-    const filePath = join(process.cwd(), 'dist', staticPath, 'test.html');
-    res.sendFile(filePath);
+  @Render('test')
+  getTestPage() {
+    return { message: 'HI' };
   }
 }
