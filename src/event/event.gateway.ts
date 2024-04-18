@@ -14,8 +14,10 @@ import {
 } from '@nestjs/websockets';
 import Redis from 'ioredis';
 import { Server, Socket } from 'socket.io';
+import { WsGuard } from 'src/auth/guard/ws.guard';
 import { ChannelService } from 'src/channel/channel.service';
 import { ChannelDMs } from 'src/channel/entities/channelDMs.entity';
+import { ChatType } from 'src/channel/type/channel-chat.type';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
@@ -30,7 +32,29 @@ import { Repository } from 'typeorm';
  * 웹소켓 서버 인스턴스 접근
  * WebSocketServer()
  */
+interface CreateRoomData {
+  room: string;
+  createChatDto: {
+    title: string;
+    chatType: ChatType;
+    maximumPeople: number;
+    channelId: number;
+  };
+}
 
+interface JoinRoomData {
+  room: string;
+}
+
+interface ChatMessageData {
+  message: string;
+  room: string;
+}
+
+interface ScreenSharingData {
+  room: string;
+  stream: MediaStream;
+}
 @WebSocketGateway({ namespace: 'room' })
 export class RoomGateway implements OnGatewayConnection {
   constructor(
@@ -48,7 +72,7 @@ export class RoomGateway implements OnGatewayConnection {
   rooms = [];
   @WebSocketServer() server: Server;
 
-  async handleConnection(socket: Socket & { user: User }) {
+  async handleConnection(socket: Socket & { user: User }, data: any) {
     console.log(`connect: ${socket.id}`);
     const cookie = socket.handshake.headers.cookie;
 
@@ -63,7 +87,8 @@ export class RoomGateway implements OnGatewayConnection {
       socket.user = user;
       const userId = socket.user.id;
       await this.redis.set(`socketId:${socket.id}`, +userId);
-      // const user = await this.redis.get(`socketId:${socket.id}`);
+      // TODO: 브라우저에서 서버 연결 시 채널멤버 추가 해야 함
+      // await this.channelService.createMember(userId, channelId);
       return true;
     } catch (error) {
       throw new WsException(error.message);
@@ -71,21 +96,24 @@ export class RoomGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('createRoom')
-  async handleMessage(@MessageBody() data) {
+  async handleMessage(socket: Socket & { user: User }, data: CreateRoomData) {
     const { room, createChatDto } = data;
     const { title, chatType, channelId, maximumPeople } = createChatDto;
-    console.log('RoomGateway ~ handleMessage ~ room:', room);
-    try {
-      const chat = await this.channelService.findOneChat(room);
-      console.log('RoomGateway ~ handleMessage ~ chat:', chat);
-      if (chat) throw new WsException('채팅방 이름이 중복되었습니다.');
-      // 채널 서비스의 createChat 함수 호출
-      await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
-      const rooms = await this.channelService.findAllChat();
-      this.server.emit('rooms', rooms);
-    } catch (error) {
-      throw new WsException(error.message);
-    }
+    // try {
+    const chat = await this.channelService.findOneChat(room);
+    console.log('RoomGateway ~ handleMessage ~ chat:', chat);
+    if (chat) throw new WsException('채팅방 이름이 중복되었습니다.');
+    // 채널 서비스의 createChat 함수 호출
+    const socketId = socket.id;
+    await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
+    console.log('됐나');
+    const userId = +(await this.redis.get(`socketId:${socket.id}`));
+    // await this.channelService.createMember(+userId, +channelId);
+    const rooms = await this.channelService.findAllChat();
+    this.server.emit('rooms', rooms);
+    // } catch (error) {
+    //   throw new WsException(error.message);
+    // }
   }
 
   @SubscribeMessage('requestRooms')
@@ -129,19 +157,18 @@ export class RoomGateway implements OnGatewayConnection {
     }
   }
   @SubscribeMessage('joinRoom')
-  async handleJoinRoom(socket: Socket & { user: User }, data: any) {
+  async handleJoinRoom(socket: Socket & { user: User }, data: JoinRoomData) {
     const { room } = data;
 
     const senderId = +(await this.redis.get(`socketId:${socket.id}`));
     const foundUser = await this.userService.findUserById(+senderId);
     const nickname = foundUser.nickname;
-
     this.server.emit('notice', { message: `${nickname}님이 ${room}방에 입장하였습니다` });
     socket.join(room);
   }
 
   @SubscribeMessage('chatType')
-  async handleChatType(data: any) {
+  async handleChatType(socket: Socket, data: any) {
     const { room } = data;
     const channelRoom = await this.channelService.findOneChat(room);
     console.log('RoomGateway ~ handleJoinRoom ~ channelRoom:', channelRoom);
@@ -151,7 +178,7 @@ export class RoomGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('message')
-  async handleMessageToRoom(socket: Socket & { user: User }, data: any): Promise<void> {
+  async handleMessageToRoom(socket: Socket & { user: User }, data: ChatMessageData): Promise<void> {
     const { message, room } = data;
     console.log(data);
 
@@ -169,5 +196,16 @@ export class RoomGateway implements OnGatewayConnection {
     });
     await this.DMsRepo.save(dm);
     socket.broadcast.to(room).emit('message', { message: `${nickname}: ${message}` });
+  }
+  @SubscribeMessage('broadcastScreenSharing')
+  async handleBroadcastScreenSharing(socket: Socket, data: ScreenSharingData): Promise<void> {
+    const { room, stream } = data;
+    console.log('RoomGateway ~ handleBroadcastScreenSharing ~ room:', room);
+    console.log('RoomGateway ~ handleBroadcastScreenSharing ~ stream:', stream);
+
+    // Get the room of the user sharing the screen
+
+    // Broadcast the screen sharing stream to all users in the room
+    socket.to(room).emit('screenSharingStream', { stream });
   }
 }
