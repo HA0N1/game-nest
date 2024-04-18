@@ -20,7 +20,6 @@ export class UserController {
   async create(@Body() createUserDto: CreateUserDto) {
     return await this.userService.create(createUserDto);
   }
-
   /* 로그인 */
   @Post('email')
   @Render('login')
