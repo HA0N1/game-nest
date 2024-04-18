@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { GameService } from './game.service';
 
-@Controller('game')
+@Controller('games')
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 
@@ -23,7 +23,7 @@ export class GameController {
 
   // 게임 목록 조회
   @Get()
-  async getGameList(
+  async getGames(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
@@ -32,21 +32,45 @@ export class GameController {
       throw new HttpException(`최대 검색 가능 개수는 ${maxLimit}개입니다.`, HttpStatus.BAD_REQUEST);
     }
 
-    const games = await this.gameService.getGameList(page, limit);
+    const games = await this.gameService.getGames(page, limit);
     return games;
   }
 
   // 게임 상세 조회
-  @Get(':id')
-  async getGameDetail(@Param('id') id: number) {
+  @Get('game/:gameId')
+  async getGameDetail(@Param('gameId') id: number) {
     const game = await this.gameService.getGameDetail(id);
     return game;
   }
 
   // 장르별 게임 조회
-  @Get('/genre/:genre_id')
-  async getGameByGenre(@Param('genre_id') genre_id: number) {
-    const games = await this.gameService.getGameByGenre(genre_id);
+  @Get('genre/:genre_id')
+  async getGamesByGenre(
+    @Param('genre_id') genre_id: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    const maxLimit = 50;
+    if (limit > maxLimit) {
+      throw new HttpException(`최대 검색 가능 개수는 ${maxLimit}개입니다.`, HttpStatus.BAD_REQUEST);
+    }
+    const games = await this.gameService.getGamesByGenre(genre_id, page, limit);
     return games;
+  }
+
+  // 인기순 저장
+  @Get('popular')
+  async getPopularGames() {
+    const popularGames = await this.gameService.getPopularGames();
+
+    return popularGames;
+  }
+
+  // 신작 저장
+  @Get('newGames')
+  async getNewGames() {
+    const newGames = await this.gameService.getNewGames();
+
+    return newGames;
   }
 }

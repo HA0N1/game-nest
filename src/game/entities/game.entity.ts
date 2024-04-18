@@ -6,7 +6,7 @@ import { Genre } from './game-genre.entity';
 
 @Entity({ name: 'game' })
 export class Game {
-  @PrimaryGeneratedColumn({ unsigned: true })
+  @PrimaryGeneratedColumn({ unsigned: true, name: 'id' })
   id: number;
 
   @Column({ type: 'varchar' })
@@ -33,14 +33,20 @@ export class Game {
   @Column({ type: 'datetime' })
   release_date: Date;
 
+  @Column({ type: 'varchar' })
+  price: string;
+
   @Column({ type: 'enum', enum: PlatformEnum })
   platform: PlatformEnum;
 
   @Column({ type: 'varchar' })
   publisher: string;
 
+  @Column({ type: 'int', unsigned: true })
+  genre_id: number;
+
   @ManyToOne(() => Genre, genre => genre.game)
-  @JoinColumn({ name: 'genre_id' })
+  @JoinColumn({ name: 'genre_id', referencedColumnName: 'id' })
   genre: Genre;
 
   @OneToMany(() => Channel, channel => channel.game)
