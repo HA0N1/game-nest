@@ -17,8 +17,8 @@
       </div>
 
       <div id="dmRoom">
-        <button id="toMain">전체 화면으로</button>
-        <h3></h3>
+        <button id="toMain">전체 채팅창</button>
+        <div id="room"></div>
         <ul></ul>
         <form id="message">
           <input placeholder="메세지를 입력하세요." , type="text" />
@@ -59,7 +59,7 @@
       socket.emit('dmRoomList');
     });
 
-    function sendDM(message) {
+    function sendDM(message, dmRoomId) {
       const ul = dmRoom.querySelector('ul');
       const li = document.createElement('li');
       li.innerText = message;
@@ -97,8 +97,6 @@
       const nicknames = data.map(dmRoom => {
         return dmRoom.nickname;
       });
-
-      console.log(dmRoomIds, nicknames);
       data.forEach(e => {
         // 아이디별로 list, 입장하기 버튼 생성
         $('#rooms').append(`<li>${e.nickname} <button onclick="joinDM(${e.id})">입장하기</button></li>`);
@@ -109,14 +107,19 @@
 
     function joinDM(room) {
       // currentRoom = room;
+      dmRoom.hidden = false;
+      dmMain.hidden = true;
+      $('#room').html('');
+      $('#room').append(`<h3>DMRoom: ${room}</h3>`);
       console.log('프론드 join: ', room);
       socket.emit('joinDM', room);
     }
 
     socket.on('welcome', data => {
-      const { user } = data;
+      const { user, dmRoomId } = data;
       const h3 = dmRoom.querySelector('h3');
-      sendDM(`${user.nickname}님이 입장했습니다.`);
+
+      sendDM(`${user.nickname}님이 입장했습니다.`, dmRoomId);
     });
 
     socket.on('bye', data => {

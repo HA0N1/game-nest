@@ -72,15 +72,15 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('joinDM')
-  async handleJoinDM(@ConnectedSocket() socket: Socket, @MessageBody() roomData: any) {
-    const dmRoomName = `DMRoom: ${roomData}`;
+  async handleJoinDM(@ConnectedSocket() socket: Socket, @MessageBody() dmRoomId: any) {
+    console.log(dmRoomId);
 
     const cookie = socket.handshake.headers.cookie;
     const user = await this.findUserByCookie(cookie);
 
-    socket.join(dmRoomName);
+    socket.join(dmRoomId);
 
-    this.server.to(dmRoomName).emit('welcome', { user: user });
+    this.server.to(dmRoomId).emit('welcome', { user: user, dmRoomId });
   }
 
   @SubscribeMessage('sendMessage')
@@ -116,8 +116,3 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.emit('rooms', dmRoomIds);
   }
 }
-
-// const ul = dmRoom.querySelector('ul');
-//       const li = document.createElement('li');
-//       li.innerText = message;
-//       ul.appendChild(li);
