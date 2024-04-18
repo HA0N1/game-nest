@@ -14,13 +14,13 @@ export class Channel {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => Game, game => game.channel, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Game, game => game.channel)
   @JoinColumn({ name: 'game_id' })
   game: Game;
 
   @OneToMany(() => ChannelChat, channelChat => channelChat.channel)
   channelChat: ChannelChat[];
 
-  @OneToMany(() => ChannelMember, channelMember => channelMember.channel)
+  @OneToMany(() => ChannelMember, channelMember => channelMember.channel, { onDelete: 'CASCADE' })
   channelMember: ChannelMember[];
 }

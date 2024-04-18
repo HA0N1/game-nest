@@ -1,0 +1,76 @@
+body {
+  background-color: #36393f;
+  color: #ffffff;
+  font-family: 'Noto Sans', 'Arial', sans-serif;
+}
+
+button {
+  background-color: #5865f2;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px; /* Added margin to separate buttons */
+}
+
+button:hover {
+  background-color: #4752c4;
+}
+
+#rooms {
+  list-style: none;
+  padding: 0;
+  display: flex; /* 목록을 플렉스박스로 설정 */
+  flex-direction: column; /* 수직 방향으로 정렬 */
+}
+
+#rooms li {
+  padding: 10px;
+  border-bottom: 1px solid #4f545c;
+  display: flex; /* 내부 요소를 플렉스박스로 설정 */
+  align-items: center; /* 요소들을 수직 가운데 정렬 */
+}
+
+#rooms li button {
+  margin-left: auto; /* 버튼을 오른쪽으로 정렬 */
+}
+
+#chat {
+  background-color: #40444b;
+  padding: 20px;
+  margin-top: 20px;
+  height: 300px;
+  overflow-y: scroll;
+}
+
+#chat div {
+  margin-bottom: 10px;
+}
+
+#message {
+  width: calc(100% - 90px); /* Adjusted width to fit both buttons */
+  padding: 10px;
+  margin: 10px 0;
+  box-sizing: border-box;
+  border: 1px solid #5865f2;
+  border-radius: 4px;
+  background-color: #40444b;
+  color: white;
+}
+
+#container {
+  margin-top: 10px; /* Added margin for spacing */
+}
+
+#toggleVideo {
+  margin-right: 0; /* Reset margin to avoid extra space */
+}
+
+#gum-local {
+  width: 500px;
+}
+#video2 {
+  height: 1000px;
+  width: 100%;
+}

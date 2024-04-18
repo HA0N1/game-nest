@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res, Render } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -9,6 +9,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { InterestGenre } from './entities/interestGenre.entity';
+import { Response } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -19,14 +20,14 @@ export class UserController {
   async create(@Body() createUserDto: CreateUserDto) {
     return await this.userService.create(createUserDto);
   }
-
   /* 로그인 */
   @Post('email')
-  async emailLogin(@Body() emailLoginDto: EmailLoginDto) {
+  @Render('login')
+  async emailLogin(@Body() emailLoginDto: EmailLoginDto, @Res({ passthrough: true }) response: Response) {
     const login = await this.userService.emailLogin(emailLoginDto);
 
     const user = await this.userService.findUserByEmail(emailLoginDto.email);
-
+    response.cookie('authorization', login.accessToken, { httpOnly: true });
     return { message: login.message, accessToken: login.accessToken };
   }
 

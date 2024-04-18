@@ -1,0 +1,50 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Login</title>
+    <link rel='stylesheet' href='style.css' />
+  </head>
+  <body>
+    <!-- 로그인 폼 -->
+    <div id='loginForm'>
+      <h2>Login</h2>
+      <input type='email' id='email' placeholder='이메일' />
+      <input type='password' id='password' placeholder='비밀번호' />
+      <button onclick='login()'>로그인</button>
+    </div>
+
+    <script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js'></script>
+    <script src='https://unpkg.com/axios/dist/axios.min.js'></script>
+    <script src='http://code.jquery.com/jquery-3.6.1.slim.js'></script>
+    <script type='module' src='login.js'></script>
+    {{! <script>
+  let token = '';
+
+function login() {
+  const email = $('#email').val();
+  const password = $('#password').val();
+
+  axios
+    .post('http://localhost:3000/user/email', {
+      email: email,
+      password: password,
+    })
+    .then(res => {
+      if (res.status === 201) {
+        alert('로그인 성공');
+        // @ts-ignore
+        const cookieHeader = res.headers.get('Set-Cookie');
+        if (cookieHeader) {
+          token = cookieHeader.split(';')[0]; // 쿠키 값 가져오기
+        }
+        window.location.href = 'channel';
+      } else {
+        alert('로그인 실패');
+      }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script> }}
+  </body>
+</html>

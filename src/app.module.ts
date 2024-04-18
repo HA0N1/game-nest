@@ -27,6 +27,9 @@ import { GameService } from './game/game.service';
 import { PostModule } from './post/post.module';
 import { PostComment } from './comment/entities/comment.entity';
 import { FriendModule } from './friend/friend.module';
+import { RoomGateway } from './event/event.gateway';
+import { EventModule } from './event/event.module';
+import { AppController } from './app.controller';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -83,8 +86,9 @@ const typeOrmModuleOptions = {
     CommentModule,
     RedisAppModule,
     FriendModule,
+    EventModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [GameService],
 })
 export class AppModule {}
