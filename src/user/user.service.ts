@@ -19,6 +19,9 @@ import { Genre } from 'src/game/entities/gameGenre.entity';
 import { UpdatePWDto } from './dto/update-pw.dto';
 import Redis from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
+import { HttpService } from '@nestjs/axios';
+import { Observable, firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class UserService {
@@ -31,6 +34,7 @@ export class UserService {
     @InjectRepository(Genre)
     private genreRepository: Repository<Genre>,
     @InjectRedis() private readonly redis: Redis,
+    private readonly httpService: HttpService,
   ) {}
 
   /* 회원가입 */
@@ -73,6 +77,10 @@ export class UserService {
     });
 
     return { message: `${createUserDto.nickname}님의 가입이 완료되었습니다.` };
+  }
+
+  async login() {
+    return this.httpService.post('http://localhost:3000/user/email');
   }
 
   /* 이메일로 로그인 */
