@@ -1,7 +1,7 @@
 body {
   background-color: #36393f;
   color: #ffffff;
-  font-family: 'Noto Sans', 'Arial', sans-serif;
+  display: flex;
 }
 
 button {
@@ -18,6 +18,20 @@ button:hover {
   background-color: #4752c4;
 }
 
+/* Sidebar styles */
+.sidebar {
+  width: 200px;
+  background-color: #36393f;
+  padding: 20px;
+}
+
+/* Main content styles */
+.main-content {
+  flex: 1;
+  padding: 20px;
+}
+
+/* Channel List styles */
 #rooms {
   list-style: none;
   padding: 0;
@@ -49,7 +63,7 @@ button:hover {
 }
 
 #message {
-  width: calc(100% - 90px); /* Adjusted width to fit both buttons */
+  width: calc(100% - 90px);
   padding: 10px;
   margin: 10px 0;
   box-sizing: border-box;
@@ -60,16 +74,17 @@ button:hover {
 }
 
 #container {
-  margin-top: 10px; /* Added margin for spacing */
+  margin-top: 10px;
 }
 
 #toggleVideo {
-  margin-right: 0; /* Reset margin to avoid extra space */
+  margin-right: 0;
 }
 
 #gum-local {
   width: 500px;
 }
+
 #video2 {
   height: 1000px;
   width: 100%;

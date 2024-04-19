@@ -42,4 +42,15 @@ export const config = {
       ] as TransportListenInfo[], // 동일한 호스트에 있는 두 라우터 연결을 위한 정보 수신
     },
   },
+  stun: {
+    hostname: 'stun:stun.l.google.com',
+    port: 19302,
+  },
+  // TURN server settings (if needed)
+  turn: {
+    hostname: 'turn.example.com',
+    port: 3478,
+    username: 'your_username',
+    credential: 'your_password',
+  },
 } as const;

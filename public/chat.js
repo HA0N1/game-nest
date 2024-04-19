@@ -9,7 +9,7 @@ console.log('token:', token);
 
 const socket = io('/chat', { auth: { token: token } });
 let currentRoom = '';
-
+const channel = prompt('채널명을 입력해주세요');
 function sendMessage() {
   if (currentRoom === '') {
     alert('방을 선택해주세요');
@@ -83,9 +83,6 @@ $(document).ready(function () {
 socket.on('connect', () => {
   console.log('connected', socket.id);
 });
-socket.on('screenSharingStream', data => {
-  console.log(data);
-});
 
 socket.on('dmHistory', function (dms) {
   $('#chat').html('');
@@ -95,6 +92,10 @@ socket.on('dmHistory', function (dms) {
   });
 });
 
+socket.on('screenSharingStream', data => {
+  const stream = data.stream;
+  console.log('스트림 테스트', stream);
+});
 const constraints = (window.constraints = {
   audio: true,
   video: true,
@@ -148,8 +149,6 @@ function errorMsg(msg, error) {
 }
 
 function handleSuccess(stream) {
-  console.log('handleSuccess ~ stream:', stream);
-
   startButton.disabled = true;
 
   preferredDisplaySurface.disabled = true;
@@ -158,7 +157,8 @@ function handleSuccess(stream) {
   video.srcObject = stream;
   const room = currentRoom;
   // 스트림의 id만을 전송
-  socket.emit('broadcastScreenSharing', { room, streamId: stream.id });
+  socket.emit('broadcastScreenSharing', { room, stream });
+  console.log('handleSuccess ~ stream:', stream);
   // 사용자가 멈췄는지 감지하는 방법
   // 브라우저 UI를 통해 화면을 공유
   stream.getVideoTracks()[0].addEventListener('ended', () => {

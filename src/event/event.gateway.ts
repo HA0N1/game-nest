@@ -21,6 +21,7 @@ import { ChannelDMs } from 'src/channel/entities/channelDMs.entity';
 import { ChatType } from 'src/channel/type/channel-chat.type';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import { Stream } from 'stream';
 import { Repository } from 'typeorm';
 
 /**
@@ -199,7 +200,7 @@ export class RoomGateway implements OnGatewayConnection {
     socket.broadcast.to(room).emit('message', { message: `${nickname}: ${message}` });
   }
   @SubscribeMessage('broadcastScreenSharing')
-  async handleBroadcastScreenSharing(socket: Socket, data: ScreenSharingData): Promise<void> {
+  async handleBroadcastScreenSharing(socket: Socket, data: any): Promise<void> {
     const { room, stream } = data;
     console.log('RoomGateway ~ handleBroadcastScreenSharing ~ room:', room);
     console.log('RoomGateway ~ handleBroadcastScreenSharing ~ stream:', stream);

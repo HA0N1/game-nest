@@ -10,55 +10,62 @@
 
     <base target="_blank" />
     <title>Chat Application</title>
-    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/login.css" />
   </head>
   <body>
-    <div>
-      <h2>채팅방 목록</h2>
-      <ul id="rooms"></ul>
-      <button id="joinBtn" style="display:none"></button>
-    </div>
-
-    <div id="chat">Chat</div>
-
-    <input type="text" id="message" placeholder="메시지 입력" />
-    <div>
-      <button id="sendBtn">전송</button>
-      <button id="createRoomBtn">채팅 만들기</button>
-    </div>
-    <div id="container">
-      <div>
-        <video id="video" autoplay playsinline></video>
-        <button id="toggleVideoBtn">카메라</button>
-      </div>
-      <div>
-        <video id="video2" autoplay playsinline muted></video>
-        <button id="startButton" disabled>화면공유 시작</button>
-        <fieldset id="options" style="display: none">
-          <legend>Advanced options</legend>
-          <select id="displaySurface">
-            <option value="default" selected>화면공유 옵션</option>
-            <option value="browser">브라우저 탭</option>
-            <option value="window">윈도우</option>
-            <option value="monitor">스크린</option>
-          </select>
-        </fieldset>
-        <div id="errorMsg"></div>
-        <!-- 버튼 수정 -->
+    <div class="sidebar">
+      <div class="channelList">
+        <h2>채널 목록</h2>
+        <ul id="channels"></ul>
       </div>
     </div>
 
-    <div>
-      <h2>공지</h2>
-      <div id="notice"></div>
+    <div class="main-content">
+      <div>
+        <h2>채팅방 목록</h2>
+        <ul id="rooms"></ul>
+        <button id="joinBtn" style="display:none"></button>
+      </div>
+
+      <div id="chat">Chat</div>
+
+      <input type="text" id="message" placeholder="메시지 입력" />
+      <div>
+        <button id="sendBtn">전송</button>
+        <button id="createRoomBtn">채팅 만들기</button>
+      </div>
+      <div id="container">
+        <div>
+          <video id="video" autoplay playsinline></video>
+          <button id="toggleVideoBtn">카메라</button>
+        </div>
+        <div>
+          <video id="video2" autoplay playsinline muted></video>
+          <button id="startButton" disabled>화면공유 시작</button>
+          <fieldset id="options" style="display: none">
+            <legend>Advanced options</legend>
+            <select id="displaySurface">
+              <option value="default" selected>화면공유 옵션</option>
+              <option value="browser">브라우저 탭</option>
+              <option value="window">윈도우</option>
+              <option value="monitor">스크린</option>
+            </select>
+          </fieldset>
+          <div id="errorMsg"></div>
+          <!-- 버튼 수정 -->
+        </div>
+      </div>
+
+      <div>
+        <h2>공지</h2>
+        <div id="notice"></div>
+      </div>
     </div>
 
     <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-
     <script type="module" src="/chat.js"></script>
   </body>
-
 </html>

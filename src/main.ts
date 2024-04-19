@@ -28,20 +28,8 @@ async function bootstrap() {
   app.set('view engine', 'hbs');
 
   try {
-    await createWorker();
-    console.log('Mediasoup server initialized successfully.');
-  } catch (error) {
-    console.error('Error initializing Mediasoup server:', error);
-  }
-
-  app.useStaticAssets(join(process.cwd(), 'public'));
-  app.setBaseViewsDir(join(process.cwd(), 'views'));
-  app.set('view engine', 'hbs');
-
-  app.set('view engine', 'hbs');
-
-  try {
-    await createWorker();
+    const { worker } = await createWorker();
+    console.log('bootstrap ~ worker:', worker);
     console.log('Mediasoup server initialized successfully.');
   } catch (error) {
     console.error('Error initializing Mediasoup server:', error);
