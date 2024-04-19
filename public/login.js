@@ -6,6 +6,7 @@ function login() {
   const password = $('#password').val();
   fetch('http://localhost:3000/user/email', {
     method: 'POST',
+    mode: 'cors',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -15,7 +16,9 @@ function login() {
       console.log(res);
       if (res.status === 201) {
         alert('로그인 성공');
-        const cookieHeader = res.headers.get('Set-Cookie');
+        const cookieHeader = res.headers.get('Cookie');
+        console.dir('login ~ headers:', res);
+        console.log('login ~ cookieHeader:', cookieHeader);
         if (cookieHeader) {
           token = cookieHeader.split(';')[0]; // 쿠키 값 가져오기
         }

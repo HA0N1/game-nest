@@ -67,8 +67,6 @@ export class RoomGateway implements OnGatewayConnection {
 
     @InjectRepository(ChannelDMs)
     private DMsRepo: Repository<ChannelDMs>,
-    @InjectRepository(User)
-    private userRepo: Repository<User>,
     @InjectRedis() private readonly redis: Redis,
   ) {}
   rooms = [];

@@ -1,91 +1,77 @@
-body {
-  background-color: #36393f;
-  color: #ffffff;
-  display: flex;
-}
-
-button {
-  background-color: #5865f2;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 10px; /* Added margin to separate buttons */
-}
-
-button:hover {
-  background-color: #4752c4;
-}
-
-/* Sidebar styles */
 .sidebar {
-  width: 200px;
+  width: 250px;
+  height: 100%;
   background-color: #36393f;
-  padding: 20px;
+  color: #fff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
 }
 
-/* Main content styles */
-.main-content {
-  flex: 1;
-  padding: 20px;
+.sidebar h2 {
+  padding: 10px;
+  margin: 0;
 }
 
-/* Channel List styles */
-#rooms {
-  list-style: none;
+.sidebar ul {
+  list-style-type: none;
   padding: 0;
-  display: flex; /* 목록을 플렉스박스로 설정 */
-  flex-direction: column; /* 수직 방향으로 정렬 */
+  margin: 0;
 }
 
-#rooms li {
+.sidebar ul li {
   padding: 10px;
-  border-bottom: 1px solid #4f545c;
-  display: flex; /* 내부 요소를 플렉스박스로 설정 */
-  align-items: center; /* 요소들을 수직 가운데 정렬 */
+  cursor: pointer;
 }
 
-#rooms li button {
-  margin-left: auto; /* 버튼을 오른쪽으로 정렬 */
-}
-
-#chat {
+.sidebar ul li:hover {
   background-color: #40444b;
-  padding: 20px;
-  margin-top: 20px;
-  height: 300px;
-  overflow-y: scroll;
 }
 
-#chat div {
-  margin-bottom: 10px;
+.chatList {
+  width: 250px;
+  height: 100%;
+  background-color: #2f3136;
+  color: #fff;
+  position: fixed;
+  top: 0;
+  left: 250px;
+  overflow-y: auto;
 }
 
-#message {
-  width: calc(100% - 90px);
+.chatList h2 {
   padding: 10px;
-  margin: 10px 0;
-  box-sizing: border-box;
-  border: 1px solid #5865f2;
-  border-radius: 4px;
+  margin: 0;
+}
+
+.chatList ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.chatList ul li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.chatList ul li:hover {
   background-color: #40444b;
-  color: white;
 }
 
 #container {
-  margin-top: 10px;
+  margin-left: 500px; /* Adjusted for sidebar widths */
+}
+#chatBox {
+  margin-left: 500px;
+  /* background-color: red; */
+  width: auto;
+  height: 500px;
+  border: 1px solid black;
 }
 
-#toggleVideo {
-  margin-right: 0;
-}
-
-#gum-local {
-  width: 500px;
-}
-
-#video2 {
-  height: 1000px;
-  width: 100%;
+#chat {
+  width: auto;
+  height: 500px;
 }

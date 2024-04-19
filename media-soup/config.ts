@@ -5,11 +5,12 @@ export const config = {
   listenIP: '0.0.0.0',
   listenPort: 3016,
   mediasoup: {
-    // 실행중인 워커 수
+    // 실행중인 워커 수 내 컴은 최대 6개
     numWorkers: Object.keys(os.cpus()).length,
     worker: {
-      rtcMinPort: 10000,
-      rtcMaxPort: 10110,
+      // * EC2 올릴 때 포트 범위 보안 그룹 열기
+      rtcMinPort: 2000,
+      rtcMaxPort: 2100,
       logLevel: 'debug',
       logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'] as WorkerLogTag[],
     },
@@ -45,12 +46,5 @@ export const config = {
   stun: {
     hostname: 'stun:stun.l.google.com',
     port: 19302,
-  },
-  // TURN server settings (if needed)
-  turn: {
-    hostname: 'turn.example.com',
-    port: 3478,
-    username: 'your_username',
-    credential: 'your_password',
   },
 } as const;

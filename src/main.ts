@@ -8,12 +8,11 @@ import { createWorker } from '../media-soup/worker';
 import { SocketIoAdapter } from './utils/socketio-adapter';
 
 async function bootstrap() {
+  await createWorker();
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useWebSocketAdapter(new SocketIoAdapter(app));
-  /**
-   * useStaticAssets : 정적 파일 경로 지정
-   */
 
   app.enableCors({
     origin: 'http://localhost:3000',
@@ -26,14 +25,6 @@ async function bootstrap() {
   app.setBaseViewsDir(join(process.cwd(), 'views'));
 
   app.set('view engine', 'hbs');
-
-  try {
-    const { worker } = await createWorker();
-    console.log('bootstrap ~ worker:', worker);
-    console.log('Mediasoup server initialized successfully.');
-  } catch (error) {
-    console.error('Error initializing Mediasoup server:', error);
-  }
 
   await app.listen(3000);
 }
