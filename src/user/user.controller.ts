@@ -20,9 +20,15 @@ export class UserController {
   async create(@Body() createUserDto: CreateUserDto) {
     return await this.userService.create(createUserDto);
   }
+
+  @Get('login')
+  @Render('login.hbs')
+  async login() {
+    await this.userService.login();
+  }
+
   /* 로그인 */
   @Post('email')
-  @Render('login')
   async emailLogin(@Body() emailLoginDto: EmailLoginDto, @Res({ passthrough: true }) response: Response) {
     const login = await this.userService.emailLogin(emailLoginDto);
 

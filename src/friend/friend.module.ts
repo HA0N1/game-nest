@@ -7,6 +7,7 @@ import { Friendship } from './entities/friendship.entity';
 import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -15,6 +16,12 @@ import { ConfigService } from '@nestjs/config';
         secret: config.get<string>('JWT_SECRET_KEY'),
       }),
       inject: [ConfigService],
+    }),
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 5000,
+        maxRedirects: 5,
+      }),
     }),
     TypeOrmModule.forFeature([User, Friendship]),
     UserModule,

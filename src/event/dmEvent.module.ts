@@ -11,6 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { UserModule } from 'src/user/user.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -19,6 +20,12 @@ import { UserModule } from 'src/user/user.module';
         secret: config.get<string>('JWT_SECRET_KEY'),
       }),
       inject: [ConfigService],
+    }),
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 5000,
+        maxRedirects: 5,
+      }),
     }),
     TypeOrmModule.forFeature([User, Friendship, FriendDMs, DMRoom]),
     DMModule,
