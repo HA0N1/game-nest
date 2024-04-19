@@ -10,25 +10,26 @@
 
     <base target="_blank" />
     <title>Chat Application</title>
-    {{! <link rel="stylesheet" href="/style.css" /> }}
+    <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <div>
       <h2>채팅방 목록</h2>
       <ul id="rooms"></ul>
+      <button id="joinBtn" style="display:none"></button>
     </div>
 
     <div id="chat">Chat</div>
 
     <input type="text" id="message" placeholder="메시지 입력" />
     <div>
-      <button onclick="sendMessage()">전송</button>
-      <button onclick="createRoom()">채팅 만들기</button>
+      <button id="sendBtn">전송</button>
+      <button id="createRoomBtn">채팅 만들기</button>
     </div>
     <div id="container">
       <div>
         <video id="video" autoplay playsinline></video>
-        <button id="toggleVideo" onclick="toggleCamera()">카메라</button>
+        <button id="toggleVideoBtn">카메라</button>
       </div>
       <div>
         <video id="video2" autoplay playsinline muted></video>
@@ -55,8 +56,7 @@
     <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
-    }}
-    {{! <script src="/socket.io/socket.io.js"></script> }}
+    <script src="/socket.io/socket.io.js"></script>
 
     <script type="module" src="/chat.js"></script>
   </body>

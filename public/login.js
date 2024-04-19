@@ -19,7 +19,7 @@ function login() {
         if (cookieHeader) {
           token = cookieHeader.split(';')[0]; // 쿠키 값 가져오기
         }
-        window.location.href = 'channel';
+        window.location.href = 'http://localhost:3000/channel';
       } else {
         alert('로그인 실패');
       }

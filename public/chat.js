@@ -1,12 +1,15 @@
-import { io } from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js';
-// document.getElementById('container').style.display = 'none';
+// import { io } from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js';
+document.getElementById('container').style.display = 'none';
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('createRoomBtn').addEventListener('click', createRoom);
+document.getElementById('toggleVideoBtn').addEventListener('click', toggleCamera);
+
 const token = document.cookie;
 console.log('token:', token);
 
 const socket = io('/chat', { auth: { token: token } });
 let currentRoom = '';
 
-// @ts-ignore
 function sendMessage() {
   if (currentRoom === '') {
     alert('방을 선택해주세요');
@@ -20,7 +23,6 @@ function sendMessage() {
   return false;
 }
 
-// @ts-ignore
 function createRoom() {
   const room = prompt('방이름을 입력해주세요.');
   const chatType = prompt('채팅 타입을 입력해주세요.');
@@ -35,11 +37,15 @@ function createRoom() {
 function updateRoomList(rooms) {
   $('#rooms').empty();
   rooms.forEach(room => {
-    $('#rooms').append(`<li>${room.title} <button onclick="joinRoom('${room.title}')">join</button></li>`);
+    $('#rooms').append(`<li>${room.title} <button class="joinBtn" data-room="${room.title}">join</button></li>`);
+  });
+
+  $('.joinBtn').click(function () {
+    const room = $(this).data('room');
+    joinRoom(room); // 선택한 방 이름을 인자로 전달하여 joinRoom 함수 호출
   });
 }
 
-// @ts-ignore
 function joinRoom(room) {
   socket.emit('joinRoom', { room });
   $('#chat').html('');
@@ -89,21 +95,19 @@ socket.on('dmHistory', function (dms) {
   });
 });
 
-// @ts-ignore
 const constraints = (window.constraints = {
   audio: true,
   video: true,
 });
 let isCameraOn = true;
 
-// @ts-ignore
 function toggleCamera() {
   const video = document.querySelector('video');
   if (isCameraOn) {
     // 카메라 켜져 있으면 끄기
     video.srcObject = null;
     isCameraOn = false;
-    document.querySelector('#toggleVideo').textContent = '카메라 켜기';
+    document.querySelector('#toggleVideoBtn').textContent = '카메라 켜기';
   } else {
     // 꺼져 있으면 켜기
     navigator.mediaDevices
@@ -111,7 +115,7 @@ function toggleCamera() {
       .then(stream => {
         video.srcObject = stream;
         isCameraOn = true;
-        document.querySelector('#toggleVideo').textContent = '카메라 끄기';
+        document.querySelector('#toggleVideoBtn').textContent = '카메라 끄기';
       })
       .catch(error => {
         console.error('Error accessing camera:', error);
@@ -128,7 +132,6 @@ if (adapter.browserDetails.browser === 'chrome' && adapter.browserDetails.versio
   // Polyfill in Firefox.
   // See https://blog.mozilla.org/webrtc/getdisplaymedia-now-available-in-adapter-js/
 
-  // @ts-ignore
   adapter.browserShim.shimGetDisplayMedia(window, 'screen');
 }
 
@@ -147,14 +150,11 @@ function errorMsg(msg, error) {
 function handleSuccess(stream) {
   console.log('handleSuccess ~ stream:', stream);
 
-  // @ts-ignore
   startButton.disabled = true;
 
-  // @ts-ignore
   preferredDisplaySurface.disabled = true;
   const video = document.getElementById('video2');
 
-  // @ts-ignore
   video.srcObject = stream;
   const room = currentRoom;
   // 스트림의 id만을 전송
@@ -164,20 +164,17 @@ function handleSuccess(stream) {
   stream.getVideoTracks()[0].addEventListener('ended', () => {
     errorMsg('사용자가 화면 공유를 종료했습니다.');
 
-    // @ts-ignore
     startButton.disabled = false;
     //
-    // @ts-ignore
+
     preferredDisplaySurface.disabled = false;
   });
 }
 startButton.addEventListener('click', () => {
   const options = { audio: true, video: true };
 
-  // @ts-ignore
   const displaySurface = preferredDisplaySurface.options[preferredDisplaySurface.selectedIndex].value;
   if (displaySurface !== 'default') {
-    // @ts-ignore
     options.video = { displaySurface };
   }
 
@@ -190,7 +187,6 @@ startButton.addEventListener('click', () => {
 
 // Check if screen sharing is supported
 if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
-  // @ts-ignore
   startButton.disabled = false;
 } else {
   errorMsg('getDisplayMedia is not supported');
