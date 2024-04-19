@@ -19,14 +19,13 @@ const createWorker = async () => {
   });
 
   worker.on('died', () => {
-    console.error('워커 쥬금 [pid:&d]', worker.pid);
+    console.log('워커 쥬금 [pid:&d]', worker.pid);
     setTimeout(() => {
       process.exit(1);
     }, 2000);
   });
 
   const router = await worker.createRouter(config.mediasoup.router);
-  // Store the worker and router for later use
   workers.push({ worker, router });
 };
 

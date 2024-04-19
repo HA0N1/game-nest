@@ -1,117 +1,64 @@
-<html lang='en'>
+<html lang="en">
   <head>
-    <meta charset='UTF-8' />
-    <meta name='description' content='WebRTC code samples' />
-    <meta name='viewport' content='width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1' />
-    <meta itemprop='description' content='Client-side WebRTC code samples' />
-    <meta itemprop='name' content='WebRTC code samples' />
-    <meta name='mobile-web-app-capable' content='yes' />
-    <meta id='theme-color' name='theme-color' content='#ffffff' />
+    <meta charset="UTF-8" />
+    <meta name="description" content="WebRTC code samples" />
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1" />
+    <meta itemprop="description" content="Client-side WebRTC code samples" />
+    <meta itemprop="name" content="WebRTC code samples" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta id="theme-color" name="theme-color" content="#ffffff" />
 
-    <base target='_blank' />
+    <base target="_blank" />
     <title>Chat Application</title>
-    <link rel='stylesheet' href='style.css' />
+    {{! <link rel="stylesheet" href="/style.css" /> }}
   </head>
   <body>
     <div>
       <h2>채팅방 목록</h2>
-      <ul id='rooms'></ul>
+      <ul id="rooms"></ul>
     </div>
 
-    <div id='chat'>Chat</div>
+    <div id="chat">Chat</div>
 
-    <input type='text' id='message' placeholder='메시지 입력' />
+    <input type="text" id="message" placeholder="메시지 입력" />
     <div>
-      <button onclick='sendMessage()'>전송</button>
-      <button onclick='createRoom()'>채팅 만들기</button>
+      <button onclick="sendMessage()">전송</button>
+      <button onclick="createRoom()">채팅 만들기</button>
     </div>
-    <div id='container'>
+    <div id="container">
       <div>
-        <video id='video' autoplay playsinline></video>
-        <button id='toggleVideo' onclick='toggleCamera()'>카메라</button>
+        <video id="video" autoplay playsinline></video>
+        <button id="toggleVideo" onclick="toggleCamera()">카메라</button>
       </div>
       <div>
-        <video id='video2' autoplay playsinline muted></video>
-        <button id='startButton' disabled>화면공유 시작</button>
-        <fieldset id='options' style='display: none'>
+        <video id="video2" autoplay playsinline muted></video>
+        <button id="startButton" disabled>화면공유 시작</button>
+        <fieldset id="options" style="display: none">
           <legend>Advanced options</legend>
-          <select id='displaySurface'>
-            <option value='default' selected>화면공유 옵션</option>
-            <option value='browser'>브라우저 탭</option>
-            <option value='window'>윈도우</option>
-            <option value='monitor'>스크린</option>
+          <select id="displaySurface">
+            <option value="default" selected>화면공유 옵션</option>
+            <option value="browser">브라우저 탭</option>
+            <option value="window">윈도우</option>
+            <option value="monitor">스크린</option>
           </select>
         </fieldset>
-        <div id='errorMsg'></div>
+        <div id="errorMsg"></div>
         <!-- 버튼 수정 -->
       </div>
     </div>
 
     <div>
       <h2>공지</h2>
-      <div id='notice'></div>
+      <div id="notice"></div>
     </div>
 
-    <!-- <div id="container2">
+    <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+    }}
+    {{! <script src="/socket.io/socket.io.js"></script> }}
 
-    </div> -->
-
-    <script src='http://code.jquery.com/jquery-3.6.1.slim.js'></script>
-    <script src='/socket.io/socket.io.js'></script>
-    <script src='https://webrtc.github.io/adapter/adapter-latest.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js'></script>
-
-    <script type='module' src='/chat.js'></script>
-
-    <script>
-      document.getElementById('container').style.display = 'none'; const token = document.cookie; const socket =
-      io('http://localhost:3000/room', { auth: { token: token } }); let currentRoom = ''; function sendMessage() { if
-      (currentRoom === '') { alert('방을 선택해주세요'); return; } const message = $('#message').val(); const data = {
-      message, room: currentRoom }; $('#chat').append(`<div>나:${message}</div>`); socket.emit('message', data); return
-      false; } function createRoom() { const room = prompt('방이름을 입력해주세요.'); const chatType = prompt('채팅
-      타입을 입력해주세요.'); const maximumPeople = prompt('최대 인원을 입력해주세요.'); const channelId =
-      prompt('만드려는 채팅의 채널ID를 입력해주세요.'); socket.emit('createRoom', { room, createChatDto: { title: room,
-      chatType, maximumPeople, channelId }, }); } function updateRoomList(rooms) { $('#rooms').empty();
-      rooms.forEach(room => { $('#rooms').append(`<li>${room.title} <button
-      onclick="joinRoom('${room.title}')">join</button></li>`); }); } function joinRoom(room) { socket.emit('joinRoom',
-      { room }); $('#chat').html(''); currentRoom = room; socket.emit('requestChatHistory', { room });
-      socket.emit('chatType', { room }); socket.emit('broadcastScreenSharing', { room }); } socket.on('chatType', type
-      => { console.log('type:', type); if (type === 'voice') { document.getElementById('container').style.display =
-      'block'; } else { document.getElementById('container').style.display = 'none'; } }); socket.on('notice', data => {
-      $('#notice').append(`<div>${data.message}</div>`); }); socket.on('message', data => {
-      $('#chat').append(`<div>${data.message}</div>`); }); $(document).ready(function () { socket.emit('requestRooms');
-      socket.on('rooms', function (data) { updateRoomList(data); }); }); socket.on('connect', () => {
-      console.log('connected', socket.id); }); socket.on('screenSharingStream', data => { console.log(data); });
-      socket.on('dmHistory', function (dms) { $('#chat').html(''); dms.forEach(dm => { // 각 메시지의 발신자 닉네임을
-      사용하여 표시 $('#chat').append(`<div>${dm.senderNickname}: ${dm.content}</div>`); }); }); const constraints =
-      (window.constraints = { audio: true, video: true, }); let isCameraOn = true; function toggleCamera() { const video
-      = document.querySelector('video'); if (isCameraOn) { // 카메라 켜져 있으면 끄기 video.srcObject = null; isCameraOn
-      = false; document.querySelector('#toggleVideo').textContent = '카메라 켜기'; } else { // 꺼져 있으면 켜기
-      navigator.mediaDevices .getUserMedia(constraints) .then(stream => { video.srcObject = stream; isCameraOn = true;
-      document.querySelector('#toggleVideo').textContent = '카메라 끄기'; }) .catch(error => { console.error('Error
-      accessing camera:', error); }); } } const preferredDisplaySurface = document.getElementById('displaySurface');
-      const startButton = document.getElementById('startButton'); if (adapter.browserDetails.browser === 'chrome' &&
-      adapter.browserDetails.version >= 107) { // See
-      https://developer.chrome.com/docs/web-platform/screen-sharing-controls/
-      document.getElementById('options').style.display = 'block'; } else if (adapter.browserDetails.browser ===
-      'firefox') { // Polyfill in Firefox. // See
-      https://blog.mozilla.org/webrtc/getdisplaymedia-now-available-in-adapter-js/
-      adapter.browserShim.shimGetDisplayMedia(window, 'screen'); } function handleError(error) { errorMsg(`디스플레이를
-      불러오지 못하였습니다.: ${error.name}`, error); } function errorMsg(msg, error) { const errorElement =
-      document.querySelector('#errorMsg'); errorElement.innerHTML += `<p>${msg}</p>`; if (typeof error !== 'undefined')
-      { console.error(error); } } function handleSuccess(stream) { console.log('handleSuccess ~ stream:', stream);
-      startButton.disabled = true; preferredDisplaySurface.disabled = true; const video =
-      document.getElementById('video2'); video.srcObject = stream; const room = currentRoom; // 스트림의 id만을 전송
-      socket.emit('broadcastScreenSharing', { room, streamId: stream.id }); // 사용자가 멈췄는지 감지하는 방법 //
-      브라우저 UI를 통해 화면을 공유 stream.getVideoTracks()[0].addEventListener('ended', () => { errorMsg('사용자가
-      화면 공유를 종료했습니다.'); startButton.disabled = false; preferredDisplaySurface.disabled = false; }); }
-      startButton.addEventListener('click', () => { const options = { audio: true, video: true }; const displaySurface =
-      preferredDisplaySurface.options[preferredDisplaySurface.selectedIndex].value; if (displaySurface !== 'default') {
-      options.video = { displaySurface }; } // Start screen sharing navigator.mediaDevices .getDisplayMedia(options)
-      .then(handleSuccess) // Pass the stream to handleSuccess function .catch(handleError); }); // Check if screen
-      sharing is supported if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
-      startButton.disabled = false; } else { errorMsg('getDisplayMedia is not supported'); }
-    </script>
-    }
+    <script type="module" src="/chat.js"></script>
   </body>
+
 </html>

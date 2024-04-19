@@ -17,7 +17,6 @@ import { Game } from './game/entities/game.entity';
 import { Genre } from './game/entities/gameGenre.entity';
 import { InterestGenre } from './user/entities/interestGenre.entity';
 import { GameComment } from './game/entities/gameComment.entity';
-
 import { CommentModule } from './comment/comment.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
@@ -27,7 +26,6 @@ import { GameService } from './game/game.service';
 import { PostModule } from './post/post.module';
 import { PostComment } from './comment/entities/comment.entity';
 import { FriendModule } from './friend/friend.module';
-import { RoomGateway } from './event/event.gateway';
 import { EventModule } from './event/event.module';
 import { AppController } from './app.controller';
 

@@ -8,9 +8,9 @@ export class AppController {
   constructor(private readonly configService: ConfigService) {}
 
   @Get('test')
-  @Render('test')
+  @Render('test2')
   getTestPage() {
-    return { message: 'HI' };
+    console.log('연결완');
   }
   @Get('login')
   getLoginPage(@Res() res: Response) {

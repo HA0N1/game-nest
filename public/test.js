@@ -77,10 +77,8 @@ function call() {
 
   localStream.getTracks().forEach(track => pc1Local.addTrack(track, localStream));
   console.log('Adding local stream to pc1Local');
-  pc1Local
-    // @ts-ignore
-    .createOffer(offerOptions)
-    .then(gotDescription1Local, onCreateSessionDescriptionError);
+  // @ts-ignore
+  pc1Local.createOffer(offerOptions).then(gotDescription1Local, onCreateSessionDescriptionError);
 
   localStream.getTracks().forEach(track => pc2Local.addTrack(track, localStream));
   console.log('Adding local stream to pc2Local');

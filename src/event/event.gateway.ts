@@ -13,6 +13,7 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import Redis from 'ioredis';
+import { config } from 'media-soup/config';
 import { Server, Socket } from 'socket.io';
 import { WsGuard } from 'src/auth/guard/ws.guard';
 import { ChannelService } from 'src/channel/channel.service';
@@ -55,7 +56,7 @@ interface ScreenSharingData {
   room: string;
   stream: MediaStream;
 }
-@WebSocketGateway({ namespace: 'room' })
+@WebSocketGateway({ namespace: 'chat' })
 export class RoomGateway implements OnGatewayConnection {
   constructor(
     private readonly channelService: ChannelService,

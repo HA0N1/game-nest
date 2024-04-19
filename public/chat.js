@@ -1,8 +1,9 @@
-import { io } from 'socket.io-client';
+import { io } from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js';
 // document.getElementById('container').style.display = 'none';
-
 const token = document.cookie;
-const socket = io('http://localhost:3000/room', { auth: { token: token } });
+console.log('token:', token);
+
+const socket = io('/chat', { auth: { token: token } });
 let currentRoom = '';
 
 // @ts-ignore
@@ -120,14 +121,13 @@ function toggleCamera() {
 const preferredDisplaySurface = document.getElementById('displaySurface');
 const startButton = document.getElementById('startButton');
 
-// @ts-ignore
 if (adapter.browserDetails.browser === 'chrome' && adapter.browserDetails.version >= 107) {
   // See https://developer.chrome.com/docs/web-platform/screen-sharing-controls/
   document.getElementById('options').style.display = 'block';
-  // @ts-ignore
 } else if (adapter.browserDetails.browser === 'firefox') {
   // Polyfill in Firefox.
   // See https://blog.mozilla.org/webrtc/getdisplaymedia-now-available-in-adapter-js/
+
   // @ts-ignore
   adapter.browserShim.shimGetDisplayMedia(window, 'screen');
 }
@@ -146,11 +146,14 @@ function errorMsg(msg, error) {
 
 function handleSuccess(stream) {
   console.log('handleSuccess ~ stream:', stream);
+
   // @ts-ignore
   startButton.disabled = true;
+
   // @ts-ignore
   preferredDisplaySurface.disabled = true;
   const video = document.getElementById('video2');
+
   // @ts-ignore
   video.srcObject = stream;
   const room = currentRoom;
@@ -160,14 +163,17 @@ function handleSuccess(stream) {
   // 브라우저 UI를 통해 화면을 공유
   stream.getVideoTracks()[0].addEventListener('ended', () => {
     errorMsg('사용자가 화면 공유를 종료했습니다.');
+
     // @ts-ignore
     startButton.disabled = false;
+    //
     // @ts-ignore
     preferredDisplaySurface.disabled = false;
   });
 }
 startButton.addEventListener('click', () => {
   const options = { audio: true, video: true };
+
   // @ts-ignore
   const displaySurface = preferredDisplaySurface.options[preferredDisplaySurface.selectedIndex].value;
   if (displaySurface !== 'default') {
