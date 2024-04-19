@@ -7,15 +7,11 @@ export class InterestGenre {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @ManyToOne(() => User, user => user.interestGenre, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => User, user => user.interestGenre)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
 
-  @ManyToOne(() => Genre, genre => genre.interestGenre, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Genre, genre => genre.interestGenre)
   @JoinColumn({ name: 'genre_id', referencedColumnName: 'id' })
   genre: Genre;
 

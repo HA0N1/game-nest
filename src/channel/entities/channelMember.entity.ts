@@ -1,18 +1,24 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+import { MemberRole } from '../type/MemberRole.type';
+import { User } from 'src/user/entities/user.entity';
 import { Channel } from './channel.entity';
 import { ChannelChat } from './channelChat.entity';
-import { MemberRole } from '../type/MemberRole.type';
 
 @Entity({ name: 'channel_member' })
 export class ChannelMember {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'enum', enum: MemberRole })
+  @Column({ type: 'enum', enum: MemberRole, default: MemberRole.User })
   role: MemberRole;
 
-  @ManyToOne(() => User, user => user.friendDms)
+  @Column({ type: 'int', name: 'user_id', unsigned: true })
+  userId: number;
+
+  @Column({ type: 'int', name: 'channel_id', unsigned: true })
+  channelId: number;
+
+  @ManyToOne(() => User, user => user.channelMember)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
@@ -20,6 +26,6 @@ export class ChannelMember {
   @JoinColumn({ name: 'channel_id' })
   channel: Channel;
 
-  @OneToMany(() => ChannelChat, channelChat => channelChat.channelMember)
+  @ManyToOne(() => ChannelChat, channelChat => channelChat.channelMember)
   channelChat: ChannelChat;
 }

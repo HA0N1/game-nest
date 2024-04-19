@@ -2,10 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { Game } from './entities/game.entity';
-import { Repository } from 'typeorm';
+import { DataSource, MoreThan, Repository } from 'typeorm';
 import { PlatformEnum } from './type/game-platform.type';
 import puppeteer from 'puppeteer';
 import cron from 'node-cron';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class GameService {
@@ -27,7 +28,6 @@ export class GameService {
   }
 
   // 스팀 게임 저장
-  //FIXME: 스케줄러 적용하기(redis를 통해 적용하려면 불큐 사용해야함)
   async saveFilteredGames() {
     const gameIds = await this.findAllGameIds();
 
@@ -147,8 +147,8 @@ export class GameService {
     return { data: games, total: total, page: page, lastPage: Math.ceil(total / limit) };
   }
 
-  //FIXME: 인기순 조회 - 데이터베이스에 저장하는 식으로 변경 예정
-  async getPopularGames() {
+  // 인기순 저장
+  async savePopularGames() {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto('https://store.steampowered.com/charts/topselling/KR', {
@@ -162,20 +162,26 @@ export class GameService {
       return gameElements.map(element => {
         const rank = parseInt(element.querySelector('._34h48M_x9S-9Q2FFPX_CcU').textContent);
         const imageElement = element.querySelector('img._2dODJrHKWs6F9v9QpgzihO');
-        const screen_shot = imageElement.getAttribute('src');
+        const screen_shot = imageElement ? imageElement.getAttribute('src') : '이미지 정보 없음';
         const title = element.querySelector('._1n_4-zvf0n4aqGEksbgW9N').textContent;
-        const priceElement = element.querySelector('.Wh0L8EnwsPV_8VAu8TOYr');
-        const price = priceElement.textContent;
+        const price = element.querySelector('.Wh0L8EnwsPV_8VAu8TOYr')?.textContent ?? '가격 정보 없음';
 
         return { rank, screen_shot, title, price };
       });
     });
     await browser.close();
 
-    return popularGames;
+    await this.gameRepository.save(popularGames);
+
+    return { message: '인기 게임 저장 완료' };
   }
-  //TODO: 신작 저장
-  async getNewGames() {
+
+  // 인기순 조회
+  async getPopularGames() {}
+
+  // 신작 저장
+  @Cron('0 0 0 * * *')
+  async saveNewGames() {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto('https://store.steampowered.com/search/?sort_by=Released_DESC&os=win', {
@@ -209,10 +215,54 @@ export class GameService {
 
     await Promise.all(
       gamesToSave.map(async game => {
-        await this.gameRepository.save(game);
+        const existingGame = await this.gameRepository.findOne({
+          where: {
+            title: game.title,
+            release_date: parseDate(game.release_date),
+          },
+        });
+        if (!existingGame) {
+          await this.gameRepository.save(game);
+        }
       }),
     );
 
-    return { message: '신작 저장 완료' };
+    return { message: '신작 게임 저장 완료' };
+  }
+
+  // 신작 조회
+  async getNewGames(page: number, limit: number) {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const now = new Date();
+
+    const total = await this.gameRepository
+      .createQueryBuilder('game')
+      .select('COUNT(*)', 'count')
+      .where('game.release_date > :oneWeekAgo', { oneWeekAgo })
+      .andWhere('game.release_date < :now', { now })
+      .andWhere('game.developer IS NULL')
+      .getRawOne();
+
+    const skip = (page - 1) * limit;
+
+    const newGames = await this.gameRepository
+      .createQueryBuilder('game')
+      .select(['title', 'screen_shot', 'release_date', 'price'])
+      .where('game.release_date > :oneWeekAgo', { oneWeekAgo })
+      .andWhere('game.release_date < :now', { now })
+      .andWhere('game.developer IS NULL')
+      .orderBy('game.release_date', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getRawMany();
+
+    return {
+      data: newGames,
+      page,
+      limit,
+      total: parseInt(total.count, 10),
+    };
   }
 }

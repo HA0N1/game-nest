@@ -4,28 +4,34 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from './user/entities/user.entity';
-import { ChannelModule } from './channel/channel.module';
-import { FriendDMs } from './user/entities/friendDMs.entity';
-import { Friendship } from './user/entities/friendship.entity';
-import { ChannelChat } from './channel/entities/channelChat.entity';
+import { FriendDMs } from './friend/entities/friendDMs.entity';
+import { Friendship } from './friend/entities/friendship.entity';
 import { Channel } from './channel/entities/channel.entity';
-import { DMRoom } from './user/entities/DM-room.entity';
+import { ChannelChat } from './channel/entities/channelChat.entity';
+import { DMRoom } from './friend/entities/DM-room.entity';
 import { Like } from './user/entities/like.entity';
 import { Post } from './post/entities/post.entity';
-import { PostComment } from './comment/entities/comment.entity';
 import { Game } from './game/entities/game.entity';
+
+import { CommentModule } from './comment/comment.module';
 import { ChannelMember } from './channel/entities/channelMember.entity';
 import { ChannelDMs } from './channel/entities/channelDMs.entity';
-import { PostModule } from './post/post.module';
-import { GameService } from './game/game.service';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { CommentModule } from './comment/comment.module';
 import { RedisAppModule } from './redis/redis.module';
+import { ChannelModule } from './channel/channel.module';
+import { GameService } from './game/game.service';
+import { PostModule } from './post/post.module';
+import { PostComment } from './comment/entities/comment.entity';
+import { FriendModule } from './friend/friend.module';
+import { RoomGateway } from './event/event.gateway';
+import { EventModule } from './event/event.module';
+import { AppController } from './app.controller';
 import { GameModule } from './game/game.module';
 import { Genre } from './game/entities/game-genre.entity';
 import { InterestGenre } from './user/entities/interestGenre.entity';
 import { GameComment } from './game/entities/game-comment.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -81,9 +87,12 @@ const typeOrmModuleOptions = {
     PostModule,
     CommentModule,
     RedisAppModule,
+    FriendModule,
+    EventModule,
     GameModule,
+    ScheduleModule.forRoot(),
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [GameService],
 })
 export class AppModule {}

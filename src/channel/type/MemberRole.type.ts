@@ -1,4 +1,4 @@
 export enum MemberRole {
-Owner = 'owner',
-User = 'user'
+  Admin = 'admin',
+  User = 'user',
 }

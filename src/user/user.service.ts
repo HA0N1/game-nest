@@ -115,6 +115,15 @@ export class UserService {
     return user;
   }
 
+  /* 관심 장르 조회 */
+  async findInterestGenres(user: User) {
+    return await this.interestGenreRepository
+      .createQueryBuilder('ig')
+      .leftJoinAndSelect('ig.genre', 'genre')
+      .select(['genre.id', 'genre.gameGenre'])
+      .where('ig.user_id = :user_id', { user_id: user.id })
+      .getRawMany();
+  }
   /* 닉네임 수정 */
   async updateNN(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.findOneBy({
@@ -138,6 +147,10 @@ export class UserService {
 
     if (!user) {
       throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+
+    if (!updatePWDTO.originPassword || !updatePWDTO.newPassword || !updatePWDTO.passwordCheck) {
+      throw new BadRequestException('body에 originPassword, newPassword, passwordCheck을 올바르게 입력하세요');
     }
 
     if (updatePWDTO.newPassword !== updatePWDTO.passwordCheck) {
@@ -277,8 +290,23 @@ export class UserService {
   }
 
   /* 유저 탈퇴 */
-  async remove(id: number) {
-    return { message: 'test 성공' };
+  async remove(id: number, password: string) {
+    const pw = Object.values(password);
+    const stringPw = pw.toString();
+
+    const user = await this.userRepository.findOneBy({
+      id,
+    });
+
+    if (!(await compare(stringPw, user.password))) {
+      throw new UnauthorizedException('비밀번호가 틀렸습니다.');
+    }
+
+    await this.userRepository.delete({ id });
+
+    await this.redis.del(`REFRESH_TOKEN:${id}`);
+
+    return { message: '유저 탈퇴에 성공했습니다.' };
   }
 
   /* 장르 아이디로 장르 받아오는 함수 */

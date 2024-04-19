@@ -1,13 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res, Render } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmailLoginDto } from './dto/emailLogin.dto';
 import { UpdatePWDto } from './dto/update-pw.dto';
 import { AuthGuard } from '@nestjs/passport';
+
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { InterestGenre } from './entities/interestGenre.entity';
+import { Response } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -18,16 +20,14 @@ export class UserController {
   async create(@Body() createUserDto: CreateUserDto) {
     return await this.userService.create(createUserDto);
   }
-
   /* 로그인 */
   @Post('email')
-  async emailLogin(@Body() emailLoginDto: EmailLoginDto) {
+  @Render('login')
+  async emailLogin(@Body() emailLoginDto: EmailLoginDto, @Res({ passthrough: true }) response: Response) {
     const login = await this.userService.emailLogin(emailLoginDto);
 
     const user = await this.userService.findUserByEmail(emailLoginDto.email);
-
-    const userId = user.id.toString();
-
+    response.cookie('authorization', login.accessToken, { httpOnly: true });
     return { message: login.message, accessToken: login.accessToken };
   }
 
@@ -35,7 +35,8 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Get('userinfo')
   async findOne(@UserInfo() user: User) {
-    return { id: user.id, email: user.email, nickname: user.nickname };
+    const interestGenres = await this.userService.findInterestGenres(user);
+    return { id: user.id, email: user.email, nickname: user.nickname, interestGenres };
   }
 
   /* 닉네임 수정 */
@@ -74,16 +75,15 @@ export class UserController {
   @Post('logout')
   async logout(@UserInfo() user: User) {
     const userId = user.id;
-    console.log('컨트롤러 이상 무');
 
     return await this.userService.logout(userId);
   }
 
   /* 회원 탈퇴 */
   @UseGuards(AuthGuard('jwt'))
-  @Delete(':id')
-  async remove(@UserInfo() user: User) {
+  @Delete('delete')
+  async remove(@UserInfo() user: User, @Body() password: string) {
     const userId = user.id;
-    return await this.userService.remove(userId);
+    return await this.userService.remove(userId, password);
   }
 }

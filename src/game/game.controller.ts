@@ -60,17 +60,27 @@ export class GameController {
 
   // 인기순 저장
   @Get('popular')
-  async getPopularGames() {
-    const popularGames = await this.gameService.getPopularGames();
+  async savePopularGames() {
+    const popularGames = await this.gameService.savePopularGames();
 
     return popularGames;
   }
 
   // 신작 저장
-  @Get('newGames')
-  async getNewGames() {
-    const newGames = await this.gameService.getNewGames();
+  @Get('saveNewGames')
+  async saveNewGames() {
+    const newGames = await this.gameService.saveNewGames();
 
+    return newGames;
+  }
+
+  //신작 조회
+  @Get('newGames')
+  async getNewGames(@Query('page') page: string, @Query('limit') limit: string) {
+    const pageNumber = parseInt(page, 10) || 1;
+    const limitNumber = parseInt(limit, 10) || 10;
+
+    const newGames = this.gameService.getNewGames(pageNumber, limitNumber);
     return newGames;
   }
 }
