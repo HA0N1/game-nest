@@ -8,7 +8,9 @@ document.getElementById('createRoomBtn').addEventListener('click', createRoom);
 let device;
 let rtpCapabilities;
 let producerTransport;
-let consumerTransport;
+let consumerTransport = [];
+let audioProducer;
+let videoProducer;
 let producer;
 let consumer;
 
@@ -30,7 +32,7 @@ console.log('token:', token);
 const socket = io('/chat', { auth: { token: token } });
 
 let currentRoom = '';
-const channel = prompt('채널명을 입력해주세요');
+// const channel = prompt('채널명을 입력해주세요');
 function sendMessage() {
   if (currentRoom === '') {
     alert('방을 선택해주세요');
@@ -126,19 +128,31 @@ socket.on('dmHistory', function (dms) {
 let audioParams;
 let videoParams = { params };
 
-async function streamSuccess(stream) {
+const streamSuccess = async stream => {
   const localVideo = document.getElementById('localVideo');
   localVideo.srcObject = stream;
 
   let room = currentRoom;
   audioParams = { track: stream.getAudioTracks()[0], ...audioParams };
+  console.log('streamSuccess ~ audioParams:', audioParams);
   videoParams = { track: stream.getVideoTracks()[0], ...videoParams };
-}
+  socket.emit('joinVoiceRoom', { room });
+  await socket.on('getRtpCapabilities', data => {
+    console.log(`Router RTP Capabilities... ${data}`);
+
+    // we assign to local variable and will be used when
+    // loading the client Device (see createDevice above)
+    rtpCapabilities = data;
+
+    createDevice();
+  });
+};
 
 const getLocalStream = () => {
+  console.log('연결');
   navigator.getUserMedia(
     {
-      audio: false,
+      audio: true,
       video: {
         width: {
           min: 640,
@@ -159,9 +173,7 @@ const getLocalStream = () => {
 
 const createDevice = async () => {
   try {
-    console.log('도착');
     device = new mediasoupClient.Device();
-    console.log('createDevice ~ device:', device);
 
     // https://mediasoup.org/documentation/v3/mediasoup-client/api/#device-load
     // Loads the device with RTP capabilities of the Router (server side)
@@ -170,7 +182,6 @@ const createDevice = async () => {
       routerRtpCapabilities: rtpCapabilities,
     });
 
-    console.log('test다', device);
     createSendTransport();
   } catch (error) {
     console.log(error);
@@ -181,46 +192,35 @@ const createDevice = async () => {
 // make a request to the server for Router RTP Capabilities
 // see server's socket.on('getRtpCapabilities', ...)
 // the server sends back data object which contains rtpCapabilities
-socket.on('getRtpCapabilities', data => {
-  console.log(`Router RTP Capabilities... ${data}`);
 
-  // we assign to local variable and will be used when
-  // loading the client Device (see createDevice above)
-  rtpCapabilities = data;
-
-  createDevice();
-});
-
+// ! LP = SendTransport 생성을 위한 Transport 생성
 const createSendTransport = () => {
-  // see server's socket.on('createWebRtcTransport', sender?, ...)
-  // this is a call from Producer, so sender = true
-  socket.emit('createWebRtcTransport', { sender: true }, ({ params }) => {
+  socket.emit('createWebRtcTransport');
+
+  socket.on('createWebRtcTransport', data => {
     // The server sends back params needed
+    const { transport, params } = data;
+    console.log('createSendTransport ~ params:', params);
     // to create Send Transport on the client side
     if (params.error) {
       console.log(params.error);
       return;
     }
 
-    console.log(params);
-
-    // creates a new WebRTC Transport to send media
-    // based on the server's producer transport params
-    // https://mediasoup.org/documentation/v3/mediasoup-client/api/#TransportOptions
+    // 미디어 전송을 위해 webrtc transport 생성
+    // 서버의 producer transport의 매개 변수를 기반.
     producerTransport = device.createSendTransport(params);
+    console.log('createSendTransport ~ producerTransport:', producerTransport);
 
     // https://mediasoup.org/documentation/v3/communication-between-client-and-server/#producing-media
-    // this event is raised when a first call to transport.produce() is made
-    // see connectSendTransport() below
+    // Transport.Produce() 호출 시 발생 아래 connectSendTransport() 참고
     producerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+      console.log('producerTransport.on ~ dtlsParameters:', dtlsParameters);
       try {
-        // Signal local DTLS parameters to the server side transport
-        // see server's socket.on('transport-connect', ...)
-        await socket.emit('transport-connect', {
-          dtlsParameters,
-        });
+        // 로컬 DTLS 매개변수를 서버 측 transport에 신호 전달
+        await socket.emit('transport-connect', { dtlsParameters });
 
-        // Tell the transport that parameters were transmitted.
+        // transport에 parameters들이 전송되었다는 것을 알려주는 역할!
         callback();
       } catch (error) {
         errback(error);
@@ -228,12 +228,14 @@ const createSendTransport = () => {
     });
 
     producerTransport.on('produce', async (parameters, callback, errback) => {
-      console.log(parameters);
+      console.log('test----------------------', parameters);
 
       try {
         // tell the server to create a Producer
+
         // with the following parameters and produce
         // and expect back a server side producer id
+        // 서버에게 파라미터와 함께 Producer 생성 요청. 생성하고 서버 측 Producer id받기
         // see server's socket.on('transport-produce', ...)
         await socket.emit(
           'transport-produce',
@@ -243,15 +245,18 @@ const createSendTransport = () => {
             appData: parameters.appData,
           },
           ({ id }) => {
-            // Tell the transport that parameters were transmitted and provide it with the
+            // Tell the transport that parameters were t  ansmitted and provide it with the
             // server side producer's id.
             callback({ id });
+            if (producersExist) getProducers();
           },
         );
       } catch (error) {
         errback(error);
       }
     });
+
+    connectSendTransport();
   });
 };
 
@@ -260,16 +265,28 @@ const connectSendTransport = async () => {
   // to send media to the Router
   // https://mediasoup.org/documentation/v3/mediasoup-client/api/#transport-produce
   // this action will trigger the 'connect' and 'produce' events above
-  producer = await producerTransport.produce(params);
+  audioProducer = await producerTransport.produce(audioParams);
+  videoProducer = await producerTransport.produce(videoParams);
 
-  producer.on('trackended', () => {
+  audioProducer.on('trackended', () => {
     console.log('track ended');
 
     // close video track
   });
 
-  producer.on('transportclose', () => {
+  audioProducer.on('transportclose', () => {
     console.log('transport ended');
+
+    // close video track
+  });
+  videoProducer.on('trackended', () => {
+    console.log('video track ended');
+
+    // close video track
+  });
+
+  videoProducer.on('transportclose', () => {
+    console.log('video transport ended');
 
     // close video track
   });
@@ -355,5 +372,4 @@ const connectRecvTransport = async () => {
  * 유저의 미디어 장비에 접근,
  * 오디오, 비디오 stream을 받고 서버에 Router rtpCapabilities 요청
  * */
-
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);

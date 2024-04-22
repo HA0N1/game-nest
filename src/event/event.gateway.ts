@@ -186,65 +186,62 @@ export class RoomGateway implements OnGatewayConnection {
 
     //! 2. server : worker가 router 생성, 서버가 클라이언트에 rtpCapabilities 전달
     // chatType이 voice인 경우에만 Worker와 Router 생성
-    if (chatType === 'voice') {
-      worker = await this.createWorker();
-      router = await worker.createRouter({ mediaCodecs });
-      // RTP Capabilities 가져오기
-      const rtpCapabilities = router.rtpCapabilities;
-      // 클라이언트에게 RTP Capabilities 전달
-      this.server.emit('getRtpCapabilities', rtpCapabilities);
+    // if (chatType === 'voice') {
+    //   worker = await this.createWorker();
+    //   router = await worker.createRouter({ mediaCodecs });
+    //   // RTP Capabilities 가져오기
+    //   const rtpCapabilities = router.rtpCapabilities;
+    //   // 클라이언트에게 RTP Capabilities 전달
+    //   this.server.emit('getRtpCapabilities', rtpCapabilities);
+    // }
+  }
+  @SubscribeMessage('joinVoiceRoom')
+  async handleJoinVoiceRoom(socket: Socket & { user: User }, data: any) {
+    const { room } = data;
+    socket.join(room);
+
+    //! 2. server : worker가 router 생성, 서버가 클라이언트에 rtpCapabilities 전달
+    // chatType이 voice인 경우에만 Worker와 Router 생성
+
+    worker = await this.createWorker();
+    router = await worker.createRouter({ mediaCodecs });
+    // RTP Capabilities 가져오기
+    const rtpCapabilities = router.rtpCapabilities;
+    // 클라이언트에게 RTP Capabilities 전달
+    this.server.emit('getRtpCapabilities', rtpCapabilities);
+  }
+  //! 5. server :⭐RP (router producer)생성, 생성한 tranport 정보 client에 반환
+  @SubscribeMessage('createWebRtcTransport')
+  async handleCreateTransport(): Promise<void> {
+    const initialAvailableOutgoingBitrate = config.mediasoup.WebRtcTransport.initialAvailableOutgoingBitrate;
+
+    try {
+      // ⭐ Router Producer 생성
+      // const producer = await router.createProducer({
+      //   // Producer에 필요한 옵션 설정
+      // });
+      const transport = await router.createWebRtcTransport({
+        listenIps: config.mediasoup.WebRtcTransport.listenIps,
+        enableUdp: true,
+        enableTcp: true,
+        preferUdp: true,
+        initialAvailableOutgoingBitrate,
+      });
+      console.log(`transport_id, ${transport.id}`);
+      // 생성한 Transport 정보 클라이언트에 반환
+      this.server.emit('createWebRtcTransport', {
+        transport,
+        params: {
+          id: transport.id,
+          iceParameters: transport.iceParameters,
+          iceCandidates: transport.iceCandidates,
+          dtlsParameters: transport.dtlsParameters,
+        },
+      });
+    } catch (error) {
+      console.error('Error creating transport:', error);
     }
   }
-  // createWebRtcTransport = async callback => {
-  //   try {
-  //     // https://mediasoup.org/documentation/v3/mediasoup/api/#WebRtcTransportOptions
-  //     const webRtcTransport_options = {
-  //       listenIps: [
-  //         {
-  //           ip: '0.0.0.0', // replace with relevant IP address
-  //           announcedIp: '127.0.0.1',
-  //         },
-  //       ],
-  //       enableUdp: true,
-  //       enableTcp: true,
-  //       preferUdp: true,
-  //     };
-
-  //     // https://mediasoup.org/documentation/v3/mediasoup/api/#router-createWebRtcTransport
-  //     let transport = await router.createWebRtcTransport(webRtcTransport_options);
-  //     console.log(`transport id: ${transport.id}`);
-
-  //     transport.on('dtlsstatechange', dtlsState => {
-  //       if (dtlsState === 'closed') {
-  //         transport.close();
-  //       }
-  //     });
-
-  //     transport.on('close', () => {
-  //       console.log('transport closed');
-  //     });
-
-  //     // send back to the client the following prameters
-  //     callback({
-  //       // https://mediasoup.org/documentation/v3/mediasoup-client/api/#TransportOptions
-  //       params: {
-  //         id: transport.id,
-  //         iceParameters: transport.iceParameters,
-  //         iceCandidates: transport.iceCandidates,
-  //         dtlsParameters: transport.dtlsParameters,
-  //       },
-  //     });
-
-  //     return transport;
-  //   } catch (error) {
-  //     console.log(error);
-  //     callback({
-  //       params: {
-  //         error: error,
-  //       },
-  //     });
-  //   }
-  // };
 
   async createWorker() {
     worker = await mediasoup.createWorker({
@@ -262,6 +259,34 @@ export class RoomGateway implements OnGatewayConnection {
     });
 
     return worker;
+  }
+
+  @SubscribeMessage('transport-connect')
+  async transportConnect(data) {
+    console.log('DTLS PARAMS...:', data);
+    await producerTransport.connect({ data });
+    console.log('RoomGateway ~ transportConnect ~ producerTransport:', producerTransport);
+  }
+
+  @SubscribeMessage('transport-produce')
+  async transportProduce({ data }, callback) {
+    const { kind, rtpParameters, appData } = data;
+    console.log('RoomGateway ~ transportProduce ~ rtpParameters:', rtpParameters);
+    console.log('RoomGateway ~ transportProduce ~ kind:', kind);
+    producer = await producerTransport.produce({
+      kind,
+      rtpParameters,
+    });
+
+    console.log('Producer ID: ', producer.id, producer.kind);
+
+    producer.on('transportclose', () => {
+      console.log('transport for this producer closed ');
+      producer.close();
+    });
+    callback({
+      id: producer.id,
+    });
   }
 
   @SubscribeMessage('chatType')
@@ -292,35 +317,5 @@ export class RoomGateway implements OnGatewayConnection {
     });
     await this.DMsRepo.save(dm);
     socket.broadcast.to(room).emit('message', { message: `${nickname}: ${message}` });
-  }
-
-  @SubscribeMessage('createTransport')
-  async handleCreateTransport(data: any) {
-    try {
-      const { router } = data;
-      console.log('RoomGateway ~ handleCreateTransport ~ router:', router);
-
-      // ⭐ Router Producer 생성
-      // const producer = await router.createProducer({
-      //   // Producer에 필요한 옵션 설정
-      // });
-      const transport = await router.createWebRtcTransport({
-        listenIps: [
-          {
-            ip: '127.0.0.1',
-            announcedIp: null,
-          },
-        ],
-        // udp 송수신 True., tcp 수신 false
-        enableUdp: true,
-        enableTcp: false,
-        preferUdp: true,
-      });
-      console.log(`transport_id, ${transport.id}`);
-      // 생성한 Transport 정보 클라이언트에 반환
-      // socket.emit('transportInfo', { producerId: producer.id, transport });
-    } catch (error) {
-      console.error('Error creating transport:', error);
-    }
   }
 }
