@@ -40,7 +40,12 @@ function checkLogin(){
 function toDMRooms() {
   sayBye();
   // 이전 채팅 내역들 삭제하기
-
+  const newChats = document.getElementById('newChats');
+  const pastChats = newChats.querySelectorAll('li');
+  const chatsArray = Array.from(pastChats);
+  chatsArray.forEach((li)=>{
+    li.remove();
+  })
 
   dmRoom.hidden = true;
   dmMain.hidden = false;
