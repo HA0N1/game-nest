@@ -40,9 +40,8 @@ export class UserController {
 
   // 로그인했는지 안했는지 확인하기
   @Get('checkLogin')
-  async checkLogin(@Req() req: Request, @Res({ passthrough: true }) response: Response) {
+  async checkLogin(@Req() req: Request) {
     const check = await this.userService.checkLogin(req.cookies);
-    console.log(check);
 
     if (check) {
       return { isLoggedIn: true };

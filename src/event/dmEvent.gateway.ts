@@ -19,6 +19,7 @@ import { DMService } from 'src/dm/dm.service';
 import { FriendDMs } from 'src/dm/entities/friendDMs.entity';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import { UserInfo } from 'src/utils/decorators/userInfo';
 import { Repository } from 'typeorm';
 
 @WebSocketGateway({ namespace: 'friendDM' })
@@ -103,7 +104,7 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(dmRoomId, userId, content);
 
     await this.dmService.saveDM(dmRoomId, userId, content);
-    socket.join(data.dmRoomId);
+    // socket.join(data.dmRoomId);
 
     this.server.to(data.dmRoomId).emit('message', { dmRoomId, nickname, content });
   }
