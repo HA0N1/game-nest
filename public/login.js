@@ -15,10 +15,15 @@ body: JSON.stringify({ email: email, password: password }),
   console.log(res);
   if (res.status === 201) {
     alert('로그인 성공');
-    window.location.href = 'http://localhost:3000/main';
+    return res.json();
   } else {
     alert('로그인 실패');
   }
+}).then((json)=>{
+  const token = json.accessToken;
+  window.localStorage.setItem('authorization', token);
+
+  window.location.href = 'http://localhost:3000/main';
 })
 .catch(error => console.error('Error:', error));} 
 

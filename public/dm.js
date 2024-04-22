@@ -1,4 +1,4 @@
-const token = document.cookie;
+const token = window.localStorage.getItem('authorization');
 const socket = io('http://localhost:3000/friendDM',{ auth: { token: token } });
 
 const dmMain = document.getElementById('dmMain');
@@ -22,19 +22,11 @@ window.onload = function(){
 }
 
 function checkLogin(){
-  fetch('http://localhost:3000/user/checkLogin',{
-        method:'GET',
-    })
-    .then(res =>{return res.json()})
-    .then((json)=>{
-        if(!json.isLoggedIn){
-            alert('로그인을 해야 할 수 있는 서비스입니다.')
-            window.location.href='http://localhost:3000/user/login'
-        }
-    }
-    ).catch(error=>{
-        console.error('dm checkLogin에서 일어난 에러: ', error);
-    })
+  if(!token){
+    socket.disconnect();
+    alert('로그인을 해야 할 수 있는 서비스입니다.');
+    window.location.href='http://localhost:3000/user/login'
+  }
 }
 
 function toDMRooms() {

@@ -57,8 +57,8 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const socketId = client.id;
     this.removeClient(socketId);
 
-    const cookie = client.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    // const cookie = client.handshake.headers.cookie;
+    // const user = await this.findUserByCookie(cookie);
   }
 
   addClient(client) {
