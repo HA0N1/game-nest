@@ -1,22 +1,4 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gamenest</title>
-  </head>
-  <body>
-    <header><h1>Gamenest</h1></header>
-
-    <main>
-      <div id="sign-up"><button>회원가입</button></div>
-      <div id="login"><button>로그인</button></div>
-      <div id="channel"><button>채널 입장</button></div>
-      <div id="dm"><button>다이렉트 메세지 시작</button></div>
-    </main>
-  </body>
-  <script>
-    let isLogin;
+let isLogin;
 
     const signUp = document.getElementById('sign-up');
     const login = document.getElementById('login');
@@ -53,24 +35,23 @@
 
     function goSignup(event) {
       console.log('회원 가입');
-      window.location.href = 'signUP.html';
+      window.location.href = 'signUP';
     }
 
     function goLogin(event) {
       console.log('로그인');
-      window.location.href = 'login.html';
+      window.location.href = 'http://localhost:3000/user/login';
+
+      checkLogin();
+
     }
 
     function goChannel(event) {
       console.log('채널 입장');
-      window.location.href = 'chat.html';
+      window.location.href = 'chat';
     }
 
     function goDM(event) {
       console.log('dm 입장');
-      window.location.href = 'dmIndex.html';
+      window.location.href = 'http://localhost:3000/dm';
     }
-
-    checkLogin();
-  </script>
-</html>

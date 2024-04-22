@@ -33,7 +33,7 @@ export class UserController {
     const login = await this.userService.emailLogin(emailLoginDto);
 
     const user = await this.userService.findUserByEmail(emailLoginDto.email);
-    response.cookie('authorization', login.accessToken, { httpOnly: true });
+    response.cookie('authorization', login.accessToken, { domain: 'localhost', maxAge: 3600000, httpOnly: true });
     return { message: login.message, accessToken: login.accessToken };
   }
 

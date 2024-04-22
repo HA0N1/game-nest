@@ -15,11 +15,7 @@ body: JSON.stringify({ email: email, password: password }),
   console.log(res);
   if (res.status === 201) {
     alert('로그인 성공');
-    const cookieHeader = res.headers.get('Set-Cookie');
-    if (cookieHeader) {
-      token = cookieHeader.split(';')[0]; // 쿠키 값 가져오기
-    }
-    window.location.href = 'channel';
+    window.location.href = 'http://localhost:3000/main';
   } else {
     alert('로그인 실패');
   }
