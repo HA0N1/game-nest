@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   NotFoundException,
   BadRequestException,
+  Request,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -108,6 +109,16 @@ export class UserService {
     await this.redis.setex(`REFRESH_TOKEN:${user.id}`, 604800, refreshToken);
 
     return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
+  }
+
+  async checkLogin(cookies) {
+    const key = Object.keys(cookies);
+
+    if (key[0] === 'authorization') {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /* 유저 조회 */

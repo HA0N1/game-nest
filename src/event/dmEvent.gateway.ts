@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -43,7 +44,7 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async findUserByCookie(cookie: string) {
     // const cookie = socket.handshake.headers.cookie; 로 미리 받아와야함
-
+    //TODO 로그인 안하고 접속했을 때 로그인 창으로 무사히 넘겨지도록 수정하기
     const token = cookie.split('=')[1];
     const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
     const user = await this.userService.findUserByEmail(payload.email);

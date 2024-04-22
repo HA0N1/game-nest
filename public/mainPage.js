@@ -1,36 +1,46 @@
-let isLogin;
-
     const signUp = document.getElementById('sign-up');
     const login = document.getElementById('login');
     const channel = document.getElementById('channel');
     const dm = document.getElementById('dm');
 
-    if (isLogin) {
-      signUp.hidden = true;
-      login.hidden = true;
-      channel.hidden = false;
-      dm.hidden = false;
-    } else {
-      signUp.hidden = false;
-      login.hidden = false;
-      channel.hidden = true;
-      dm.hidden = true;
-    }
-
     signUp.addEventListener('click', goSignup);
     login.addEventListener('click', goLogin);
     channel.addEventListener('click', goChannel);
     dm.addEventListener('click', goDM);
-    const token = document.cookie;
+    
+    window.onload = function() {
+        checkLoginStatus();
+    };
 
-    function checkLogin() {
-      // TODO: token 받아오고 변경 적용하기
-      console.log(token.includes());
-      if (!token) {
-        isLogin = false;
-      } else {
-        isLogin = true;
-      }
+    function checkLoginStatus(){
+    fetch('http://localhost:3000/user/checkLogin',{
+        method:'GET',
+    })
+    .then(res =>{return res.json()})
+    .then((json)=>{
+        if(json.isLoggedIn){
+            showLoggedInUI()
+        }else{
+            showLoggedOutUI()
+        }
+    }
+    ).catch(error=>{
+        console.error('mainPage checkLogin에서 일어난 에러: ', error);
+    })
+    }
+
+    function showLoggedInUI() {
+        document.getElementById('channel').style.display = 'block';
+        document.getElementById('dm').style.display = 'block';
+        document.getElementById('sign-up').style.display = 'none';
+        document.getElementById('login').style.display = 'none';
+    }
+    
+    function showLoggedOutUI() {
+        document.getElementById('channel').style.display = 'none';
+        document.getElementById('dm').style.display = 'none';
+        document.getElementById('sign-up').style.display = 'block';
+        document.getElementById('login').style.display = 'block';
     }
 
     function goSignup(event) {
@@ -38,11 +48,9 @@ let isLogin;
       window.location.href = 'signUP';
     }
 
-    function goLogin(event) {
+    async function goLogin(event) {
       console.log('로그인');
       window.location.href = 'http://localhost:3000/user/login';
-
-      checkLogin();
 
     }
 
