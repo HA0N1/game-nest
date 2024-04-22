@@ -3,13 +3,10 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import { createWorker } from '../media-soup/worker';
 
 import { SocketIoAdapter } from './utils/socketio-adapter';
 
 async function bootstrap() {
-  await createWorker();
-
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useWebSocketAdapter(new SocketIoAdapter(app));

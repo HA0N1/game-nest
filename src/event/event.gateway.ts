@@ -1,6 +1,5 @@
 // event.gateway.ts
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,20 +8,19 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  MessageBody,
   WsException,
 } from '@nestjs/websockets';
 import Redis from 'ioredis';
-import { config } from 'media-soup/config';
 import { Server, Socket } from 'socket.io';
-import { WsGuard } from 'src/auth/guard/ws.guard';
 import { ChannelService } from 'src/channel/channel.service';
 import { ChannelDMs } from 'src/channel/entities/channelDMs.entity';
 import { ChatType } from 'src/channel/type/channel-chat.type';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
-import { Stream } from 'stream';
 import { Repository } from 'typeorm';
+import * as mediasoup from 'mediasoup';
+import { config } from 'media-soup/config';
+import { Router } from 'mediasoup/node/lib/types';
 
 /**
  * 게이트 웨이 설정
@@ -34,6 +32,13 @@ import { Repository } from 'typeorm';
  * 웹소켓 서버 인스턴스 접근
  * WebSocketServer()
  */
+let worker;
+let router;
+let producerTransport;
+let consumerTransport;
+let producer;
+let consumer;
+const mediaCodecs = config.mediasoup.router.mediaCodecs;
 interface CreateRoomData {
   room: string;
   createChatDto: {
@@ -63,14 +68,17 @@ export class RoomGateway implements OnGatewayConnection {
     private readonly channelService: ChannelService,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly config: ConfigService,
+    private readonly configService: ConfigService,
 
     @InjectRepository(ChannelDMs)
     private DMsRepo: Repository<ChannelDMs>,
     @InjectRedis() private readonly redis: Redis,
   ) {}
+
   rooms = [];
   @WebSocketServer() server: Server;
+
+  nextMediasoupWorkerIdx = 0;
 
   async handleConnection(socket: Socket & { user: User }, data: any) {
     console.log(`connect: ${socket.id}`);
@@ -81,7 +89,7 @@ export class RoomGateway implements OnGatewayConnection {
     }
     try {
       const token = cookie.split('=')[1];
-      const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
+      const payload = this.jwtService.verify(token, { secret: this.configService.get<string>('JWT_SECRET_KEY') });
       const user = await this.userService.findUserByEmail(payload.email);
 
       socket.user = user;
@@ -99,21 +107,24 @@ export class RoomGateway implements OnGatewayConnection {
   async handleMessage(socket: Socket & { user: User }, data: CreateRoomData) {
     const { room, createChatDto } = data;
     const { title, chatType, channelId, maximumPeople } = createChatDto;
-    // try {
-    const chat = await this.channelService.findOneChat(room);
-    console.log('RoomGateway ~ handleMessage ~ chat:', chat);
-    if (chat) throw new WsException('채팅방 이름이 중복되었습니다.');
-    // 채널 서비스의 createChat 함수 호출
-    const socketId = socket.id;
-    await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
-    console.log('됐나');
-    const userId = +(await this.redis.get(`socketId:${socket.id}`));
-    // await this.channelService.createMember(+userId, +channelId);
-    const rooms = await this.channelService.findAllChat();
-    this.server.emit('rooms', rooms);
-    // } catch (error) {
-    //   throw new WsException(error.message);
-    // }
+    try {
+      const chat = await this.channelService.findOneChat(room);
+      console.log('RoomGateway ~ handleMessage ~ chat:', chat);
+      if (chat) throw new WsException('채팅방 이름이 중복되었습니다.');
+      // 채널 서비스의 createChat 함수 호출
+      await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
+      const rooms = await this.channelService.findAllChat();
+      // rooms.map(room => {
+      //   if (room.chatType === 'talk') {
+      //     this.server.emit('chatRooms', room);
+      //   } else if (room.chatType === 'voice') {
+      //     this.server.emit('voiceRooms', room);
+      //   }
+      // });
+      this.server.emit('rooms', rooms);
+    } catch (error) {
+      throw new WsException(error.message);
+    }
   }
 
   @SubscribeMessage('requestRooms')
@@ -123,7 +134,6 @@ export class RoomGateway implements OnGatewayConnection {
 
       this.server.emit('rooms', rooms);
     } catch (error) {
-      // Handle error
       console.error('Error fetching chat rooms:', error);
     }
   }
@@ -156,22 +166,108 @@ export class RoomGateway implements OnGatewayConnection {
       console.error('Error fetching chat history:', error);
     }
   }
+
   @SubscribeMessage('joinRoom')
-  async handleJoinRoom(socket: Socket & { user: User }, data: JoinRoomData) {
+  async handleJoinRoom(socket: Socket & { user: User }, data: any) {
     const { room } = data;
 
+    // 방에 입장하는 사용자의 정보 가져오기
     const senderId = +(await this.redis.get(`socketId:${socket.id}`));
     const foundUser = await this.userService.findUserById(+senderId);
     const nickname = foundUser.nickname;
-    this.server.emit('notice', { message: `${nickname}님이 ${room}방에 입장하였습니다` });
+
+    // 사용자에게 입장 알림 보내기
+    this.server.emit('notice', { message: `${nickname} joined ${room} room` });
+    // 방에 입장
     socket.join(room);
+    // 채팅 타입 가져오기
+    const channelRoom = await this.channelService.findOneChat(room);
+    const chatType = channelRoom.chatType;
+
+    //! 2. server : worker가 router 생성, 서버가 클라이언트에 rtpCapabilities 전달
+    // chatType이 voice인 경우에만 Worker와 Router 생성
+    if (chatType === 'voice') {
+      worker = await this.createWorker();
+      router = await worker.createRouter({ mediaCodecs });
+      // RTP Capabilities 가져오기
+      const rtpCapabilities = router.rtpCapabilities;
+      // 클라이언트에게 RTP Capabilities 전달
+      this.server.emit('getRtpCapabilities', rtpCapabilities);
+    }
+  }
+  // createWebRtcTransport = async callback => {
+  //   try {
+  //     // https://mediasoup.org/documentation/v3/mediasoup/api/#WebRtcTransportOptions
+  //     const webRtcTransport_options = {
+  //       listenIps: [
+  //         {
+  //           ip: '0.0.0.0', // replace with relevant IP address
+  //           announcedIp: '127.0.0.1',
+  //         },
+  //       ],
+  //       enableUdp: true,
+  //       enableTcp: true,
+  //       preferUdp: true,
+  //     };
+
+  //     // https://mediasoup.org/documentation/v3/mediasoup/api/#router-createWebRtcTransport
+  //     let transport = await router.createWebRtcTransport(webRtcTransport_options);
+  //     console.log(`transport id: ${transport.id}`);
+
+  //     transport.on('dtlsstatechange', dtlsState => {
+  //       if (dtlsState === 'closed') {
+  //         transport.close();
+  //       }
+  //     });
+
+  //     transport.on('close', () => {
+  //       console.log('transport closed');
+  //     });
+
+  //     // send back to the client the following prameters
+  //     callback({
+  //       // https://mediasoup.org/documentation/v3/mediasoup-client/api/#TransportOptions
+  //       params: {
+  //         id: transport.id,
+  //         iceParameters: transport.iceParameters,
+  //         iceCandidates: transport.iceCandidates,
+  //         dtlsParameters: transport.dtlsParameters,
+  //       },
+  //     });
+
+  //     return transport;
+  //   } catch (error) {
+  //     console.log(error);
+  //     callback({
+  //       params: {
+  //         error: error,
+  //       },
+  //     });
+  //   }
+  // };
+
+  async createWorker() {
+    worker = await mediasoup.createWorker({
+      logLevel: config.mediasoup.worker.logLevel,
+      logTags: config.mediasoup.worker.logTags,
+      rtcMinPort: config.mediasoup.worker.rtcMinPort,
+      rtcMaxPort: config.mediasoup.worker.rtcMaxPort,
+    });
+    console.log(`worker pid ${worker.pid}`);
+
+    worker.on('died', error => {
+      // This implies something serious happened, so kill the application
+      console.error('mediasoup worker has died');
+      setTimeout(() => process.exit(1), 2000); // exit in 2 seconds
+    });
+
+    return worker;
   }
 
   @SubscribeMessage('chatType')
   async handleChatType(socket: Socket, data: any) {
     const { room } = data;
     const channelRoom = await this.channelService.findOneChat(room);
-    console.log('RoomGateway ~ handleJoinRoom ~ channelRoom:', channelRoom);
     const chatType = channelRoom.chatType;
 
     this.server.emit('chatType', chatType);
@@ -197,15 +293,34 @@ export class RoomGateway implements OnGatewayConnection {
     await this.DMsRepo.save(dm);
     socket.broadcast.to(room).emit('message', { message: `${nickname}: ${message}` });
   }
-  @SubscribeMessage('broadcastScreenSharing')
-  async handleBroadcastScreenSharing(socket: Socket, data: any): Promise<void> {
-    const { room, stream } = data;
-    console.log('RoomGateway ~ handleBroadcastScreenSharing ~ room:', room);
-    console.log('RoomGateway ~ handleBroadcastScreenSharing ~ stream:', stream);
 
-    // Get the room of the user sharing the screen
+  @SubscribeMessage('createTransport')
+  async handleCreateTransport(data: any) {
+    try {
+      const { router } = data;
+      console.log('RoomGateway ~ handleCreateTransport ~ router:', router);
 
-    // Broadcast the screen sharing stream to all users in the room
-    socket.to(room).emit('screenSharingStream', { stream });
+      // ⭐ Router Producer 생성
+      // const producer = await router.createProducer({
+      //   // Producer에 필요한 옵션 설정
+      // });
+      const transport = await router.createWebRtcTransport({
+        listenIps: [
+          {
+            ip: '127.0.0.1',
+            announcedIp: null,
+          },
+        ],
+        // udp 송수신 True., tcp 수신 false
+        enableUdp: true,
+        enableTcp: false,
+        preferUdp: true,
+      });
+      console.log(`transport_id, ${transport.id}`);
+      // 생성한 Transport 정보 클라이언트에 반환
+      // socket.emit('transportInfo', { producerId: producer.id, transport });
+    } catch (error) {
+      console.error('Error creating transport:', error);
+    }
   }
 }

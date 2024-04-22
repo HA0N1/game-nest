@@ -39,7 +39,15 @@
   left: 250px;
   overflow-y: auto;
 }
-
+.channelName {
+  display: block !important;
+  font-weight: bolder;
+  background-color: inherit;
+  border: none;
+  margin-bottom: 30px;
+  color: white;
+  font-size: 20px;
+}
 .chatList h2 {
   padding: 10px;
   margin: 0;

@@ -1,184 +1,383 @@
-const startButton = document.getElementById('startButton');
-const callButton = document.getElementById('callButton');
-const hangupButton = document.getElementById('hangupButton');
-// @ts-ignore
-callButton.disabled = true;
-// @ts-ignore
-hangupButton.disabled = true;
-startButton.onclick = start;
-callButton.onclick = call;
-hangupButton.onclick = hangup;
+const mediasoupClient = require('mediasoup-client');
+document.getElementById('container').style.display = 'none';
+document.getElementById('chatBox').style.display = 'none';
 
-const video1 = document.querySelector('video#video1');
-const video2 = document.querySelector('video#video2');
-const video3 = document.querySelector('video#video3');
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('createRoomBtn').addEventListener('click', createRoom);
 
-let localStream;
-let pc1Local;
-let pc1Remote;
-let pc2Local;
-let pc2Remote;
-const offerOptions = {
-  offerToReceiveAudio: 1,
-  offerToReceiveVideo: 1,
+let device;
+let rtpCapabilities;
+let producerTransport;
+let consumerTransport;
+let producer;
+let consumer;
+
+let params = {
+  encoding: [
+    { rid: 'r0', maxBitrate: 100000, scalabiltyMode: 'S1T3' },
+    { rid: 'r1', maxBitrate: 100000, scalabiltyMode: 'S1T3' },
+    { rid: 'r2', maxBitrate: 100000, scalabiltyMode: 'S1T3' },
+  ],
+  codecOptions: {
+    videoGoogleStartBitrate: 1000,
+  },
 };
 
-function gotStream(stream) {
-  console.log('Received local stream');
-  // @ts-ignore
-  video1.srcObject = stream;
-  localStream = stream;
-  // @ts-ignore
-  callButton.disabled = false;
-}
+const token = document.cookie;
+console.log('document:', document);
+console.log('token:', token);
 
-function start() {
-  console.log('Requesting local stream');
-  // @ts-ignore
-  startButton.disabled = true;
-  navigator.mediaDevices
-    .getUserMedia({
-      audio: true,
-      video: true,
-    })
-    .then(gotStream)
-    .catch(e => console.log('getUserMedia() error: ', e));
-}
+const socket = io('/chat', { auth: { token: token } });
 
-function call() {
-  // @ts-ignore
-  callButton.disabled = true;
-  // @ts-ignore
-  hangupButton.disabled = false;
-  console.log('Starting calls');
-  const audioTracks = localStream.getAudioTracks();
-  const videoTracks = localStream.getVideoTracks();
-  if (audioTracks.length > 0) {
-    console.log(`Using audio device: ${audioTracks[0].label}`);
+let currentRoom = '';
+const channel = prompt('채널명을 입력해주세요');
+function sendMessage() {
+  if (currentRoom === '') {
+    alert('방을 선택해주세요');
+    return;
   }
-  if (videoTracks.length > 0) {
-    console.log(`Using video device: ${videoTracks[0].label}`);
+  const message = $('#message').val();
+
+  const data = { message, room: currentRoom };
+  $('#chat').append(`<div>나:${message}</div>`);
+  socket.emit('message', data);
+  return false;
+}
+
+function createRoom() {
+  const room = prompt('방이름을 입력해주세요.');
+  const chatType = prompt('채팅 타입을 입력해주세요.');
+  const maximumPeople = prompt('최대 인원을 입력해주세요.');
+  const channelId = prompt('만드려는 채팅의 채널ID를 입력해주세요.');
+  socket.emit('createRoom', {
+    room,
+    createChatDto: { title: room, chatType, maximumPeople, channelId },
+  });
+}
+
+function updateRoomList(rooms) {
+  $('#rooms').empty();
+  rooms.forEach(room => {
+    $('#rooms').append(
+      `<li>${room.chatType} room :${room.title} <button class="joinBtn" data-room="${room.title}">join</button></li>`,
+    );
+  });
+
+  $('.joinBtn').click(async function () {
+    const room = $(this).data('room');
+    const chatType = await socket.on('chatType', type => {
+      return type;
+    });
+    joinRoom(room, chatType); // 선택한 방 이름을 인자로 전달하여 joinRoom 함수 호출
+    console.log('chatType:', chatType);
+  });
+}
+
+function joinRoom(room, chatType) {
+  console.log('joinRoom ~ chatType:', chatType);
+  socket.emit('joinRoom', { room });
+  $('#chat').html('');
+  currentRoom = room;
+  socket.emit('requestChatHistory', { room });
+  socket.emit('chatType', { room });
+  socket.emit('broadcastScreenSharing', { room });
+}
+// 채팅 타입별 디스플레이 설정
+socket.on('chatType', type => {
+  console.log('type:', type);
+  if (type === 'voice') {
+    document.getElementById('container').style.display = 'block';
+    document.getElementById('chatBox').style.display = 'none';
+  } else {
+    document.getElementById('container').style.display = 'none';
+    document.getElementById('chatBox').style.display = 'block';
   }
-  // Create an RTCPeerConnection via the polyfill.
-  const servers = null;
-  pc1Local = new RTCPeerConnection(servers);
-  pc1Remote = new RTCPeerConnection(servers);
-  pc1Remote.ontrack = gotRemoteStream1;
-  pc1Local.onicecandidate = iceCallback1Local;
-  pc1Remote.onicecandidate = iceCallback1Remote;
-  console.log('pc1: created local and remote peer connection objects');
+});
 
-  pc2Local = new RTCPeerConnection(servers);
-  pc2Remote = new RTCPeerConnection(servers);
-  pc2Remote.ontrack = gotRemoteStream2;
-  pc2Local.onicecandidate = iceCallback2Local;
-  pc2Remote.onicecandidate = iceCallback2Remote;
-  console.log('pc2: created local and remote peer connection objects');
+socket.on('notice', data => {
+  $('#notice').append(`<div>${data.message}</div>`);
+});
 
-  localStream.getTracks().forEach(track => pc1Local.addTrack(track, localStream));
-  console.log('Adding local stream to pc1Local');
-  // @ts-ignore
-  pc1Local.createOffer(offerOptions).then(gotDescription1Local, onCreateSessionDescriptionError);
+socket.on('message', data => {
+  $('#chat').append(`<div>${data.message}</div>`);
+});
 
-  localStream.getTracks().forEach(track => pc2Local.addTrack(track, localStream));
-  console.log('Adding local stream to pc2Local');
-  // @ts-ignore
-  pc2Local.createOffer(offerOptions).then(gotDescription2Local, onCreateSessionDescriptionError);
+$(document).ready(function () {
+  socket.emit('requestRooms');
+
+  socket.on('rooms', function (data) {
+    updateRoomList(data);
+  });
+});
+
+socket.on('connect', () => {
+  console.log('connected', socket.id);
+});
+
+socket.on('dmHistory', function (dms) {
+  $('#chat').html('');
+  dms.forEach(dm => {
+    // 각 메시지의 발신자 닉네임을 사용하여 표시
+    $('#chat').append(`<div>${dm.senderNickname}: ${dm.content}</div>`);
+  });
+});
+
+//! 1. client : 미디어 수신 정보 서버에 요청
+let audioParams;
+let videoParams = { params };
+async function streamSuccess(stream) {
+  const localVideo = document.getElementById('localVideo');
+  localVideo.srcObject = stream;
+
+  let room = currentRoom;
+  audioParams = { track: stream.getAudioTracks()[0], ...audioParams };
+  videoParams = { track: stream.getVideoTracks()[0], ...videoParams };
+
+  // 미디어 수신 정보 요청
+  //! 3. client : rtpCapabilities 수신 후 device 생성
+  socket.emit('joinRoom', { room }, data => {
+    // 서버로부터 받은 RTP Capabilities 처리
+    rtpCapabilities = data.rtpCapabilities;
+
+    // Device 생성
+    createDevice();
+  });
 }
 
-function onCreateSessionDescriptionError(error) {
-  console.log(`Failed to create session description: ${error.toString()}`);
-}
+const getLocalStream = () => {
+  navigator.getUserMedia(
+    {
+      audio: false,
+      video: {
+        width: {
+          min: 640,
+          max: 1920,
+        },
+        height: {
+          min: 400,
+          max: 1080,
+        },
+      },
+    },
+    streamSuccess,
+    error => {
+      console.log(error.message);
+    },
+  );
+};
+// async function createDevice() {
+//   try {
+//     device = new mediasoupClient.Device();
+//     await device.load({ routerRtpCapabilities: rtpCapabilities });
 
-function gotDescription1Local(desc) {
-  pc1Local.setLocalDescription(desc);
-  console.log(`Offer from pc1Local\n${desc.sdp}`);
-  pc1Remote.setRemoteDescription(desc);
-  // Since the 'remote' side has no media stream we need
-  // to pass in the right constraints in order for it to
-  // accept the incoming offer of audio and video.
-  pc1Remote.createAnswer().then(gotDescription1Remote, onCreateSessionDescriptionError);
-}
+//     console.log('Device RTP Capabilities', device.rtpCapabilities);
 
-function gotDescription1Remote(desc) {
-  pc1Remote.setLocalDescription(desc);
-  console.log(`Answer from pc1Remote\n${desc.sdp}`);
-  pc1Local.setRemoteDescription(desc);
-}
+//     // 서버에 Transport 생성 요청
+//     createTransport();
+//   } catch (error) {
+//     console.log(error);
+//     if (error.name === 'UnsupportedError') console.warn('browser not supported');
+//   }
+// }
+const createDevice = async () => {
+  try {
+    device = new mediasoupClient.Device();
 
-function gotDescription2Local(desc) {
-  pc2Local.setLocalDescription(desc);
-  console.log(`Offer from pc2Local\n${desc.sdp}`);
-  pc2Remote.setRemoteDescription(desc);
-  // Since the 'remote' side has no media stream we need
-  // to pass in the right constraints in order for it to
-  // accept the incoming offer of audio and video.
-  pc2Remote.createAnswer().then(gotDescription2Remote, onCreateSessionDescriptionError);
-}
+    // https://mediasoup.org/documentation/v3/mediasoup-client/api/#device-load
+    // Loads the device with RTP capabilities of the Router (server side)
+    await device.load({
+      // see getRtpCapabilities() below
+      routerRtpCapabilities: rtpCapabilities,
+    });
 
-function gotDescription2Remote(desc) {
-  pc2Remote.setLocalDescription(desc);
-  console.log(`Answer from pc2Remote\n${desc.sdp}`);
-  pc2Local.setRemoteDescription(desc);
-}
-
-function hangup() {
-  console.log('Ending calls');
-  pc1Local.close();
-  pc1Remote.close();
-  pc2Local.close();
-  pc2Remote.close();
-  pc1Local = pc1Remote = null;
-  pc2Local = pc2Remote = null;
-  // @ts-ignore
-  hangupButton.disabled = true;
-  // @ts-ignore
-  callButton.disabled = false;
-}
-
-function gotRemoteStream1(e) {
-  // @ts-ignore
-  if (video2.srcObject !== e.streams[0]) {
-    // @ts-ignore
-    video2.srcObject = e.streams[0];
-    console.log('pc1: received remote stream');
+    console.log('RTP Capabilities', device.rtpCapabilities);
+  } catch (error) {
+    console.log(error);
+    if (error.name === 'UnsupportedError') console.warn('browser not supported');
   }
-}
+};
 
-function gotRemoteStream2(e) {
-  // @ts-ignore
-  if (video3.srcObject !== e.streams[0]) {
-    // @ts-ignore
-    video3.srcObject = e.streams[0];
-    console.log('pc2: received remote stream');
-  }
-}
+const getRtpCapabilities = () => {
+  // make a request to the server for Router RTP Capabilities
+  // see server's socket.on('getRtpCapabilities', ...)
+  // the server sends back data object which contains rtpCapabilities
+  socket.emit('getRtpCapabilities', data => {
+    console.log(`Router RTP Capabilities... ${data.rtpCapabilities}`);
 
-function iceCallback1Local(event) {
-  handleCandidate(event.candidate, pc1Remote, 'pc1: ', 'local');
-}
+    // we assign to local variable and will be used when
+    // loading the client Device (see createDevice above)
+    rtpCapabilities = data.rtpCapabilities;
+  });
+};
 
-function iceCallback1Remote(event) {
-  handleCandidate(event.candidate, pc1Local, 'pc1: ', 'remote');
-}
+const createSendTransport = () => {
+  // see server's socket.on('createWebRtcTransport', sender?, ...)
+  // this is a call from Producer, so sender = true
+  socket.emit('createWebRtcTransport', { sender: true }, ({ params }) => {
+    // The server sends back params needed
+    // to create Send Transport on the client side
+    if (params.error) {
+      console.log(params.error);
+      return;
+    }
 
-function iceCallback2Local(event) {
-  handleCandidate(event.candidate, pc2Remote, 'pc2: ', 'local');
-}
+    console.log(params);
 
-function iceCallback2Remote(event) {
-  handleCandidate(event.candidate, pc2Local, 'pc2: ', 'remote');
-}
+    // creates a new WebRTC Transport to send media
+    // based on the server's producer transport params
+    // https://mediasoup.org/documentation/v3/mediasoup-client/api/#TransportOptions
+    producerTransport = device.createSendTransport(params);
 
-function handleCandidate(candidate, dest, prefix, type) {
-  dest.addIceCandidate(candidate).then(onAddIceCandidateSuccess, onAddIceCandidateError);
-  console.log(`${prefix}New ${type} ICE candidate: ${candidate ? candidate.candidate : '(null)'}`);
-}
+    // https://mediasoup.org/documentation/v3/communication-between-client-and-server/#producing-media
+    // this event is raised when a first call to transport.produce() is made
+    // see connectSendTransport() below
+    producerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+      try {
+        // Signal local DTLS parameters to the server side transport
+        // see server's socket.on('transport-connect', ...)
+        await socket.emit('transport-connect', {
+          dtlsParameters,
+        });
 
-function onAddIceCandidateSuccess() {
-  console.log('AddIceCandidate success.');
-}
+        // Tell the transport that parameters were transmitted.
+        callback();
+      } catch (error) {
+        errback(error);
+      }
+    });
 
-function onAddIceCandidateError(error) {
-  console.log(`Failed to add ICE candidate: ${error.toString()}`);
-}
+    producerTransport.on('produce', async (parameters, callback, errback) => {
+      console.log(parameters);
+
+      try {
+        // tell the server to create a Producer
+        // with the following parameters and produce
+        // and expect back a server side producer id
+        // see server's socket.on('transport-produce', ...)
+        await socket.emit(
+          'transport-produce',
+          {
+            kind: parameters.kind,
+            rtpParameters: parameters.rtpParameters,
+            appData: parameters.appData,
+          },
+          ({ id }) => {
+            // Tell the transport that parameters were transmitted and provide it with the
+            // server side producer's id.
+            callback({ id });
+          },
+        );
+      } catch (error) {
+        errback(error);
+      }
+    });
+  });
+};
+
+const connectSendTransport = async () => {
+  // we now call produce() to instruct the producer transport
+  // to send media to the Router
+  // https://mediasoup.org/documentation/v3/mediasoup-client/api/#transport-produce
+  // this action will trigger the 'connect' and 'produce' events above
+  producer = await producerTransport.produce(params);
+
+  producer.on('trackended', () => {
+    console.log('track ended');
+
+    // close video track
+  });
+
+  producer.on('transportclose', () => {
+    console.log('transport ended');
+
+    // close video track
+  });
+};
+
+const createRecvTransport = async () => {
+  // see server's socket.on('consume', sender?, ...)
+  // this is a call from Consumer, so sender = false
+  await socket.emit('createWebRtcTransport', { sender: false }, ({ params }) => {
+    // The server sends back params needed
+    // to create Send Transport on the client side
+    if (params.error) {
+      console.log(params.error);
+      return;
+    }
+
+    console.log(params);
+
+    // creates a new WebRTC Transport to receive media
+    // based on server's consumer transport params
+    // https://mediasoup.org/documentation/v3/mediasoup-client/api/#device-createRecvTransport
+    consumerTransport = device.createRecvTransport(params);
+
+    // https://mediasoup.org/documentation/v3/communication-between-client-and-server/#producing-media
+    // this event is raised when a first call to transport.produce() is made
+    // see connectRecvTransport() below
+    consumerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+      try {
+        // Signal local DTLS parameters to the server side transport
+        // see server's socket.on('transport-recv-connect', ...)
+        await socket.emit('transport-recv-connect', {
+          dtlsParameters,
+        });
+
+        // Tell the transport that parameters were transmitted.
+        callback();
+      } catch (error) {
+        // Tell the transport that something was wrong
+        errback(error);
+      }
+    });
+  });
+};
+
+const connectRecvTransport = async () => {
+  // for consumer, we need to tell the server first
+  // to create a consumer based on the rtpCapabilities and consume
+  // if the router can consume, it will send back a set of params as below
+  await socket.emit(
+    'consume',
+    {
+      rtpCapabilities: device.rtpCapabilities,
+    },
+    async ({ params }) => {
+      if (params.error) {
+        console.log('Cannot Consume');
+        return;
+      }
+
+      console.log(params);
+      // then consume with the local consumer transport
+      // which creates a consumer
+      consumer = await consumerTransport.consume({
+        id: params.id,
+        producerId: params.producerId,
+        kind: params.kind,
+        rtpParameters: params.rtpParameters,
+      });
+
+      // destructure and retrieve the video track from the producer
+      const { track } = consumer;
+
+      remoteVideo.srcObject = new MediaStream([track]);
+
+      // the server consumer started with media paused
+      // so we need to inform the server to resume
+      socket.emit('consumer-resume');
+    },
+  );
+};
+socket.on('rtpCapabilities', function (rtpCapabilities) {
+  // RTP Capabilities 수신 후 처리
+  console.log('Received RTP Capabilities:', rtpCapabilities);
+  // Device 생성
+  createSendTransport();
+});
+/**
+ * 유저의 미디어 장비에 접근,
+ * 오디오, 비디오 stream을 받고 서버에 Router rtpCapabilities 요청
+ * */
+
+document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);

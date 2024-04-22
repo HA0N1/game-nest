@@ -96,12 +96,12 @@
       function updateRoomList(rooms) {
         $('#rooms').empty();
         rooms.forEach(room => {
-          $('#rooms').append(`<li>${room.title} <button onclick="joinRoom('${room.title}')">join</button></li>`);
+          $('#rooms').append(`<li>${room.title} <button onclick="joinChatRoom('${room.title}')">join</button></li>`);
         });
       }
 
-      function joinRoom(room) {
-        socket.emit('joinRoom', { room });
+      function joinChatRoom(room) {
+        socket.emit('joinChatRoom', { room });
         $('#chat').html('');
         currentRoom = room;
         socket.emit('requestChatHistory', { room });

@@ -27,25 +27,16 @@
         <button id="joinBtn" style="display:none"></button>
       </div>
     </div>
-    <div id="chatBox">
-      <div id="chat">
-        Chat
-      </div>
-      <div>
-        <input type="text" id="message" placeholder="메시지 입력" />
-        <button id="sendBtn">전송</button>
-        <button id="createRoomBtn">채팅 만들기</button>
-      </div>
-    </div>
     <div id="container">
       <div>
-        <video id="video1" autoplay playsinline muted></video>
-        <video id="video2" autoplay playsinline></video>
+        <video id="localVideo" autoplay playsinline muted></video>
+        <button id="localVideoOnBtn">카메라 켜기</button>
+        <video id="remoteVideo" autoplay playsinline></video>
         {{! <button id="">카메라</button> }}
       </div>
       <div>
         <video id="screenShare" autoplay playsinline muted></video>
-        <button id="startButton" disabled>화면공유 시작</button>
+        <button id="screenShareBtn" disabled>화면공유 시작</button>
         <fieldset id="options">
           <legend>Advanced options</legend>
           <select id="displaySurface">
@@ -58,6 +49,17 @@
         <div id="errorMsg"></div>
       </div>
     </div>
+    <div id="chatBox" style="display:none;">
+      <div id="chat">
+        Chat
+      </div>
+      <div>
+        <input type="text" id="message" placeholder="메시지 입력" />
+        <button id="sendBtn">전송</button>
+        <button id="createRoomBtn">채팅 만들기</button>
+      </div>
+    </div>
+
     <div>
       <h2>공지</h2>
       <div id="notice"></div>
@@ -66,7 +68,7 @@
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script type="module" src="/chat.js"></script>
+    <script src="/bundle.js"></script>
   </body>
 
 </html>
