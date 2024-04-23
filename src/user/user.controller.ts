@@ -33,6 +33,20 @@ export class UserController {
     await this.userService.login();
   }
 
+  /* 이메일 중복 확인 */
+  @Post('checkEmail')
+  async checkEmail(@Body() emailObject: Object) {
+    const email = Object.values(emailObject)[0];
+
+    const check = await this.userService.checkEmail(email);
+
+    if (check) {
+      return { isExist: true };
+    } else {
+      return { isExist: false };
+    }
+  }
+
   /* 로그인 */
   @Post('email')
   async emailLogin(@Body() emailLoginDto: EmailLoginDto, @Res({ passthrough: true }) response: Response) {

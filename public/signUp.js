@@ -4,8 +4,42 @@ document.getElementById('gotoMain').addEventListener('click', gotoMain);
 
 document.getElementById('reset').addEventListener('click',function(event){event.preventDefault(); gotoMain()});
 
+document.getElementById('checkEmail').addEventListener('click', function(event){event.preventDefault(); checkEmail()})
+
 function gotoMain(){
     window.location.href = 'http://localhost:3000/main'
+}
+
+function checkEmail(){
+    const email = document.getElementById('email').value;
+    if(!email){
+        alert('이메일을 입력해주세요.');
+        window.location.href = window.location.href
+    }else{
+        fetch('http://localhost:3000/user/checkEmail',{
+            method: 'Post',
+            headers: {
+                'Content-Type': 'application/json',
+              },
+            body: JSON.stringify({email: email})
+        }).then(res=>{
+            if(res.status === 201){
+                return res.json();
+            }else{
+                console.log(res);
+                alert('이메일 확인 중 문제가 발생했습니다.');
+            }
+        }).then(json=>{
+            if(json.isExist){
+                alert('해당 이메일로 가입한 사용자가 있습니다.');
+                window.location.reload(true);
+            }else{
+                alert('사용 가능한 이메일입니다.');
+            }
+        }).catch(error=>{
+            console.error('이메일 확인 중의 문제: ', error)
+        })
+    }
 }
 
 function signUp(){

@@ -84,6 +84,19 @@ export class UserService {
     return { message: `${createUserDto.nickname}님의 가입이 완료되었습니다.` };
   }
 
+  /* 이메일 중복 확인하기 */
+  async checkEmail(email: string) {
+    const existingUser = await this.userRepository.findOneBy({
+      email,
+    });
+
+    if (existingUser) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   async login() {
     return this.httpService.post('http://localhost:3000/user/email');
   }

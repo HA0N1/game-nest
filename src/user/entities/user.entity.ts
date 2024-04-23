@@ -28,7 +28,7 @@ export class User {
   // @Column({ type: 'int' })
   // imageId?: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   email: string;
 
   @Column({ type: 'varchar' })
