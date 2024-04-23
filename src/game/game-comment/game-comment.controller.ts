@@ -18,7 +18,6 @@ export class GameCommentController {
     @UserInfo() user: User,
     @Body() createGameCommentDto: CreateGameCommentDto,
   ) {
-    console.log('s1', gameId);
     return this.gameCommentService.createComment(gameId, user.id, createGameCommentDto);
   }
 

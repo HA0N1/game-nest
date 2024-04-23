@@ -2,11 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { Game } from './entities/game.entity';
-import { DataSource, MoreThan, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { PlatformEnum } from './type/game-platform.type';
 import puppeteer from 'puppeteer';
-import cron from 'node-cron';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class GameService {
@@ -26,7 +25,6 @@ export class GameService {
       error;
     }
   }
-
   // 스팀 게임 저장
   async saveFilteredGames() {
     const gameIds = await this.findAllGameIds();
@@ -148,6 +146,7 @@ export class GameService {
   }
 
   // 인기순 저장
+  @Cron('0 5 0 * * *')
   async savePopularGames() {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -165,11 +164,14 @@ export class GameService {
         const screen_shot = imageElement ? imageElement.getAttribute('src') : '이미지 정보 없음';
         const title = element.querySelector('._1n_4-zvf0n4aqGEksbgW9N').textContent;
         const price = element.querySelector('.Wh0L8EnwsPV_8VAu8TOYr')?.textContent ?? '가격 정보 없음';
+        const change = element.querySelector('._2OA1JW-4H-f01kM7myTUuu.Focusable').textContent ?? '변동 정보 없음';
 
-        return { rank, screen_shot, title, price };
+        return { rank, screen_shot, title, price, change };
       });
     });
     await browser.close();
+
+    await this.gameRepository.createQueryBuilder().delete().from(Game).where('change IS NOT NULL').execute();
 
     await this.gameRepository.save(popularGames);
 
@@ -177,7 +179,31 @@ export class GameService {
   }
 
   // 인기순 조회
-  async getPopularGames() {}
+  async getPopularGames(page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+    const [popularGames, total] = await this.gameRepository.findAndCount({
+      select: ['rank', 'screen_shot', 'title', 'price', 'change'],
+      where: {
+        change: Not(IsNull()),
+      },
+      order: {
+        rank: 'ASC',
+      },
+      take: limit,
+      skip: offset,
+    });
+
+    if (popularGames.length === 0) {
+      throw new NotFoundException('인기 게임을 찾을 수 없습니다.');
+    }
+
+    return {
+      data: popularGames,
+      count: total,
+      page: page,
+      limit: limit,
+    };
+  }
 
   // 신작 저장
   @Cron('0 0 0 * * *')
@@ -245,7 +271,7 @@ export class GameService {
       .andWhere('game.developer IS NULL')
       .getRawOne();
 
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
     const newGames = await this.gameRepository
       .createQueryBuilder('game')
@@ -254,7 +280,7 @@ export class GameService {
       .andWhere('game.release_date < :now', { now })
       .andWhere('game.developer IS NULL')
       .orderBy('game.release_date', 'DESC')
-      .skip(skip)
+      .offset(offset)
       .take(limit)
       .getRawMany();
 

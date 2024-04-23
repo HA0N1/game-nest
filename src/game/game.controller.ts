@@ -59,9 +59,20 @@ export class GameController {
   }
 
   // 인기순 저장
-  @Get('popular')
+  @Get('savePopularGames')
   async savePopularGames() {
     const popularGames = await this.gameService.savePopularGames();
+
+    return popularGames;
+  }
+
+  // 인기순 조회
+  @Get('popularGames')
+  async getPopularGames(@Query('page') page: string, @Query('limit') limit: string) {
+    const pageNumber = parseInt(page, 10) || 1;
+    const limitNumber = parseInt(limit, 10) || 10;
+
+    const popularGames = await this.gameService.getPopularGames(pageNumber, limitNumber);
 
     return popularGames;
   }

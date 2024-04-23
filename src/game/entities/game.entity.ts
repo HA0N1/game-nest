@@ -36,6 +36,12 @@ export class Game {
   @Column({ type: 'varchar' })
   price: string;
 
+  @Column({ type: 'varchar' })
+  change: string;
+
+  @Column({ type: 'int' })
+  rank: number;
+
   @Column({ type: 'enum', enum: PlatformEnum })
   platform: PlatformEnum;
 
