@@ -1,0 +1,33 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>FriendDM</title>
+  </head>
+  <body>
+    <header>
+      <h1>FriendDM</h1>
+      <div><button id='gotoMain'>메인 화면으로</button></div>
+    </header>
+    <main>
+      <div id='dmMain'>
+        <h4>DM Rooms:</h4>
+        <ul id='rooms'></ul>
+      </div>
+
+      <div id='dmRoom'>
+        <button id='toMain'>전체 채팅창</button>
+        <div id='room'></div>
+        <ul id='pastChats'></ul>
+        <ul id='newChats'></ul>
+        <form id='message'>
+          <input placeholder='메세지를 입력하세요.' , type='text' />
+          <button>전송</button>
+        </form>
+      </div>
+    </main>
+  </body>
+  <script src='http://code.jquery.com/jquery-3.6.1.slim.js'></script>
+  <script src='http://localhost:3000/socket.io/socket.io.js'></script>
+  <script type='module' src='/dm.js'></script>
+</html>

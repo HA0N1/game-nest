@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { InterestGenre } from 'src/user/entities/interestGenre.entity';
 import { Genre } from 'src/game/entities/gameGenre.entity';
+import { HttpModule } from '@nestjs/axios';
 configDotenv();
 
 @Module({
@@ -18,6 +19,12 @@ configDotenv();
         secret: config.get<string>('JWT_SECRET_KEY'),
       }),
       inject: [ConfigService],
+    }),
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 5000,
+        maxRedirects: 5,
+      }),
     }),
     TypeOrmModule.forFeature([User, InterestGenre, Genre]),
     RedisModule.forRootAsync({

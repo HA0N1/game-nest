@@ -11,6 +11,7 @@ import { Genre } from 'src/game/entities/gameGenre.entity';
 import { RedisAppModule } from 'src/redis/redis.module';
 import { FriendService } from 'src/friend/friend.service';
 import { FriendModule } from 'src/friend/friend.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -19,6 +20,12 @@ import { FriendModule } from 'src/friend/friend.module';
         secret: config.get<string>('JWT_SECRET_KEY'),
       }),
       inject: [ConfigService],
+    }),
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 5000,
+        maxRedirects: 5,
+      }),
     }),
     TypeOrmModule.forFeature([User, InterestGenre, Genre]),
     RedisAppModule,
