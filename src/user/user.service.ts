@@ -292,9 +292,6 @@ export class UserService {
 
   /* 로그아웃 */
   async logout(id: number) {
-    console.log(id);
-    console.log(`REFRESH_TOKEN:${id}`);
-
     const getRefreshToken = await this.redis.get(`REFRESH_TOKEN:${id}`);
 
     if (!getRefreshToken) {

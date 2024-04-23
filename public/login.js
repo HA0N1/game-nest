@@ -1,5 +1,3 @@
-let token = '';
-
 function login(){
   const email = $('#email').val();
 const password = $('#password').val();

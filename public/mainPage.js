@@ -2,12 +2,14 @@
     const login = document.getElementById('login');
     const channel = document.getElementById('channel');
     const dm = document.getElementById('dm');
+    const profile = document.getElementById('profile');
 
     signUp.addEventListener('click', goSignup);
     login.addEventListener('click', goLogin);
     channel.addEventListener('click', goChannel);
     dm.addEventListener('click', goDM);
-    
+    profile.addEventListener('click', goProgile);
+
     window.onload = function() {
         checkLoginStatus();
     };
@@ -30,14 +32,16 @@
     }
 
     function showLoggedInUI() {
-        document.getElementById('channel').style.display = 'block';
+        document.getElementById('logout').style.display = 'block';
+        document.getElementById('profile').style.display = 'block';
         document.getElementById('dm').style.display = 'block';
         document.getElementById('sign-up').style.display = 'none';
         document.getElementById('login').style.display = 'none';
     }
     
     function showLoggedOutUI() {
-        document.getElementById('channel').style.display = 'none';
+        document.getElementById('logout').style.display = 'none';
+        document.getElementById('profile').style.display = 'none';
         document.getElementById('dm').style.display = 'none';
         document.getElementById('sign-up').style.display = 'block';
         document.getElementById('login').style.display = 'block';
@@ -62,4 +66,9 @@
     function goDM(event) {
       console.log('dm 입장');
       window.location.href = 'http://localhost:3000/dm';
+    }
+
+    function goProgile(event){
+        console.log('프로필 이동');
+        window.location.href = 'http://localhost:3000/user/userinfo'
     }

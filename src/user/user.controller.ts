@@ -32,9 +32,11 @@ export class UserController {
   async emailLogin(@Body() emailLoginDto: EmailLoginDto, @Res({ passthrough: true }) response: Response) {
     const login = await this.userService.emailLogin(emailLoginDto);
 
-    const user = await this.userService.findUserByEmail(emailLoginDto.email);
-
-    response.cookie('authorization', login.accessToken, { domain: 'localhost', maxAge: 3600000, httpOnly: true });
+    response.cookie('authorization', login.accessToken, {
+      domain: 'localhost',
+      maxAge: 3600000,
+      httpOnly: true,
+    });
     return { message: login.message, accessToken: login.accessToken };
   }
 
@@ -92,12 +94,14 @@ export class UserController {
       return await this.userService.addIG(user.id, removeInterestGenre);
     }
   }
+
   /* 로그아웃 */
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
-  async logout(@UserInfo() user: User) {
+  async logout(@UserInfo() user: User, @Res({ passthrough: true }) res: Response) {
     const userId = user.id;
 
+    res.cookie('authorization', '', { maxAge: 0 });
     return await this.userService.logout(userId);
   }
 

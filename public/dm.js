@@ -126,7 +126,7 @@ socket.on('welcome', data => {
 
 socket.on('bye', data => {
   const { user, dmRoomId } = data;
-  const h3 = dmRoom.querySelector('h3');
+  
   sendDM(`${user.nickname}이 퇴장했습니다.`);
 });
 
