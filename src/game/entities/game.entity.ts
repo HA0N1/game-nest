@@ -1,12 +1,12 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Channel } from '../../channel/entities/channel.entity';
 import { PlatformEnum } from '../type/game-platform.type';
-import { GameComment } from './gameComment.entity';
-import { Genre } from './gameGenre.entity';
+import { GameComment } from './game-comment.entity';
+import { Genre } from './game-genre.entity';
 
 @Entity({ name: 'game' })
 export class Game {
-  @PrimaryGeneratedColumn({ unsigned: true })
+  @PrimaryGeneratedColumn({ unsigned: true, name: 'id' })
   id: number;
 
   @Column({ type: 'varchar' })
@@ -24,7 +24,7 @@ export class Game {
   @Column({ type: 'int' })
   metacritic: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'text' })
   supported_languages: string;
 
   @Column({ type: 'varchar' })
@@ -33,16 +33,25 @@ export class Game {
   @Column({ type: 'datetime' })
   release_date: Date;
 
+  @Column({ type: 'varchar' })
+  price: string;
+
+  @Column({ type: 'varchar' })
+  change: string;
+
+  @Column({ type: 'int' })
+  rank: number;
+
   @Column({ type: 'enum', enum: PlatformEnum })
   platform: PlatformEnum;
 
   @Column({ type: 'varchar' })
   publisher: string;
 
-  @Column({ type: 'varchar' })
-  price: string;
+  @Column({ type: 'int', unsigned: true })
+  genre_id: number;
 
-  @OneToOne(() => Genre, genre => genre.game)
+  @ManyToOne(() => Genre, genre => genre.game)
   @JoinColumn({ name: 'genre_id' })
   genre: Genre;
 

@@ -18,7 +18,7 @@ import { ChannelMember } from '../../channel/entities/channelMember.entity';
 import { FriendDMs } from 'src/dm/entities/friendDMs.entity';
 import { Channel } from 'src/channel/entities/channel.entity';
 import { InterestGenre } from './interestGenre.entity';
-import { GameComment } from 'src/game/entities/gameComment.entity';
+import { GameComment } from 'src/game/entities/game-comment.entity';
 
 @Entity({ name: 'user' })
 export class User {
