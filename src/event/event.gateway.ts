@@ -220,10 +220,8 @@ export class RoomGateway implements OnGatewayConnection {
       let transport;
       if (consumer) {
         transport = await this.createWebRtcTransport();
-        console.log('RoomGateway ~ handleCreateTransport ~ producerTransport:', transport);
       } else {
         transport = await this.createWebRtcTransport();
-        console.log('RoomGateway ~ handleCreateTransport ~ consumerTransport:', transport);
       }
 
       if (transport) {
@@ -274,79 +272,7 @@ export class RoomGateway implements OnGatewayConnection {
       console.error(error);
     }
   }
-  // async handleCreateTransport(@MessageBody() data) {
-  //   const { consumer } = data;
 
-  //   try {
-  //     // const initialAvailableOutgoingBitrate = config.mediasoup.WebRtcTransport.initialAvailableOutgoingBitrate;
-  //     if (consumer) {
-  //       producerTransport = await this.createWebRtcTransport(callback);
-  //       console.log('RoomGateway ~ handleCreateTransport ~ producerTransport:', producerTransport);
-
-  //       this.server.emit('createWebRtcTransport', {
-  //         params: {
-  //           id: producerTransport.id,
-  //           iceParameters: producerTransport.iceParameters,
-  //           iceCandidates: producerTransport.iceCandidates,
-  //           dtlsParameters: producerTransport.dtlsParameters,
-  //         },
-  //       });
-  //       console.log('잇다');
-  //     } else {
-  //       consumerTransport = await this.createWebRtcTransport(callback);
-  //       console.log('RoomGateway ~ handleCreateTransport ~ consumerTransport:', consumerTransport);
-  //       console.log('업당');
-  //       this.server.emit('createWebRtcTransport', {
-  //         params: {
-  //           id: consumerTransport.id,
-  //           iceParameters: consumerTransport.iceParameters,
-  //           iceCandidates: consumerTransport.iceCandidates,
-  //           dtlsParameters: consumerTransport.dtlsParameters,
-  //         },
-  //       });
-  //     }
-  //   } catch (error) {}
-  // }
-  // async createWebRtcTransport(callback) {
-  //   try {
-  //     // https://mediasoup.org/documentation/v3/mediasoup/api/#WebRtcTransportOptions
-  //     const webRtcTransport_options = {
-  //       listenIps: [
-  //         {
-  //           ip: '0.0.0.0', // replace with relevant IP address
-  //           announcedIp: '127.0.0.1',
-  //         },
-  //       ],
-  //       enableUdp: true,
-  //       enableTcp: true,
-  //       preferUdp: true,
-  //     };
-
-  //     // https://mediasoup.org/documentation/v3/mediasoup/api/#router-createWebRtcTransport
-  //     let transport = await router.createWebRtcTransport(webRtcTransport_options);
-  //     console.log(`transport id: ${transport.id}`);
-
-  //     transport.on('dtlsstatechange', dtlsState => {
-  //       if (dtlsState === 'closed') {
-  //         transport.close();
-  //       }
-  //     });
-
-  //     transport.on('close', () => {
-  //       console.log('transport closed');
-  //     });
-  //     return {
-  //       params: {
-  //         id: transport.id,
-  //         iceParameters: transport.iceParameters,
-  //         iceCandidates: transport.iceCandidates,
-  //         dtlsParameters: transport.dtlsParameters,
-  //       },
-  //     };
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // }
   @SubscribeMessage('transport-connect')
   async transportConnect(@MessageBody() { dtlsParameters }) {
     // console.log('DTLS PARAMS...:', dtlsParameters);
