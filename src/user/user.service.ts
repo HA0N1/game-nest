@@ -38,6 +38,10 @@ export class UserService {
     private readonly httpService: HttpService,
   ) {}
 
+  async signUp() {
+    return this.httpService.post('http://localhost:3000/user/create');
+  }
+
   /* 회원가입 */
   async create(createUserDto: CreateUserDto) {
     // 중복되는 이메일 있는지 확인

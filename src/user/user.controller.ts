@@ -16,9 +16,15 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   /* 회원 가입 */
-  @Post('sign-up')
+  @Post('create')
   async create(@Body() createUserDto: CreateUserDto) {
     return await this.userService.create(createUserDto);
+  }
+
+  @Get('sign-up')
+  @Render('signUp.hbs')
+  async goToCreate() {
+    await this.userService.signUp();
   }
 
   @Get('login')

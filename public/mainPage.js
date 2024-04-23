@@ -49,7 +49,7 @@
 
     function goSignup(event) {
       console.log('회원 가입');
-      window.location.href = 'signUP';
+      window.location.href = 'http://localhost:3000/user/sign-up';
     }
 
     async function goLogin(event) {
