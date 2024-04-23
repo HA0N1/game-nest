@@ -52,7 +52,7 @@ export class Game {
   genre_id: number;
 
   @ManyToOne(() => Genre, genre => genre.game)
-  @JoinColumn({ name: 'genre_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'genre_id' })
   genre: Genre;
 
   @OneToMany(() => Channel, channel => channel.game)

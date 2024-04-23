@@ -4,33 +4,37 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from './user/entities/user.entity';
-import { FriendDMs } from './friend/entities/friendDMs.entity';
+import { FriendDMs } from './dm/entities/friendDMs.entity';
 import { Friendship } from './friend/entities/friendship.entity';
 import { Channel } from './channel/entities/channel.entity';
+import { ChannelModule } from './channel/channel.module';
 import { ChannelChat } from './channel/entities/channelChat.entity';
-import { DMRoom } from './friend/entities/DM-room.entity';
+import { ChannelMember } from './channel/entities/channelMember.entity';
+import { ChannelDMs } from './channel/entities/channelDMs.entity';
+import { DMRoom } from './dm/entities/DM-room.entity';
 import { Like } from './user/entities/like.entity';
 import { Post } from './post/entities/post.entity';
 import { Game } from './game/entities/game.entity';
-
+import { GameService } from './game/game.service';
+import { Genre } from './game/entities/game-genre.entity';
+import { InterestGenre } from './user/entities/interestGenre.entity';
+import { GameComment } from './game/entities/game-comment.entity';
 import { CommentModule } from './comment/comment.module';
-import { ChannelMember } from './channel/entities/channelMember.entity';
-import { ChannelDMs } from './channel/entities/channelDMs.entity';
+import { PostModule } from './post/post.module';
+import { PostComment } from './comment/entities/comment.entity';
+import { DMModule } from './dm/dm.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { RedisAppModule } from './redis/redis.module';
-import { ChannelModule } from './channel/channel.module';
-import { GameService } from './game/game.service';
-import { PostModule } from './post/post.module';
-import { PostComment } from './comment/entities/comment.entity';
 import { FriendModule } from './friend/friend.module';
 import { RoomGateway } from './event/event.gateway';
 import { EventModule } from './event/event.module';
 import { AppController } from './app.controller';
+import { DmEventModule } from './event/dmEvent.module';
+import { StoreModule } from './store/store.module';
+import { AwsModule } from './aws/aws.module';
+import { File } from './aws/entities/file.entity';
 import { GameModule } from './game/game.module';
-import { Genre } from './game/entities/game-genre.entity';
-import { InterestGenre } from './user/entities/interestGenre.entity';
-import { GameComment } from './game/entities/game-comment.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 
 const typeOrmModuleOptions = {
@@ -58,6 +62,7 @@ const typeOrmModuleOptions = {
       Genre,
       InterestGenre,
       GameComment,
+      File,
     ],
     synchronize: configService.get('DB_SYNC'),
     logging: true, // row query 출력
@@ -88,7 +93,11 @@ const typeOrmModuleOptions = {
     CommentModule,
     RedisAppModule,
     FriendModule,
+    DMModule,
     EventModule,
+    DmEventModule,
+    StoreModule,
+    AwsModule,
     GameModule,
     ScheduleModule.forRoot(),
   ],

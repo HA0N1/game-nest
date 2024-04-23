@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   NotFoundException,
   BadRequestException,
+  Request,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -21,6 +22,9 @@ import { Genre } from 'src/game/entities/game-genre.entity';
 import { UpdatePWDto } from './dto/update-pw.dto';
 import Redis from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
+import { HttpService } from '@nestjs/axios';
+import { Observable, firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class UserService {
@@ -33,6 +37,7 @@ export class UserService {
     @InjectRepository(Genre)
     private genreRepository: Repository<Genre>,
     @InjectRedis() private readonly redis: Redis,
+    private readonly httpService: HttpService,
   ) {}
 
   /* 회원가입 */
@@ -77,6 +82,10 @@ export class UserService {
     return { message: `${createUserDto.nickname}님의 가입이 완료되었습니다.` };
   }
 
+  async login() {
+    return this.httpService.post('http://localhost:3000/user/email');
+  }
+
   /* 이메일로 로그인 */
   async emailLogin(emailLoginDto: EmailLoginDto) {
     const user = await this.userRepository.findOne({
@@ -102,6 +111,16 @@ export class UserService {
     await this.redis.setex(`REFRESH_TOKEN:${user.id}`, 604800, refreshToken);
 
     return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
+  }
+
+  async checkLogin(cookies) {
+    const key = Object.keys(cookies);
+
+    if (key[0] === 'authorization') {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /* 유저 조회 */
@@ -275,9 +294,6 @@ export class UserService {
 
   /* 로그아웃 */
   async logout(id: number) {
-    console.log(id);
-    console.log(`REFRESH_TOKEN:${id}`);
-
     const getRefreshToken = await this.redis.get(`REFRESH_TOKEN:${id}`);
 
     if (!getRefreshToken) {
@@ -313,4 +329,31 @@ export class UserService {
   private async findGenre(id: number) {
     return await this.genreRepository.findOne({ where: { id } });
   }
+
+  // async uploadProfileImage(userId: number, file: Express.Multer.File) {
+  //   const imagename = this.awsService.getUUID();
+  //   const ext = file.originalname.split('.').pop();
+  //   const imageUrl = await this.awsService.imageUploadToS3(`${imagename}.${ext}`, file, ext);
+  //   if (!imageUrl) {
+  //     throw new BadRequestException('이미지 업로드에 실패했습니다.');
+  //   }
+
+  //   const user = await this.userRepository.findOne(userId);
+  //   if (!user) {
+  //     throw new NotFoundException('사용자를 찾을 수 없습니다.');
+  //   }
+
+  //   if (user.profileImage) {
+  //     await this.awsService.deleteFileFromS3(user.profileImage);
+  //   }
+
+  //   const uploadedFile = await this.fileRepository.save({ filePath: imageUrl });
+
+  //   user.file = uploadedFile;
+  //   user.profileImage = imageUrl;
+
+  //   await this.userRepository.save(user);
+
+  //   return { message: '프로필 이미지가 업로드되었습니다.', imageUrl };
+  // }
 }

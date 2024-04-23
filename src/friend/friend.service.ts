@@ -7,8 +7,6 @@ import {
 } from '@nestjs/common';
 import { User } from 'src/user/entities/user.entity';
 import { Friendship } from './entities/friendship.entity';
-import { FriendDMs } from './entities/friendDMs.entity';
-import { DMRoom } from './entities/DM-room.entity';
 import _ from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -20,10 +18,6 @@ export class FriendService {
     private userRepository: Repository<User>,
     @InjectRepository(Friendship)
     private friendshipRepository: Repository<Friendship>,
-    @InjectRepository(FriendDMs)
-    private friendDMsRepository: Repository<FriendDMs>,
-    @InjectRepository(DMRoom)
-    private dmRoomRepository: Repository<DMRoom>,
   ) {}
 
   /* 친구 요청 */
@@ -81,17 +75,26 @@ export class FriendService {
   }
 
   /* 친구 수락 */
-  async accept(user: User, id: number) {
-    const resistRequest = await this.friendshipRepository.findOneBy({ id });
-    if (!resistRequest) {
-      throw new NotFoundException('존재하지 않는 친구 신청입니다.');
+  async accept(user: User, friendshipId: number) {
+    // 내가 받은 요청인지 확인
+    const check = await this.friendshipRepository
+      .createQueryBuilder('fs')
+      .select(['fs.id', 'fr.id'])
+      .leftJoin('fs.friend', 'fr')
+      .where('fs.id = :id', { id: friendshipId })
+      .getRawOne();
+
+    if (check.fr_id !== user.id) {
+      throw new BadRequestException('본인이 받은 친구 신청이 아닙니다.');
     }
 
+    // is_friend true로 수정
     await this.friendshipRepository
       .createQueryBuilder()
       .update(Friendship)
+      .set({ is_friend: true })
       .where('friend_id = :friend_id', { friend_id: user.id })
-      .andWhere('id = :id', { id })
+      .andWhere('id = :id', { id: friendshipId })
       .execute();
 
     return { message: '친구 수락이 완료되었습니다.' };
