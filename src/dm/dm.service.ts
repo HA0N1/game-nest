@@ -122,8 +122,23 @@ export class DMService {
     });
   }
 
-  /* 텍스트 채팅 보내기 */
-  async sendTextDM(userId: number, dmRoomId: number) {}
+  /* 채팅 내역 보내기 */
+  async textHistory(dmRoomId: number) {
+    const existDmRoom = await this.dmRoomRepository.findOneBy({ id: dmRoomId });
+    if (!existDmRoom) {
+      throw new NotFoundException('존재하지 않는 디엠방입니다.');
+    }
+
+    const dms = await this.friendDMsRepository
+      .createQueryBuilder('chat')
+      .select(['us.nickname', 'chat.content', 'chat.createdAt'])
+      .where('room.id = :dmRoomId', { dmRoomId: dmRoomId })
+      .leftJoin('chat.user', 'us')
+      .leftJoin('chat.DMRoom', 'room')
+      .getRawMany();
+
+    return dms;
+  }
 
   /* 디엠 삭제 */
   async deleteRoom(userId: number, dmRoomId: number) {

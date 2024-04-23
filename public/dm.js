@@ -78,7 +78,7 @@ function handleDMSubmit(event) {
   const data = { value, dmRoomId };
 
   socket.emit('sendMessage', data);
-  // sendDM(`나: ${value}`);
+  
   input.value = '';
 }
 
@@ -131,9 +131,9 @@ socket.on('bye', data => {
 });
 
 socket.on('message', data => {
-  const { dmRoomId, nickname, content } = data;
+  const { sender, content } = data;
 
-  sendDM(`${nickname}:${content}`);
+  sendDM(`${sender}:${content}`);
 });
 
 // socket.on('DMRoom_change', dmRooms => {

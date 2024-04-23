@@ -1,7 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   ConnectedSocket,
   MessageBody,
@@ -104,7 +103,6 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(dmRoomId, userId, content);
 
     await this.dmService.saveDM(dmRoomId, userId, content);
-    // socket.join(data.dmRoomId);
 
     this.server.to(data.dmRoomId).emit('message', { dmRoomId, nickname, content });
   }
