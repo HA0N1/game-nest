@@ -64,7 +64,7 @@ export class DMController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('history/:dmroomId')
-  async textHistory(@Param('dmroomId') dmroomId: number) {
+  async textHistory(@Param('dmroomId') dmroomId: number, @Query('page') page: number = 1) {
     return await this.dmService.textHistory(dmroomId);
   }
 }

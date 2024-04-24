@@ -39,6 +39,13 @@ function toDMRooms() {
     li.remove();
   })
 
+  const exist = document.getElementById('exist');
+  const existTexts = exist.querySelectorAll('li');
+  const existArray = Array.from(existTexts);
+  existArray.forEach((li)=>{
+    li.remove();
+  })
+
   dmRoom.hidden = true;
   dmMain.hidden = false;
 }
@@ -65,6 +72,13 @@ function sendDM(message) {
   const li = document.createElement('li');
   li.innerText = message;
   ul.appendChild(li);
+}
+
+function showExist(message){
+  const ul = dmRoom.querySelector('#exist');
+  const li = document.createElement('li');
+  li.innerText = message;
+  ul.appendChild(li)
 }
 
 function handleDMSubmit(event) {
@@ -109,32 +123,65 @@ showRooms();
 $(document).on('click','#rooms li button',function(){const liId=$(this).closest('li').attr('id'); joinDM(liId)})
 
 function joinDM(room) {
-  // currentRoom = room;
   dmRoom.hidden = false;
   dmMain.hidden = true;
   $('#room').html('');
   $('#room').append(`<h3>DMRoom: ${room}</h3>`);
   console.log('프론드 join: ', room);
+
   socket.emit('joinDM', room);
+
+  history(+room);
+
+  function prepare(){
+    window.setTimeout(scrollUI, 50)
+  }
+
+  prepare()
+ 
+}
+
+function scrollUI(){
+  const chatUI = document.querySelector('#newChats');
+  chatUI.scrollTop = chatUI.scrollHeight;
 }
 
 socket.on('welcome', data => {
   const { user, dmRoomId } = data;
 
-  sendDM(`${user.nickname}님이 입장했습니다.`);
+  showExist(`${user.nickname}님이 입장했습니다.`);
 });
 
 socket.on('bye', data => {
   const { user, dmRoomId } = data;
   
-  sendDM(`${user.nickname}이 퇴장했습니다.`);
+  showExist(`${user.nickname}이 퇴장했습니다.`);
 });
 
 socket.on('message', data => {
-  const { sender, content } = data;
+  const { nickname, content, time } = data;
 
-  sendDM(`${sender}:${content}`);
+  sendDM(`${nickname}:${content} ${time}`);
+
+  function prepare(){
+    window.setTimeout(scrollUI, 50)
+  }
+
+  prepare()
 });
+
+function history(dmRoomId){
+fetch(`http://localhost:3000/dm/history/${dmRoomId}`,{
+  headers:{
+    Authorization:`Bearer ${token}`
+}
+})
+.then(res=>res.json())
+.then(data=>data.map(chat=>{
+  sendDM(`${chat.us_nickname}:${chat.chat_content} ${chat.chat_created_at}`)
+}))
+.catch(err=> console.error('채팅 내역 가져오는데 오류 발생: ', err));
+}
 
 // socket.on('DMRoom_change', dmRooms => {
 //   const dmRoomList = dmMain.querySelector('ul');

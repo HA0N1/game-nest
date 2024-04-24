@@ -20,6 +20,7 @@ import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { Repository } from 'typeorm';
+import axios from 'axios';
 
 @WebSocketGateway({ namespace: 'friendDM' })
 export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -44,7 +45,7 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async findUserByCookie(cookie: string) {
     // const cookie = socket.handshake.headers.cookie; 로 미리 받아와야함
-    //TODO 로그인 안하고 접속했을 때 로그인 창으로 무사히 넘겨지도록 수정하기
+
     const token = cookie.split('=')[1];
     const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
     const user = await this.userService.findUserByEmail(payload.email);
@@ -55,9 +56,6 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleDisconnect(@ConnectedSocket() client: Socket) {
     const socketId = client.id;
     this.removeClient(socketId);
-
-    // const cookie = client.handshake.headers.cookie;
-    // const user = await this.findUserByCookie(cookie);
   }
 
   addClient(client) {
@@ -77,6 +75,8 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = await this.findUserByCookie(cookie);
     console.log(dmRoomId);
 
+    socket.join(dmRoomId);
+
     this.server.to(dmRoomId).emit('bye', { user: user, dmRoomId });
   }
 
@@ -84,6 +84,8 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleJoinDM(@ConnectedSocket() socket: Socket, @MessageBody() dmRoomId: any) {
     const cookie = socket.handshake.headers.cookie;
     const user = await this.findUserByCookie(cookie);
+
+    const chats = await this.dmService.textHistory(+dmRoomId);
 
     socket.join(dmRoomId);
 
@@ -104,7 +106,12 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     await this.dmService.saveDM(dmRoomId, userId, content);
 
-    this.server.to(data.dmRoomId).emit('message', { dmRoomId, nickname, content });
+    socket.join(data.dmRoomId);
+    console.log('socket 백엔드: ', data.dmRoomId);
+
+    const time = new Date();
+
+    this.server.to(data.dmRoomId).emit('message', { dmRoomId, nickname, content, time });
   }
 
   @SubscribeMessage('dmRoomList')

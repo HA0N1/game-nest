@@ -109,7 +109,7 @@ export class DMService {
     }
 
     const dmRoom = await this.dmRoomRepository.findOneBy({ id: dmRoomId });
-    console.log(dmRoom.id);
+    console.log(`${dmRoom.id}에 채팅 저장 완료`);
 
     if (!dmRoom) {
       throw new NotFoundException('존재하지 않는 디엠방입니다.');
@@ -123,18 +123,23 @@ export class DMService {
   }
 
   /* 채팅 내역 보내기 */
-  async textHistory(dmRoomId: number) {
+  async textHistory(dmRoomId: number, page: number = 1) {
     const existDmRoom = await this.dmRoomRepository.findOneBy({ id: dmRoomId });
     if (!existDmRoom) {
       throw new NotFoundException('존재하지 않는 디엠방입니다.');
     }
+    const take = 5;
 
+    //TODO 디엠 내역 페이지네이션
     const dms = await this.friendDMsRepository
       .createQueryBuilder('chat')
       .select(['us.nickname', 'chat.content', 'chat.createdAt'])
       .where('room.id = :dmRoomId', { dmRoomId: dmRoomId })
       .leftJoin('chat.user', 'us')
       .leftJoin('chat.DMRoom', 'room')
+      .orderBy('chat.created_at', 'ASC')
+      .take(take)
+      .skip((page - 1) * take)
       .getRawMany();
 
     return dms;
