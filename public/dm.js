@@ -56,7 +56,6 @@ function sayBye() {
   const dmRoomId = inTitle.split(' ')[1];
   socket.emit('sayBye', dmRoomId);
   const message = document.querySelector('#dmRoom ul li');
-  console.log(message);
 }
 
 function goBack() {
@@ -127,7 +126,6 @@ function joinDM(room) {
   dmMain.hidden = true;
   $('#room').html('');
   $('#room').append(`<h3>DMRoom: ${room}</h3>`);
-  console.log('프론드 join: ', room);
 
   socket.emit('joinDM', room);
 
@@ -147,15 +145,15 @@ function scrollUI(){
 }
 
 socket.on('welcome', data => {
-  const { user, dmRoomId } = data;
+  const { nickname, dmRoomId } = data;
 
-  showExist(`${user.nickname}님이 입장했습니다.`);
+  showExist(`${nickname}님이 입장했습니다.`);
 });
 
 socket.on('bye', data => {
-  const { user, dmRoomId } = data;
+  const { nickname, dmRoomId } = data;
   
-  showExist(`${user.nickname}이 퇴장했습니다.`);
+  showExist(`${nickname}이 퇴장했습니다.`);
 });
 
 socket.on('message', data => {
@@ -182,18 +180,3 @@ fetch(`http://localhost:3000/dm/history/${dmRoomId}`,{
 }))
 .catch(err=> console.error('채팅 내역 가져오는데 오류 발생: ', err));
 }
-
-// socket.on('DMRoom_change', dmRooms => {
-//   const dmRoomList = dmMain.querySelector('ul');
-//   dmRoomList.innerHTML = '';
-//   if (dmRooms.length === 0) {
-//     dmRoomList.innerHTML = '';
-//     return;
-//   }
-
-//   dmRooms.forEach(room => {
-//     const li = document.createElement('li');
-//     li.innerText = room;
-//     dmRoomList.append(li);
-//   });
-// });

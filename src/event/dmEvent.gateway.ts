@@ -34,13 +34,24 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly config: ConfigService,
   ) {}
 
-  wsClients = [];
+  connectedClients: { [socketId: string]: boolean } = {};
+  clientNickname: { [socketId: string]: string } = {};
+  roomUsers: { [key: string]: string[] } = {};
 
   async handleConnection(@ConnectedSocket() socket: Socket) {
-    console.log('dm connected!');
+    if (this.connectedClients[this.clientNickname.id]) {
+      socket.disconnect(true);
+      return;
+    }
 
-    const socketId = socket.id;
-    this.addClient(socketId);
+    this.connectedClients[socket.id] = true;
+
+    const cookie = socket.handshake.headers.cookie;
+    const user = await this.findUserByCookie(cookie);
+
+    this.clientNickname[socket.id] = user.nickname;
+
+    console.log('dm connected!');
   }
 
   async findUserByCookie(cookie: string) {
@@ -54,42 +65,57 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(@ConnectedSocket() client: Socket) {
-    const socketId = client.id;
-    this.removeClient(socketId);
-  }
+    delete this.connectedClients[client.id];
+    const cookie = client.handshake.headers.cookie;
+    const user = await this.findUserByCookie(cookie);
 
-  addClient(client) {
-    this.wsClients.push(client);
-  }
+    Object.keys(this.roomUsers).forEach(room => {
+      const index = this.roomUsers[room]?.indexOf(this.clientNickname[client.id]);
 
-  removeClient(client) {
-    const index = this.wsClients.indexOf(client);
-    if (index !== -1) {
-      this.wsClients.splice(index, 1);
-    }
+      if (index !== -1) {
+        this.roomUsers[room].splice(index, 1);
+      }
+    });
   }
 
   @SubscribeMessage('sayBye')
   async leaveDMRoom(@ConnectedSocket() socket: Socket, @MessageBody() dmRoomId: string) {
+    if (!socket.rooms.has(dmRoomId)) {
+      return;
+    }
+
+    socket.leave(dmRoomId);
+
+    const index = this.roomUsers[dmRoomId]?.indexOf(this.clientNickname[socket.id]);
+    if (index !== -1) {
+      this.roomUsers[dmRoomId].splice(index, 1);
+      this.server.to(dmRoomId).emit('bye', { nickname: this.clientNickname[socket.id], dmRoomId });
+    }
+
     const cookie = socket.handshake.headers.cookie;
     const user = await this.findUserByCookie(cookie);
-    console.log(dmRoomId);
 
-    socket.join(dmRoomId);
-
-    this.server.to(dmRoomId).emit('bye', { user: user, dmRoomId });
+    this.server.to(dmRoomId).emit('bye', { nickname: this.clientNickname[socket.id], dmRoomId });
   }
 
   @SubscribeMessage('joinDM')
   async handleJoinDM(@ConnectedSocket() socket: Socket, @MessageBody() dmRoomId: any) {
+    if (socket.rooms.has(dmRoomId)) {
+      return;
+    }
     const cookie = socket.handshake.headers.cookie;
     const user = await this.findUserByCookie(cookie);
 
-    const chats = await this.dmService.textHistory(+dmRoomId);
-
     socket.join(dmRoomId);
+    console.log(`${user.nickname}의 벡엔드는 여기에 연결 중: ${dmRoomId}`);
 
-    this.server.to(dmRoomId).emit('welcome', { user: user, dmRoomId });
+    if (!this.roomUsers[dmRoomId]) {
+      this.roomUsers[dmRoomId] = [];
+    }
+
+    this.roomUsers[dmRoomId].push(this.clientNickname[socket.id]);
+
+    this.server.to(dmRoomId).emit('welcome', { nickname: this.clientNickname[socket.id], dmRoomId });
   }
 
   @SubscribeMessage('sendMessage')
@@ -101,8 +127,6 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const nickname = user.nickname;
     const content = data.value;
     const dmRoomId = +data.dmRoomId;
-    console.log('!!!!!!!!!!!!!!');
-    console.log(dmRoomId, userId, content);
 
     await this.dmService.saveDM(dmRoomId, userId, content);
 
