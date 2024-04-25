@@ -25,6 +25,8 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { HttpService } from '@nestjs/axios';
 import { Observable, firstValueFrom } from 'rxjs';
 import { AxiosResponse } from 'axios';
+import { AwsService } from 'src/aws/aws.service';
+import { File } from 'src/aws/entities/file.entity';
 
 @Injectable()
 export class UserService {
@@ -34,11 +36,17 @@ export class UserService {
     private readonly jwtService: JwtService,
     @InjectRepository(InterestGenre)
     private interestGenreRepository: Repository<InterestGenre>,
+    private readonly httpService: HttpService,
+    private readonly awsService: AwsService,
+    @InjectRepository(File) private fileRepository: Repository<File>,
     @InjectRepository(Genre)
     private genreRepository: Repository<Genre>,
     @InjectRedis() private readonly redis: Redis,
-    private readonly httpService: HttpService,
   ) {}
+
+  async signUp() {
+    return this.httpService.post('http://localhost:3000/user/create');
+  }
 
   /* 회원가입 */
   async create(createUserDto: CreateUserDto) {
@@ -56,12 +64,18 @@ export class UserService {
 
     const interestGenre = createUserDto.interestGenre; // 희망하는 장르의 아이디들을 배열로 받아옴 [1(action), 3(RolePlaying), 5(Adventure)]
 
+    // 기본 프로필 이미지 불러오기
+    const imageUrl = process.env.DEFAULT_PROFILE_IMAGE;
+
+    const image = await this.fileRepository.findOneBy({ filePath: imageUrl });
+
     // DB에 회원가입 정보 넣기
     const hashedPassword = await hash(createUserDto.password, 10);
     const user = await this.userRepository.save({
       email: createUserDto.email,
       nickname: createUserDto.nickname,
       password: hashedPassword,
+      file: image,
     });
 
     // interestGenre 하나씩 생성하기
@@ -80,6 +94,19 @@ export class UserService {
     });
 
     return { message: `${createUserDto.nickname}님의 가입이 완료되었습니다.` };
+  }
+
+  /* 이메일 중복 확인하기 */
+  async checkEmail(email: string) {
+    const existingUser = await this.userRepository.findOneBy({
+      email,
+    });
+
+    if (existingUser) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   async login() {
@@ -134,7 +161,18 @@ export class UserService {
     return user;
   }
 
-  /* 관심 장르 조회 */
+  /* 프로필 조회 */
+  async findUser(user: User) {
+    const returnUser = await this.userRepository
+      .createQueryBuilder('us')
+      .leftJoin('us.file', 'fi')
+      .select(['us.id', 'us.email', 'us.nickname', 'fi.id', 'fi.filePath'])
+      .where('us.id=:id', { id: user.id })
+      .getOne();
+
+    return returnUser;
+  }
+
   async findInterestGenres(user: User) {
     return await this.interestGenreRepository
       .createQueryBuilder('ig')
@@ -143,6 +181,7 @@ export class UserService {
       .where('ig.user_id = :user_id', { user_id: user.id })
       .getRawMany();
   }
+
   /* 닉네임 수정 */
   async updateNN(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.findOneBy({
@@ -330,30 +369,33 @@ export class UserService {
     return await this.genreRepository.findOne({ where: { id } });
   }
 
-  // async uploadProfileImage(userId: number, file: Express.Multer.File) {
-  //   const imagename = this.awsService.getUUID();
-  //   const ext = file.originalname.split('.').pop();
-  //   const imageUrl = await this.awsService.imageUploadToS3(`${imagename}.${ext}`, file, ext);
-  //   if (!imageUrl) {
-  //     throw new BadRequestException('이미지 업로드에 실패했습니다.');
-  //   }
+  /* 프로필 이미지 수정 */
+  async addImage(user: User, file: Express.Multer.File) {
+    const imagename = this.awsService.getUUID();
 
-  //   const user = await this.userRepository.findOne(userId);
-  //   if (!user) {
-  //     throw new NotFoundException('사용자를 찾을 수 없습니다.');
-  //   }
+    const ext = file.originalname.split('.').pop();
 
-  //   if (user.profileImage) {
-  //     await this.awsService.deleteFileFromS3(user.profileImage);
-  //   }
+    const fileName = `${imagename}.${ext}`;
 
-  //   const uploadedFile = await this.fileRepository.save({ filePath: imageUrl });
+    const imageUrl = `https://s3.${process.env.AWS_S3_REGION}.amazonaws.com/${process.env.AWS_S3_BUCKET_NAME}/${fileName}`;
 
-  //   user.file = uploadedFile;
-  //   user.profileImage = imageUrl;
+    const userId = user.id;
 
-  //   await this.userRepository.save(user);
+    const newImageUrl = await this.awsService.imageUploadToS3(fileName, file, ext);
 
-  //   return { message: '프로필 이미지가 업로드되었습니다.', imageUrl };
-  // }
+    const filePath = await this.fileRepository.save({ filePath: newImageUrl });
+    await this.userRepository.update({ id: userId }, { file: filePath });
+
+    return { message: '프로필 이미지 수정 완료' };
+  }
+
+  async defaultImage(user: User) {
+    const imageUrl = process.env.DEFAULT_PROFILE_IMAGE;
+
+    const image = await this.fileRepository.findOneBy({ filePath: imageUrl });
+
+    await this.userRepository.update({ id: user.id }, { file: image });
+
+    return { message: '기본 이미지로 변경 완료' };
+  }
 }

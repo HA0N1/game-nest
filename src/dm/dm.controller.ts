@@ -61,4 +61,10 @@ export class DMController {
 
     return await this.dmService.deleteRoom(user.id, dmroomId);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('history/:dmroomId')
+  async textHistory(@Param('dmroomId') dmroomId: number, @Query('page') page: number = 1) {
+    return await this.dmService.textHistory(dmroomId);
+  }
 }

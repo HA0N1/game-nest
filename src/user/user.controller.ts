@@ -1,4 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res, Req, Render } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Res,
+  Req,
+  Render,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,21 +24,42 @@ import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { Request, Response } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   /* 회원 가입 */
-  @Post('sign-up')
+  @Post('create')
   async create(@Body() createUserDto: CreateUserDto) {
     return await this.userService.create(createUserDto);
+  }
+
+  @Get('sign-up')
+  @Render('signUp.hbs')
+  async goToCreate() {
+    await this.userService.signUp();
   }
 
   @Get('login')
   @Render('login.hbs')
   async login() {
     await this.userService.login();
+  }
+
+  /* 이메일 중복 확인 */
+  @Post('checkEmail')
+  async checkEmail(@Body() emailObject: Object) {
+    const email = Object.values(emailObject)[0];
+
+    const check = await this.userService.checkEmail(email);
+
+    if (check) {
+      return { isExist: true };
+    } else {
+      return { isExist: false };
+    }
   }
 
   /* 로그인 */
@@ -59,8 +94,37 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Get('userinfo')
   async findOne(@UserInfo() user: User) {
-    const interestGenres = await this.userService.findInterestGenres(user);
-    return { id: user.id, email: user.email, nickname: user.nickname, interestGenres };
+    const userInfo = await this.userService.findUser(user);
+
+    const interestGenre = await this.userService.findInterestGenres(user);
+
+    const genreNames = interestGenre.map(ig => {
+      return ig.genre_game_genre;
+    });
+
+    return {
+      id: userInfo.id,
+      email: userInfo.email,
+      nickname: userInfo.nickname,
+      file: userInfo.file.filePath,
+      interestGenre: genreNames,
+    };
+  }
+
+  /* 프로필 이미지 추가 */
+  @UseInterceptors(FileInterceptor('filePath'))
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('image')
+  async addImage(@UserInfo() user: User, @UploadedFile() file: Express.Multer.File) {
+    return this.userService.addImage(user, file);
+  }
+
+  /* 프로필 이미지 기본으로 변경 */
+  @UseInterceptors(FileInterceptor('filePath'))
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('defaultImage')
+  async defaultImage(@UserInfo() user: User) {
+    return this.userService.defaultImage(user);
   }
 
   /* 닉네임 수정 */
@@ -112,12 +176,4 @@ export class UserController {
     const userId = user.id;
     return await this.userService.remove(userId, password);
   }
-
-  // 프로필 이미지 업로드
-  // @UseGuards(AuthGuard('jwt'))
-  // @UseInterceptors(FileInterceptor('profileImage'))
-  // @Post('upload-profile-image')
-  // async uploadProfileImage(@UserInfo() user: User, @UploadedFile() file: Express.Multer.File) {
-  //   return await this.userService.uploadProfileImage(user.id, file);
-  // }
 }

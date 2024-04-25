@@ -1,0 +1,49 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Join Gamenest</title>
+  </head>
+  <body>
+    <header>
+      <h1>Gamenest 회원 가입</h1>
+      <div><button id='gotoMain'>메인 화면으로</button></div>
+    </header>
+
+    <main>
+      <form id='emailForm'><input type='email' id='email' /><button id='checkEmail'>중복 확인</button></form>
+      <form id='nicknameForm'><input type='text' id='nickname' /></form>
+      <form id='passwordForm'><input type='password' id='password' /></form>
+      <form id='checkPwForm'><input type='password' id='checkPw' /></form>
+      <form id='interestGenre'>
+        <fieldset>
+          <legend>관심있는 게임 장르</legend>
+          <input type='checkbox' name='genre' value='1' />
+          <label for='1'>Action</label><br />
+          <input type='checkbox' name='genre' value='2' />
+          <label for='1'>RPG</label><br />
+          <input type='checkbox' name='genre' value='3' />
+          <label for='1'>Adventure</label><br />
+          <input type='checkbox' name='genre' value='4' />
+          <label for='1'>Strategy</label><br />
+          <input type='checkbox' name='genre' value='5' />
+          <label for='1'>Simulation</label><br />
+          <input type='checkbox' name='genre' value='6' />
+          <label for='1'>Casual</label><br />
+          <input type='checkbox' name='genre' value='7' />
+          <label for='1'>Indie</label><br />
+          <input type='checkbox' name='genre' value='8' />
+          <label for='1'>Sports</label><br />
+          <input type='checkbox' name='genre' value='9' />
+          <label for='1'>Racing</label><br />
+        </fieldset>
+      </form>
+      <form>
+        <button id='create'>생성</button>
+        <button id='reset'>취소</button>
+      </form>
+    </main>
+  </body>
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+  <script type='module' src='/signUp.js'></script>
+</html>
