@@ -1,5 +1,6 @@
 import { ChannelDMs } from 'src/channel/entities/channelDMs.entity';
 import { PostComment } from 'src/comment/entities/comment.entity';
+import { FriendDMs } from 'src/dm/entities/friendDMs.entity';
 import { Game } from 'src/game/entities/game.entity';
 import { Post } from 'src/post/entities/post.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -25,12 +26,12 @@ export class File {
   @OneToMany(() => Post, post => post.file, { onDelete: 'CASCADE' })
   post: Post[];
 
-  // @ManyToOne(()=>Game,game=>game.file)
-  // game:Game
+  // @OneToMany(()=>Game,game=>game.file)
+  // game:Game[]
 
-  // @ManyToOne(()=>ChannelDMs,channeldms=>channeldms.file)
-  // channelDMs:ChannelDMs
+  // @OneToMany(()=>ChannelDMs,channeldms=>channeldms.file)
+  // channelDMs:ChannelDMs[]
 
-  // @ManyToOne(()=>FriendDMs,friendms=>friendms.file)
-  // friendms:FriendDMs
+  @OneToMany(() => FriendDMs, friendms => friendms.file, { onDelete: 'CASCADE' })
+  friendms: FriendDMs[];
 }

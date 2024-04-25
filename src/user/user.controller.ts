@@ -25,6 +25,7 @@ import { UserInfo } from 'src/utils/decorators/userInfo';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { Request, Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ResizeImagePipe } from 'src/utils/resizeImage.pipe';
 
 @Controller('user')
 export class UserController {
@@ -115,7 +116,7 @@ export class UserController {
   @UseInterceptors(FileInterceptor('filePath'))
   @UseGuards(AuthGuard('jwt'))
   @Patch('image')
-  async addImage(@UserInfo() user: User, @UploadedFile() file: Express.Multer.File) {
+  async addImage(@UserInfo() user: User, @UploadedFile(new ResizeImagePipe()) file: Express.Multer.File) {
     return this.userService.addImage(user, file);
   }
 
