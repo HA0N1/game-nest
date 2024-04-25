@@ -1,0 +1,77 @@
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="WebRTC code samples" />
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1" />
+    <meta itemprop="description" content="Client-side WebRTC code samples" />
+    <meta itemprop="name" content="WebRTC code samples" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta id="theme-color" name="theme-color" content="#ffffff" />
+    <base target="_blank" />
+    <title>Chat Application</title>
+    <link rel="stylesheet" href="/login.css" />
+  </head>
+
+  <body>
+    <div class="sidebar">
+      <div class="channelList">
+        <h2>채널 목록</h2>
+        <ul id="channels"></ul>
+      </div>
+    </div>
+    <div class="chatList">
+      <div>
+        <h2>채팅방 목록</h2>
+        <ul id="rooms"></ul>
+        <button id="joinBtn" style="display:none"></button>
+        <button class="joinBtn" style="display:none"></button>
+      </div>
+    </div>
+    <div id="container">
+      <div class="video-container">
+        <video id="localVideo" autoplay playsinline muted></video>
+        <button id="localVideoOnBtn">카메라 켜기</button>
+        <video id="remoteVideo" autoplay playsinline></video>
+        <button id="remoteVideoOnBtn">카메라 켜기</button>
+        <button id="btnConnectRecvTransport">7. Connect Recv Transport & Consume</button>
+        {{! <button id="">카메라</button> }}
+      </div>
+      <div>
+        <video id="screenShare" autoplay playsinline muted></video>
+        <button id="screenShareBtn" disabled>화면공유 시작</button>
+        <fieldset id="options">
+          <legend>Advanced options</legend>
+          <select id="displaySurface">
+            <option value="default" selected>화면공유 옵션</option>
+            <option value="browser">브라우저 탭</option>
+            <option value="window">윈도우</option>
+            <option value="monitor">스크린</option>
+          </select>
+        </fieldset>
+        <div id="errorMsg"></div>
+      </div>
+    </div>
+    <div id="chatBox" style="display:none;">
+      <div id="chat">
+        Chat
+      </div>
+      <div>
+        <input type="text" id="message" placeholder="메시지 입력" />
+        <button id="sendBtn">전송</button>
+        <button id="createRoomBtn">채팅 만들기</button>
+      </div>
+    </div>
+
+    <div>
+      <h2>공지</h2>
+      <div id="notice"></div>
+    </div>
+    <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/bundle.js"></script>
+  </body>
+
+</html>

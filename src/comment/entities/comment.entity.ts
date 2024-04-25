@@ -1,0 +1,34 @@
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { User } from '../../user/entities/user.entity';
+import { Post } from '../../post/entities/post.entity';
+
+@Entity({ name: 'post_comment' })
+export class PostComment {
+  @PrimaryGeneratedColumn({ unsigned: true })
+  id: number;
+
+  @Column({ type: 'text' })
+  content: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @ManyToOne(() => User, user => user.postComment)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @ManyToOne(() => Post, post => post.postComment)
+  @JoinColumn({ name: 'post_id' })
+  post: Post;
+}
