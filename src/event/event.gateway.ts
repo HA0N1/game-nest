@@ -35,6 +35,7 @@ import { Router } from 'mediasoup/node/lib/types';
  */
 let worker;
 let router;
+let transport;
 let producerTransport;
 let consumerTransport;
 let producer;
@@ -103,7 +104,8 @@ export class RoomGateway implements OnGatewayConnection {
       throw new WsException(error.message);
     }
   }
-
+  // on // 수신
+  // emit // 발신
   @SubscribeMessage('createRoom')
   async handleMessage(socket: Socket & { user: User }, data: CreateRoomData) {
     const { room, createChatDto } = data;
@@ -196,6 +198,7 @@ export class RoomGateway implements OnGatewayConnection {
     //   this.server.emit('getRtpCapabilities', rtpCapabilities);
     // }
   }
+
   @SubscribeMessage('joinVoiceRoom')
   async handleJoinVoiceRoom(socket: Socket & { user: User }, data: any) {
     const { room } = data;
@@ -217,23 +220,30 @@ export class RoomGateway implements OnGatewayConnection {
     const { consumer } = data;
 
     try {
-      let transport;
-      if (consumer) {
-        transport = await this.createWebRtcTransport();
-      } else {
-        transport = await this.createWebRtcTransport();
-      }
-
-      if (transport) {
+      if (!consumer) {
+        producerTransport = await this.createWebRtcTransport();
         this.server.emit('createWebRtcTransport', {
           consumer,
           params: {
-            id: transport.id,
-            iceParameters: transport.iceParameters,
-            iceCandidates: transport.iceCandidates,
-            dtlsParameters: transport.dtlsParameters,
+            id: producerTransport.id,
+            iceParameters: producerTransport.iceParameters,
+            iceCandidates: producerTransport.iceCandidates,
+            dtlsParameters: producerTransport.dtlsParameters,
           },
         });
+        console.log('producer로써');
+      } else {
+        consumerTransport = await this.createWebRtcTransport();
+        this.server.emit('createWebRtcTransport', {
+          consumer,
+          params: {
+            id: consumerTransport.id,
+            iceParameters: consumerTransport.iceParameters,
+            iceCandidates: consumerTransport.iceCandidates,
+            dtlsParameters: consumerTransport.dtlsParameters,
+          },
+        });
+        console.log('consumer로써');
       }
     } catch (error) {
       console.error(error);
@@ -243,10 +253,11 @@ export class RoomGateway implements OnGatewayConnection {
   async createWebRtcTransport() {
     try {
       const webRtcTransport_options = {
-        listenIps: [
+        listenInfos: [
           {
-            ip: '0.0.0.0', // replace with relevant IP address
-            announcedIp: '127.0.0.1',
+            protocol: 'udp',
+            ip: '0.0.0.0',
+            announcedAddress: this.configService.get('ANNOUNCEDADDRESS'),
           },
         ],
         enableUdp: true,
@@ -269,34 +280,43 @@ export class RoomGateway implements OnGatewayConnection {
 
       return transport;
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
   }
 
   @SubscribeMessage('transport-connect')
-  async transportConnect(@MessageBody() { dtlsParameters }) {
-    // console.log('DTLS PARAMS...:', dtlsParameters);
-    // console.log('RoomGateway ~ transportConnect ~ dtlsParameters:', dtlsParameters);
-    await producerTransport.connect({ dtlsParameters });
+  async transportConnect(@MessageBody() { dtlsParameters }): Promise<void> {
+    try {
+      await producerTransport.connect({ dtlsParameters });
+      console.log('연결 성공');
+      this.server.emit('transport-connect', { dtlsParameters });
+    } catch (error) {
+      console.log('연결 실패:', error);
+    }
   }
 
   @SubscribeMessage('transport-produce')
-  async transportProduce(@MessageBody() { kind, rtpParameters, appData }) {
-    // const { kind, rtpParameters, appData } = data;
+  async transportProduce(@MessageBody() { kind, rtpParameters, appData }): Promise<void> {
+    console.log('RoomGateway ~ transportProduce ~ kind:', kind);
+    console.log('RoomGateway ~ transportProduce ~ kind:', rtpParameters);
+    try {
+      producer = await producerTransport.produce({
+        kind,
+        rtpParameters,
+      });
+      console.log('네가 궁금하다:', producer);
+      console.log('아이디', producer.id);
+      console.dir(producer);
 
-    producer = await producerTransport.produce({
-      kind,
-      rtpParameters,
-    });
+      producer.on('transportclose', () => {
+        console.log('transport for this producer closed ');
+        producer.close();
+      });
 
-    console.log('Producer ID: ', producer.id, producer.kind);
-
-    producer.on('transportclose', () => {
-      console.log('transport for this producer closed ');
-      producer.close();
-    });
-
-    this.server.emit('transport-produce', { id: producer.id });
+      this.server.emit('transport-produce', { id: producer.id });
+    } catch (error) {
+      console.log('produce 중 error', error.message);
+    }
   }
   async createWorker() {
     worker = await mediasoup.createWorker({
@@ -315,6 +335,19 @@ export class RoomGateway implements OnGatewayConnection {
 
     return worker;
   }
+
+  @SubscribeMessage('transport-recv-connect')
+  async transportConsumer(@MessageBody() { dtlsParameters }): Promise<void> {
+    try {
+      await consumerTransport.connect({ dtlsParameters });
+      console.log('연결 성공');
+    } catch (error) {
+      console.error('연결 실패:', error);
+    }
+  }
+
+  // @SubscribeMessage('consumer-resume')
+  // @SubscribeMessage('consume')
 
   @SubscribeMessage('chatType')
   async handleChatType(socket: Socket, data: any) {

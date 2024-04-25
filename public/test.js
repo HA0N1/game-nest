@@ -1,9 +1,12 @@
+//index.js
+const io = require('socket.io-client');
 const mediasoupClient = require('mediasoup-client');
-document.getElementById('container').style.display = 'none';
-document.getElementById('chatBox').style.display = 'none';
 
-document.getElementById('sendBtn').addEventListener('click', sendMessage);
-document.getElementById('createRoomBtn').addEventListener('click', createRoom);
+const socket = io('/mediasoup');
+
+socket.on('connection-success', ({ socketId }) => {
+  console.log(socketId);
+});
 
 let device;
 let rtpCapabilities;
@@ -12,137 +15,41 @@ let consumerTransport;
 let producer;
 let consumer;
 
+// https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerOptions
+// https://mediasoup.org/documentation/v3/mediasoup-client/api/#transport-produce
 let params = {
-  encoding: [
-    { rid: 'r0', maxBitrate: 100000, scalabiltyMode: 'S1T3' },
-    { rid: 'r1', maxBitrate: 100000, scalabiltyMode: 'S1T3' },
-    { rid: 'r2', maxBitrate: 100000, scalabiltyMode: 'S1T3' },
+  // mediasoup params
+  encodings: [
+    {
+      rid: 'r0',
+      maxBitrate: 100000,
+      scalabilityMode: 'S1T3',
+    },
+    {
+      rid: 'r1',
+      maxBitrate: 300000,
+      scalabilityMode: 'S1T3',
+    },
+    {
+      rid: 'r2',
+      maxBitrate: 900000,
+      scalabilityMode: 'S1T3',
+    },
   ],
+  // https://mediasoup.org/documentation/v3/mediasoup-client/api/#ProducerCodecOptions
   codecOptions: {
     videoGoogleStartBitrate: 1000,
   },
 };
 
-const token = document.cookie;
-console.log('document:', document);
-console.log('token:', token);
-
-const socket = io('/chat', { auth: { token: token } });
-
-let currentRoom = '';
-const channel = prompt('채널명을 입력해주세요');
-function sendMessage() {
-  if (currentRoom === '') {
-    alert('방을 선택해주세요');
-    return;
-  }
-  const message = $('#message').val();
-
-  const data = { message, room: currentRoom };
-  $('#chat').append(`<div>나:${message}</div>`);
-  socket.emit('message', data);
-  return false;
-}
-
-function createRoom() {
-  const room = prompt('방이름을 입력해주세요.');
-  const chatType = prompt('채팅 타입을 입력해주세요.');
-  const maximumPeople = prompt('최대 인원을 입력해주세요.');
-  const channelId = prompt('만드려는 채팅의 채널ID를 입력해주세요.');
-  socket.emit('createRoom', {
-    room,
-    createChatDto: { title: room, chatType, maximumPeople, channelId },
-  });
-}
-
-function updateRoomList(rooms) {
-  $('#rooms').empty();
-  rooms.forEach(room => {
-    $('#rooms').append(
-      `<li>${room.chatType} room :${room.title} <button class="joinBtn" data-room="${room.title}">join</button></li>`,
-    );
-  });
-
-  $('.joinBtn').click(async function () {
-    const room = $(this).data('room');
-    const chatType = await socket.on('chatType', type => {
-      return type;
-    });
-    joinRoom(room, chatType); // 선택한 방 이름을 인자로 전달하여 joinRoom 함수 호출
-    console.log('chatType:', chatType);
-  });
-}
-
-function joinRoom(room, chatType) {
-  console.log('joinRoom ~ chatType:', chatType);
-  socket.emit('joinRoom', { room });
-  $('#chat').html('');
-  currentRoom = room;
-  socket.emit('requestChatHistory', { room });
-  socket.emit('chatType', { room });
-  socket.emit('broadcastScreenSharing', { room });
-}
-// 채팅 타입별 디스플레이 설정
-socket.on('chatType', type => {
-  console.log('type:', type);
-  if (type === 'voice') {
-    document.getElementById('container').style.display = 'block';
-    document.getElementById('chatBox').style.display = 'none';
-  } else {
-    document.getElementById('container').style.display = 'none';
-    document.getElementById('chatBox').style.display = 'block';
-  }
-});
-
-socket.on('notice', data => {
-  $('#notice').append(`<div>${data.message}</div>`);
-});
-
-socket.on('message', data => {
-  $('#chat').append(`<div>${data.message}</div>`);
-});
-
-$(document).ready(function () {
-  socket.emit('requestRooms');
-
-  socket.on('rooms', function (data) {
-    updateRoomList(data);
-  });
-});
-
-socket.on('connect', () => {
-  console.log('connected', socket.id);
-});
-
-socket.on('dmHistory', function (dms) {
-  $('#chat').html('');
-  dms.forEach(dm => {
-    // 각 메시지의 발신자 닉네임을 사용하여 표시
-    $('#chat').append(`<div>${dm.senderNickname}: ${dm.content}</div>`);
-  });
-});
-
-//! 1. client : 미디어 수신 정보 서버에 요청
-let audioParams;
-let videoParams = { params };
-async function streamSuccess(stream) {
-  const localVideo = document.getElementById('localVideo');
+const streamSuccess = async stream => {
   localVideo.srcObject = stream;
-
-  let room = currentRoom;
-  audioParams = { track: stream.getAudioTracks()[0], ...audioParams };
-  videoParams = { track: stream.getVideoTracks()[0], ...videoParams };
-
-  // 미디어 수신 정보 요청
-  //! 3. client : rtpCapabilities 수신 후 device 생성
-  socket.emit('joinRoom', { room }, data => {
-    // 서버로부터 받은 RTP Capabilities 처리
-    rtpCapabilities = data.rtpCapabilities;
-
-    // Device 생성
-    createDevice();
-  });
-}
+  const track = stream.getVideoTracks()[0];
+  params = {
+    track,
+    ...params,
+  };
+};
 
 const getLocalStream = () => {
   navigator.getUserMedia(
@@ -165,20 +72,9 @@ const getLocalStream = () => {
     },
   );
 };
-// async function createDevice() {
-//   try {
-//     device = new mediasoupClient.Device();
-//     await device.load({ routerRtpCapabilities: rtpCapabilities });
 
-//     console.log('Device RTP Capabilities', device.rtpCapabilities);
-
-//     // 서버에 Transport 생성 요청
-//     createTransport();
-//   } catch (error) {
-//     console.log(error);
-//     if (error.name === 'UnsupportedError') console.warn('browser not supported');
-//   }
-// }
+// A device is an endpoint connecting to a Router on the
+// server side to send/recive media
 const createDevice = async () => {
   try {
     device = new mediasoupClient.Device();
@@ -369,15 +265,11 @@ const connectRecvTransport = async () => {
     },
   );
 };
-socket.on('rtpCapabilities', function (rtpCapabilities) {
-  // RTP Capabilities 수신 후 처리
-  console.log('Received RTP Capabilities:', rtpCapabilities);
-  // Device 생성
-  createSendTransport();
-});
-/**
- * 유저의 미디어 장비에 접근,
- * 오디오, 비디오 stream을 받고 서버에 Router rtpCapabilities 요청
- * */
 
-document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
+btnLocalVideo.addEventListener('click', getLocalStream);
+btnRtpCapabilities.addEventListener('click', getRtpCapabilities);
+btnDevice.addEventListener('click', createDevice);
+btnCreateSendTransport.addEventListener('click', createSendTransport);
+btnConnectSendTransport.addEventListener('click', connectSendTransport);
+btnRecvSendTransport.addEventListener('click', createRecvTransport);
+btnConnectRecvTransport.addEventListener('click', connectRecvTransport);
