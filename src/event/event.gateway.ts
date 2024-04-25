@@ -286,6 +286,7 @@ export class RoomGateway implements OnGatewayConnection {
 
   @SubscribeMessage('transport-connect')
   async transportConnect(@MessageBody() { dtlsParameters }): Promise<void> {
+    console.log('생성', dtlsParameters);
     try {
       await producerTransport.connect({ dtlsParameters });
       console.log('연결 성공');
@@ -296,7 +297,7 @@ export class RoomGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('transport-produce')
-  async transportProduce(@MessageBody() { kind, rtpParameters, appData }): Promise<void> {
+  async transportProduce(@MessageBody() { kind, rtpParameters, appData, dtlsParameters }): Promise<void> {
     console.log('RoomGateway ~ transportProduce ~ kind:', kind);
     console.log('RoomGateway ~ transportProduce ~ kind:', rtpParameters);
     try {

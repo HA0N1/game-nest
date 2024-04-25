@@ -31210,6 +31210,7 @@ const createSendTransport = () => {
 
   // Socket event listener for createWebRtcTransport response
   socket.on('createWebRtcTransport', ({ consumer, params }) => {
+    console.log('socket.on ~ params:', params);
     if (params.error) {
       console.log(params.error);
       return;
@@ -31228,7 +31229,7 @@ const createSendTransport = () => {
           const { test, dtlsParameters } = data;
         });
 
-        await socket.emit('transport-connect', { dtlsParameters });
+        socket.emit('transport-connect', { dtlsParameters });
         //LP 생성. Send transport
         callback();
       } catch (error) {
@@ -31237,15 +31238,19 @@ const createSendTransport = () => {
     });
     //? 사용 여부
     console.log('여기까지는 잘 작동이 되는건가');
+    producerTransport.on('error', parameters => {
+      console.log('11111111111111111', parameters);
+    });
 
-    console.dir(producerTransport);
     producerTransport.on('produce', async (parameters, callback, errback) => {
+      console.log('producerTransport.on ~ parameters:', parameters);
       try {
         // Request server to create producer with given parameters
         await socket.emit('transport-produce', {
           kind: parameters.kind,
           rtpParameters: parameters.rtpParameters,
           appData: parameters.appData,
+          dtlsParameters: parameters.dtlsParameters,
         }),
           ({ id }) => {
             callback({ id });
@@ -31254,7 +31259,6 @@ const createSendTransport = () => {
         errback(error);
       }
     });
-    console.dir(producerTransport);
     if (!consumer) {
       connectSendTransport(producerTransport);
     }
@@ -31263,41 +31267,42 @@ const createSendTransport = () => {
   socket.emit('createWebRtcTransport', { consumer: false });
 };
 
-const connectSendTransport = async () => {
+const connectSendTransport = () => {
   console.log('connectSendTransport도착 ');
   console.log('a', audioParams);
   console.log('c', videoParams);
-
+  //! 데이터 / error
   // Call produce() to instruct the producer transport to send media
   // to the Router on('connect')
-  console.log('producerTransport', producerTransport);
-  console.log('Before audio production');
-  audioProducer = producerTransport.produce(audioParams);
-  console.log('After audio production');
-  console.log('connectSendTransport ~ audioProducer:', audioProducer);
-
-  videoProducer = await producerTransport.produce(videoParams);
+  try {
+    audioProducer = producerTransport.produce(audioParams);
+    console.log('After audio production');
+    console.log('connectSendTransport ~ audioProducer:', audioProducer);
+  } catch (error) {
+    console.log(error);
+  }
+  videoProducer = producerTransport.produce(videoParams);
   console.log('connectSendTransport ~ videoProducer:', videoProducer);
 
   // track 닫기
-  audioProducer.on('trackended', () => {
-    console.log('track ended');
-  });
+  // audioProducer.on('trackended', () => {
+  //   console.log('track ended');
+  // });
 
-  audioProducer.on('transportclose', () => {
-    console.log('transport ended');
-    // Close audio track
-  });
+  // audioProducer.on('transportclose', () => {
+  //   console.log('transport ended');
+  //   // Close audio track
+  // });
 
-  videoProducer.on('trackended', () => {
-    console.log('video track ended');
-    // Close video track
-  });
+  // videoProducer.on('trackended', () => {
+  //   console.log('video track ended');
+  //   // Close video track
+  // });
 
-  videoProducer.on('transportclose', () => {
-    console.log('video transport ended');
-    // Close video track
-  });
+  // videoProducer.on('transportclose', () => {
+  //   console.log('video transport ended');
+  //   // Close video track
+  // });
 };
 //! consumer
 const createRecvTransport = async () => {
