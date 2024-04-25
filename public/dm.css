@@ -1,0 +1,10 @@
+body {
+  background-color: #36393f;
+  color: #ffffff;
+  font-family: 'Noto Sans', 'Arial', sans-serif;
+}
+
+#newChats {
+  max-height: 300px;
+  overflow-y: auto;
+}

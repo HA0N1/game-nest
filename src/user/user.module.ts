@@ -12,6 +12,10 @@ import { RedisAppModule } from 'src/redis/redis.module';
 import { FriendService } from 'src/friend/friend.service';
 import { FriendModule } from 'src/friend/friend.module';
 import { HttpModule } from '@nestjs/axios';
+import { AwsService } from 'src/aws/aws.service';
+import { File } from 'src/aws/entities/file.entity';
+import { AwsModule } from 'src/aws/aws.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [
@@ -27,11 +31,11 @@ import { HttpModule } from '@nestjs/axios';
         maxRedirects: 5,
       }),
     }),
-    TypeOrmModule.forFeature([User, InterestGenre, Genre]),
+    TypeOrmModule.forFeature([User, InterestGenre, Genre, File]),
     RedisAppModule,
   ],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, AwsService],
   exports: [UserService],
 })
 export class UserModule {}

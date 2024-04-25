@@ -14,19 +14,6 @@ configDotenv();
 
 @Module({
   imports: [
-    JwtModule.registerAsync({
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET_KEY'),
-      }),
-      inject: [ConfigService],
-    }),
-    HttpModule.registerAsync({
-      useFactory: () => ({
-        timeout: 5000,
-        maxRedirects: 5,
-      }),
-    }),
-    TypeOrmModule.forFeature([User, InterestGenre, Genre]),
     RedisModule.forRootAsync({
       useFactory: () => ({
         type: 'single',
@@ -36,8 +23,5 @@ configDotenv();
       }),
     }),
   ],
-  controllers: [UserController],
-  providers: [UserService],
-  exports: [UserService],
 })
 export class RedisAppModule {}
