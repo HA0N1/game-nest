@@ -19,8 +19,8 @@ export class File {
   @CreateDateColumn()
   updatedAt: Date;
 
-  // @ManyToOne(()=> User, (user)=> user.file)
-  // user : User
+  @OneToMany(() => User, user => user.file)
+  user: User[];
 
   @OneToMany(() => Post, post => post.file, { onDelete: 'CASCADE' })
   post: Post[];

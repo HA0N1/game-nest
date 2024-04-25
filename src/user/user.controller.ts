@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res, Req, Render } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Res,
+  Req,
+  Render,
+  UploadedFile,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -81,6 +94,13 @@ export class UserController {
   async findOne(@UserInfo() user: User) {
     const interestGenres = await this.userService.findInterestGenres(user);
     return { id: user.id, email: user.email, nickname: user.nickname, interestGenres };
+  }
+
+  /* 프로필 이미지 추가 */
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('image')
+  async addImage(@UserInfo() user: User, @UploadedFile() file: Express.Multer.File) {
+    return this.userService.addImage(user, file);
   }
 
   /* 닉네임 수정 */

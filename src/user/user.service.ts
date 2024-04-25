@@ -23,6 +23,8 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { HttpService } from '@nestjs/axios';
 import { Observable, firstValueFrom } from 'rxjs';
 import { AxiosResponse } from 'axios';
+import { AwsService } from 'src/aws/aws.service';
+import { File } from 'src/aws/entities/file.entity';
 
 @Injectable()
 export class UserService {
@@ -32,10 +34,12 @@ export class UserService {
     private readonly jwtService: JwtService,
     @InjectRepository(InterestGenre)
     private interestGenreRepository: Repository<InterestGenre>,
+    private readonly httpService: HttpService,
+    private readonly awsService: AwsService,
+    @InjectRepository(File) private fileRepository: Repository<File>,
     @InjectRepository(Genre)
     private genreRepository: Repository<Genre>,
     @InjectRedis() private readonly redis: Redis,
-    private readonly httpService: HttpService,
   ) {}
 
   async signUp() {
@@ -345,30 +349,31 @@ export class UserService {
     return await this.genreRepository.findOne({ where: { id } });
   }
 
-  // async uploadProfileImage(userId: number, file: Express.Multer.File) {
-  //   const imagename = this.awsService.getUUID();
-  //   const ext = file.originalname.split('.').pop();
-  //   const imageUrl = await this.awsService.imageUploadToS3(`${imagename}.${ext}`, file, ext);
-  //   if (!imageUrl) {
-  //     throw new BadRequestException('이미지 업로드에 실패했습니다.');
-  //   }
+  /* 프로필 이미지 수정 */
+  async addImage(user: User, file: Express.Multer.File) {
+    const imagename = this.awsService.getUUID();
+    const ext = file.originalname.split('.').pop();
+    const fileName = `${imagename}.${ext}`;
+    const imageUrl = `https://s3.${process.env.AWS_S3_REGION}.amazonaws.com/${process.env.AWS_S3_BUCKET_NAME}/${fileName}`;
 
-  //   const user = await this.userRepository.findOne(userId);
-  //   if (!user) {
-  //     throw new NotFoundException('사용자를 찾을 수 없습니다.');
-  //   }
+    const userId = user.id;
 
-  //   if (user.profileImage) {
-  //     await this.awsService.deleteFileFromS3(user.profileImage);
-  //   }
+    const checkImage = await this.fileRepository
+      .createQueryBuilder('file')
+      .select()
+      .where('file.file_path = :file_path', { file_path: imageUrl })
+      .getRawOne();
 
-  //   const uploadedFile = await this.fileRepository.save({ filePath: imageUrl });
+    if (checkImage) {
+      await this.userRepository.update({ id: userId }, { file: checkImage });
 
-  //   user.file = uploadedFile;
-  //   user.profileImage = imageUrl;
+      return { message: '프로필 이미지 수정 완료' };
+    } else {
+      const newImageUrl = await this.awsService.imageUploadToS3(fileName, file, ext);
+      const filePath = await this.fileRepository.save({ filePath: newImageUrl });
+      await this.userRepository.update({ id: userId }, { file: filePath });
 
-  //   await this.userRepository.save(user);
-
-  //   return { message: '프로필 이미지가 업로드되었습니다.', imageUrl };
-  // }
+      return { message: '프로필 이미지 수정 완료' };
+    }
+  }
 }

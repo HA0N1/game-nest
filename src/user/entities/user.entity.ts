@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -12,6 +13,7 @@ import {
 import { Friendship } from 'src/friend/entities/friendship.entity';
 import { Like } from './like.entity';
 import { Post } from '../../post/entities/post.entity';
+import { File } from 'src/aws/entities/file.entity';
 import { PostComment } from '../../comment/entities/comment.entity';
 import { ChannelDMs } from '../../channel/entities/channelDMs.entity';
 import { ChannelMember } from '../../channel/entities/channelMember.entity';
@@ -74,9 +76,9 @@ export class User {
   @JoinColumn({ name: 'interestGenre_id' })
   interestGenre: InterestGenre[];
 
-  // @OneToMany(()=>File, (file) => file.user)
-  // @JoinColumn({ name: 'file_id' })
-  // file:File[]
+  @ManyToOne(() => File, file => file.user)
+  @JoinColumn({ name: 'file_id' })
+  file: File;
 
   @OneToMany(() => FriendDMs, friendDMs => friendDMs.DMRoom)
   @JoinColumn({ name: 'friend_DM_id' })
