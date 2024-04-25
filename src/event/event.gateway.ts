@@ -211,7 +211,9 @@ export class RoomGateway implements OnGatewayConnection {
   //! 5. server :⭐RP (router producer)생성, 생성한 tranport 정보 client에 반환
   @SubscribeMessage('createWebRtcTransport')
   async handleCreateTransport(@MessageBody() data) {
+    console.log('RoomGateway ~ handleCreateTransport ~ data:', data);
     const { consumer } = data;
+    console.log('RoomGateway ~ handleCreateTransport ~ consumer:', consumer);
 
     try {
       if (!consumer) {
@@ -328,16 +330,21 @@ export class RoomGateway implements OnGatewayConnection {
 
   @SubscribeMessage('transport-recv-connect')
   async transportConsumer(@MessageBody() { dtlsParameters }): Promise<void> {
+    console.log('생성', dtlsParameters);
     try {
       await consumerTransport.connect({ dtlsParameters });
       console.log('연결 성공');
+      this.server.emit('transport-connect', { dtlsParameters });
     } catch (error) {
       console.error('연결 실패:', error);
     }
   }
 
-  // @SubscribeMessage('consumer-resume')
-  // @SubscribeMessage('consume')
+  @SubscribeMessage('consume')
+  async consume(@MessageBody() { rtpCapabilities }) {}
+
+  @SubscribeMessage('consumer-resume')
+  async consumerResume() {}
 
   @SubscribeMessage('chatType')
   async handleChatType(socket: Socket, data: any) {

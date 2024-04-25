@@ -31250,6 +31250,8 @@ const createSendTransport = () => {
     });
     if (!consumer) {
       connectSendTransport();
+    } else {
+      createRecvTransport();
     }
   });
   // Emit request to create a WebRTC transport
@@ -31295,7 +31297,7 @@ const connectSendTransport = async () => {
 //! consumer
 const createRecvTransport = async () => {
   // 서버에게 Consumer Transport를 생성하도록 요청
-  await socket.emit('createWebRtcTransport', { consumer: true }, ({ params }) => {
+  await socket.on('createWebRtcTransport', ({ consumer, params }) => {
     // 서버로부터 Consumer Transport 생성에 필요한 매개변수를 받음
     if (params.error) {
       console.log(params.error);
@@ -31304,64 +31306,30 @@ const createRecvTransport = async () => {
 
     console.log(params);
 
+    console.log('awaitsocket.emit ~ consumerTransport111111:', consumerTransport);
     // 서버의 Consumer Transport 매개변수를 기반으로 새로운 Consumer Transport를 생성
     consumerTransport = device.createRecvTransport(params);
+    console.log('awaitsocket.emit ~ consumerTransport222:', consumerTransport);
 
     // Consumer Transport의 연결(connect) 이벤트 처리
     consumerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       try {
-        // 서버 측 Transport에 로컬 DTLS 매개변수를 신호로 전송
-        await socket.emit('transport-recv-connect', {
-          dtlsParameters,
+        socket.on('transport-recv-connect', data => {
+          const { dtlsParameters } = data;
         });
+        // 서버 측 Transport에 로컬 DTLS 매개변수를 신호로 전송
+        await socket.emit('transport-recv-connect', { dtlsParameters });
 
         // Transport에 매개변수가 전송되었음을 알림
         callback();
       } catch (error) {
-        // Transport에 문제가 있음을 알림
         errback(error);
       }
+      connectRecvTransport();
     });
   });
+  socket.emit('createWebRtcTransport', { consumer: true });
 };
-// const createRecvTransport = async () => {
-//   // see server's socket.on('consume', sender?, ...)
-//   // this is a call from Consumer, so sender = false
-//   await socket.emit('createWebRtcTransport', { consumer: false }, ({ params }) => {
-//     // The server sends back params needed
-//     // to create Send Transport on the client side
-//     if (params.error) {
-//       console.log(params.error);
-//       return;
-//     }
-
-//     console.log(params);
-
-//     // creates a new WebRTC Transport to receive media
-//     // based on server's consumer transport params
-//     // https://mediasoup.org/documentation/v3/mediasoup-client/api/#device-createRecvTransport
-//     consumerTransport = device.createRecvTransport(params);
-
-//     // https://mediasoup.org/documentation/v3/communication-between-client-and-server/#producing-media
-//     // this event is raised when a first call to transport.produce() is made
-//     // see connectRecvTransport() below
-//     consumerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
-//       try {
-//         // Signal local DTLS parameters to the server side transport
-//         // see server's socket.on('transport-recv-connect', ...)
-//         await socket.emit('transport-recv-connect', {
-//           dtlsParameters,
-//         });
-
-//         // Tell the transport that parameters were transmitted.
-//         callback();
-//       } catch (error) {
-//         // Tell the transport that something was wrong
-//         errback(error);
-//       }
-//     });
-//   });
-// };
 
 const connectRecvTransport = async () => {
   // for consumer, we need to tell the server first
@@ -31406,6 +31374,6 @@ const connectRecvTransport = async () => {
  * */
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
 document.getElementById('remoteVideoOnBtn').addEventListener('click', createRecvTransport);
-document.getElementById('btnConnectRecvTransport').addEventListener('click', createRecvTransport);
+document.getElementById('btnConnectRecvTransport').addEventListener('click', connectRecvTransport);
 
 },{"console":8,"jquery":53,"mediasoup-client":85}]},{},[97]);
