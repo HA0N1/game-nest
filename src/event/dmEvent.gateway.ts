@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,6 +19,7 @@ import { DMService } from 'src/dm/dm.service';
 import { FriendDMs } from 'src/dm/entities/friendDMs.entity';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import { UserInfo } from 'src/utils/decorators/userInfo';
 import { Repository } from 'typeorm';
 
 @WebSocketGateway({ namespace: 'friendDM' })
@@ -43,7 +45,7 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async findUserByCookie(cookie: string) {
     // const cookie = socket.handshake.headers.cookie; 로 미리 받아와야함
-
+    //TODO 로그인 안하고 접속했을 때 로그인 창으로 무사히 넘겨지도록 수정하기
     const token = cookie.split('=')[1];
     const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
     const user = await this.userService.findUserByEmail(payload.email);
@@ -55,8 +57,8 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const socketId = client.id;
     this.removeClient(socketId);
 
-    const cookie = client.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    // const cookie = client.handshake.headers.cookie;
+    // const user = await this.findUserByCookie(cookie);
   }
 
   addClient(client) {
@@ -102,7 +104,7 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(dmRoomId, userId, content);
 
     await this.dmService.saveDM(dmRoomId, userId, content);
-    socket.join(data.dmRoomId);
+    // socket.join(data.dmRoomId);
 
     this.server.to(data.dmRoomId).emit('message', { dmRoomId, nickname, content });
   }

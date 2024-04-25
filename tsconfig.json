@@ -9,18 +9,20 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    // "types": ["cookie", "jquery"],
+    "types": ["cookie", "jquery"],
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
+    "typeRoots": ["./@types", "./node_modules/@types"],
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "noFallthroughCasesInSwitch": false,
-    // "allowJs": true,
+    // "allowJs": true, // TypeScript 프로젝트에 JavaScript 파일 허용 여부
+    // "checkJs": true, // JavaScript 파일 타입 체크 여부
     "esModuleInterop": true
   }
 }

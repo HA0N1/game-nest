@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res, Render } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res, Req, Render } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -9,7 +9,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { InterestGenre } from './entities/interestGenre.entity';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -32,9 +32,24 @@ export class UserController {
   async emailLogin(@Body() emailLoginDto: EmailLoginDto, @Res({ passthrough: true }) response: Response) {
     const login = await this.userService.emailLogin(emailLoginDto);
 
-    const user = await this.userService.findUserByEmail(emailLoginDto.email);
-    response.cookie('authorization', login.accessToken, { httpOnly: true });
+    response.cookie('authorization', login.accessToken, {
+      domain: 'localhost',
+      maxAge: 3600000,
+      httpOnly: true,
+    });
     return { message: login.message, accessToken: login.accessToken };
+  }
+
+  // 로그인했는지 안했는지 확인하기
+  @Get('checkLogin')
+  async checkLogin(@Req() req: Request) {
+    const check = await this.userService.checkLogin(req.cookies);
+
+    if (check) {
+      return { isLoggedIn: true };
+    } else {
+      return { isLoggedIn: false };
+    }
   }
 
   //TODO 토큰 관리 꼭 작성하기
@@ -79,12 +94,14 @@ export class UserController {
       return await this.userService.addIG(user.id, removeInterestGenre);
     }
   }
+
   /* 로그아웃 */
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
-  async logout(@UserInfo() user: User) {
+  async logout(@UserInfo() user: User, @Res({ passthrough: true }) res: Response) {
     const userId = user.id;
 
+    res.cookie('authorization', '', { maxAge: 0 });
     return await this.userService.logout(userId);
   }
 
@@ -95,4 +112,12 @@ export class UserController {
     const userId = user.id;
     return await this.userService.remove(userId, password);
   }
+
+  // 프로필 이미지 업로드
+  // @UseGuards(AuthGuard('jwt'))
+  // @UseInterceptors(FileInterceptor('profileImage'))
+  // @Post('upload-profile-image')
+  // async uploadProfileImage(@UserInfo() user: User, @UploadedFile() file: Express.Multer.File) {
+  //   return await this.userService.uploadProfileImage(user.id, file);
+  // }
 }

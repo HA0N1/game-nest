@@ -1,12 +1,28 @@
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/user/entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+  HttpStatus,
+  Render,
+} from '@nestjs/common';
 import { DMService } from './dm.service';
 
 @Controller('dm')
 export class DMController {
   constructor(private readonly dmService: DMService) {}
+
+  @Get()
+  @Render('dm')
+  getDMPage() {}
 
   /* 디엠 방 생성 */
   @UseGuards(AuthGuard('jwt'))

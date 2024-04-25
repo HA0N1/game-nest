@@ -25,4 +25,8 @@ export class AppController {
     const filePath = join(process.cwd(), 'dist', staticPath, 'chat.html');
     res.sendFile(filePath);
   }
+
+  @Get('main')
+  @Render('main.hbs')
+  getMainPage() {}
 }
