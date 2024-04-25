@@ -352,17 +352,16 @@ export class UserService {
   /* 프로필 이미지 수정 */
   async addImage(user: User, file: Express.Multer.File) {
     const imagename = this.awsService.getUUID();
+
     const ext = file.originalname.split('.').pop();
+
     const fileName = `${imagename}.${ext}`;
+
     const imageUrl = `https://s3.${process.env.AWS_S3_REGION}.amazonaws.com/${process.env.AWS_S3_BUCKET_NAME}/${fileName}`;
 
     const userId = user.id;
 
-    const checkImage = await this.fileRepository
-      .createQueryBuilder('file')
-      .select()
-      .where('file.file_path = :file_path', { file_path: imageUrl })
-      .getRawOne();
+    const checkImage = await this.fileRepository.findOneBy({ filePath: imageUrl });
 
     if (checkImage) {
       await this.userRepository.update({ id: userId }, { file: checkImage });
@@ -370,10 +369,14 @@ export class UserService {
       return { message: '프로필 이미지 수정 완료' };
     } else {
       const newImageUrl = await this.awsService.imageUploadToS3(fileName, file, ext);
+
       const filePath = await this.fileRepository.save({ filePath: newImageUrl });
       await this.userRepository.update({ id: userId }, { file: filePath });
 
       return { message: '프로필 이미지 수정 완료' };
     }
+    return { message: 'test 완료' };
   }
+
+  async defaultImage(user: User) {}
 }

@@ -11,6 +11,7 @@ import {
   Req,
   Render,
   UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -23,6 +24,7 @@ import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { Request, Response } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
@@ -97,10 +99,19 @@ export class UserController {
   }
 
   /* 프로필 이미지 추가 */
+  @UseInterceptors(FileInterceptor('filePath'))
   @UseGuards(AuthGuard('jwt'))
   @Patch('image')
   async addImage(@UserInfo() user: User, @UploadedFile() file: Express.Multer.File) {
     return this.userService.addImage(user, file);
+  }
+
+  /* 프로필 이미지 기본으로 변경 */
+  @UseInterceptors(FileInterceptor('filePath'))
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('defaultImage')
+  async defaultImage(@UserInfo() user: User) {
+    return this.userService.defaultImage(user);
   }
 
   /* 닉네임 수정 */
