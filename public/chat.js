@@ -221,7 +221,7 @@ const createSendTransport = () => {
         errback(error);
       }
     });
-    //? 사용 여부
+    //? 사용  여부
     console.log('여기까지는 잘 작동이 되는건가');
     producerTransport.on('error', parameters => {
       console.log('11111111111111111', parameters);
