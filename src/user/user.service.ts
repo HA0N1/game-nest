@@ -161,13 +161,6 @@ export class UserService {
 
   /* 프로필 조회 */
   async findUser(user: User) {
-    // return await this.interestGenreRepository
-    //   .createQueryBuilder('ig')
-    //   .leftJoinAndSelect('ig.genre', 'genre')
-    //   .select(['genre.id', 'genre.gameGenre'])
-    //   .where('ig.user_id = :user_id', { user_id: user.id })
-    //   .getRawMany();
-
     const returnUser = await this.userRepository
       .createQueryBuilder('us')
       .leftJoin('us.file', 'fi')
