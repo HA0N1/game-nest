@@ -94,8 +94,21 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Get('userinfo')
   async findOne(@UserInfo() user: User) {
-    const interestGenres = await this.userService.findInterestGenres(user);
-    return { id: user.id, email: user.email, nickname: user.nickname, interestGenres };
+    const userInfo = await this.userService.findUser(user);
+
+    const interestGenre = await this.userService.findInterestGenres(user);
+
+    const genreNames = interestGenre.map(ig => {
+      return ig.genre_game_genre;
+    });
+
+    return {
+      id: userInfo.id,
+      email: userInfo.email,
+      nickname: userInfo.nickname,
+      file: userInfo.file.filePath,
+      interestGenre: genreNames,
+    };
   }
 
   /* 프로필 이미지 추가 */
