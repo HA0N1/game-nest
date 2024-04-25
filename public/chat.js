@@ -134,6 +134,7 @@ const streamSuccess = async stream => {
   audioParams = { track: stream.getAudioTracks()[0], ...audioParams };
   console.log('streamSuccess ~ audioParams:', audioParams);
   videoParams = { track: stream.getVideoTracks()[0], ...videoParams };
+  // videoParams = stream.getVideoTracks()[0];
   console.log('streamSuccess ~ videoParams:', videoParams);
   socket.emit('joinVoiceRoom', { room });
   await socket.on('getRtpCapabilities', data => {
@@ -195,7 +196,6 @@ const createSendTransport = () => {
 
   // Socket event listener for createWebRtcTransport response
   socket.on('createWebRtcTransport', ({ consumer, params }) => {
-    console.log('socket.on ~ params:', params);
     if (params.error) {
       console.log(params.error);
       return;
@@ -205,13 +205,12 @@ const createSendTransport = () => {
     producerTransport = device.createSendTransport(params);
 
     // ? 잘만들어짐
-
     // Handle transport connection
     producerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       try {
         // Send local DTLS parameters to server-side transport
         socket.on('transport-connect', data => {
-          const { test, dtlsParameters } = data;
+          const { dtlsParameters } = data;
         });
 
         socket.emit('transport-connect', { dtlsParameters });
@@ -221,15 +220,15 @@ const createSendTransport = () => {
         errback(error);
       }
     });
-    //? 사용 여부
-    console.log('여기까지는 잘 작동이 되는건가');
-    producerTransport.on('error', parameters => {
-      console.log('11111111111111111', parameters);
-    });
+    //? 작동
 
     producerTransport.on('produce', async (parameters, callback, errback) => {
-      console.log('producerTransport.on ~ parameters:', parameters);
+      console.log('produce 도착했다', parameters);
       try {
+        socket.on('transport-produce', data => {
+          const { id } = data;
+          console.log('producerTransport.on ~ id:', id);
+        });
         // Request server to create producer with given parameters
         await socket.emit('transport-produce', {
           kind: parameters.kind,
@@ -240,12 +239,13 @@ const createSendTransport = () => {
           ({ id }) => {
             callback({ id });
           };
+        console.log(id);
       } catch (error) {
         errback(error);
       }
     });
     if (!consumer) {
-      connectSendTransport(producerTransport);
+      connectSendTransport();
     }
   });
   // Emit request to create a WebRTC transport
@@ -253,22 +253,28 @@ const createSendTransport = () => {
 };
 
 const connectSendTransport = async () => {
-  console.log('connectSendTransport도착 ');
+  //? 도착
   console.log('a', audioParams);
   console.log('c', videoParams);
   //! 데이터 / error
   // Call produce() to instruct the producer transport to send media
   // to the Router on('connect')
   try {
-    audioProducer = await producerTransport.produce(audioParams);
+    console.log('Before videoProducer production');
+
+    videoProducer = await producerTransport.produce(videoParams);
+    console.log('After videoProducer production');
+    console.log('connectSendTransport ~ videoProducer:', videoProducer);
+  } catch (error) {
+    console.log(error);
+  }
+  try {
+    audioProducer = await producerTransport.produce({ track: audioParams });
     console.log('After audio production');
     console.log('connectSendTransport ~ audioProducer:', audioProducer);
   } catch (error) {
     console.log(error);
   }
-  videoProducer = await producerTransport.produce(videoParams);
-  console.log('connectSendTransport ~ videoProducer:', videoProducer);
-
   // track 닫기
   audioProducer.on('trackended', () => {
     console.log('track ended');
@@ -403,4 +409,4 @@ const connectRecvTransport = async () => {
  * */
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
 document.getElementById('remoteVideoOnBtn').addEventListener('click', createRecvTransport);
-btnConnectRecvTransport.addEventListener('click', connectRecvTransport);
+document.getElementById('btnConnectRecvTransport').addEventListener('click', createRecvTransport);

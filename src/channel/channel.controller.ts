@@ -21,7 +21,7 @@ export class ChannelController {
   }
 
   @Get()
-  @Render('chat')
+  @Render('chat.hbs')
   findAllChannel() {
     return this.channelService.findAllChannel();
   }

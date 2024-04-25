@@ -264,7 +264,7 @@ export class RoomGateway implements OnGatewayConnection {
         enableTcp: true,
         preferUdp: true,
       };
-
+      //! consumer 부분 수정해야함
       let transport = await router.createWebRtcTransport(webRtcTransport_options);
       console.log(`transport id: ${transport.id}`);
 
@@ -298,16 +298,12 @@ export class RoomGateway implements OnGatewayConnection {
 
   @SubscribeMessage('transport-produce')
   async transportProduce(@MessageBody() { kind, rtpParameters, appData, dtlsParameters }): Promise<void> {
-    console.log('RoomGateway ~ transportProduce ~ kind:', kind);
-    console.log('RoomGateway ~ transportProduce ~ kind:', rtpParameters);
     try {
       producer = await producerTransport.produce({
         kind,
         rtpParameters,
       });
-      console.log('네가 궁금하다:', producer);
       console.log('아이디', producer.id);
-      console.dir(producer);
 
       producer.on('transportclose', () => {
         console.log('transport for this producer closed ');
@@ -315,6 +311,7 @@ export class RoomGateway implements OnGatewayConnection {
       });
 
       this.server.emit('transport-produce', { id: producer.id });
+      console.log('아이디22222', producer.id);
     } catch (error) {
       console.log('produce 중 error', error.message);
     }
