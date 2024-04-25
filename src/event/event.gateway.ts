@@ -117,13 +117,7 @@ export class RoomGateway implements OnGatewayConnection {
       // 채널 서비스의 createChat 함수 호출
       await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
       const rooms = await this.channelService.findAllChat();
-      // rooms.map(room => {
-      //   if (room.chatType === 'talk') {
-      //     this.server.emit('chatRooms', room);
-      //   } else if (room.chatType === 'voice') {
-      //     this.server.emit('voiceRooms', room);
-      //   }
-      // });
+
       this.server.emit('rooms', rooms);
     } catch (error) {
       throw new WsException(error.message);
@@ -303,7 +297,6 @@ export class RoomGateway implements OnGatewayConnection {
         kind,
         rtpParameters,
       });
-      console.log('아이디', producer.id);
 
       producer.on('transportclose', () => {
         console.log('transport for this producer closed ');
@@ -311,7 +304,6 @@ export class RoomGateway implements OnGatewayConnection {
       });
 
       this.server.emit('transport-produce', { id: producer.id });
-      console.log('아이디22222', producer.id);
     } catch (error) {
       console.log('produce 중 error', error.message);
     }
