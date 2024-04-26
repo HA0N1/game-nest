@@ -2,18 +2,16 @@
   <head>
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-    <title>게시글</title>
-    <link rel='stylesheet' href='post.css' />
+    <title>게임 커뮤니티</title>
+    <link rel='stylesheet' href='/post.css' />
   </head>
   <body>
-    <h1>게시글</h1>
+    <h1>게임 커뮤니티</h1>
 
-    <div id='post-list'></div>
-
-    <form id='post-form' onsubmit='create(event)'>
-      <input type='text' id='title' placeholder='제목' />
-      <textarea id='content' placeholder='내용'></textarea>
-      <select id='category'>
+    <form id='post-form' onsubmit='create(event)' action='/post' method='POST' enctype='multipart/form-data'>
+      <input type='text' id='title' name='title' placeholder='제목' />
+      <textarea id='content' name='content' placeholder='내용'></textarea>
+      <select id='category' name='category'>
         <option value='talk'>잡담</option>
         <option value='question'>질문</option>
         <option value='walkthrough'>연습</option>
@@ -21,37 +19,11 @@
         <option value='pre-order'>선주문</option>
         <option value='new game news'>새로운 게임 소식</option>
       </select>
-      <input type='file' id='file' />
+      <input type='file' id='file' name='file' />
       <button type='submit'>게시</button>
-    </form>
 
-    <script>
-      const posts = []; function displayPosts() { const postList = document.getElementById('post-list');
-      postList.innerHTML = ''; posts.forEach(post => { const postItem = document.createElement('div');
-      postItem.classList.add('post-item'); postItem.innerHTML = ` <h2>제목: ${post.title}</h2> <p>내용:
-      ${post.content}</p> <p>카테고리: ${post.category}</p> <p>조회수: ${post.view_count}</p> <img
-      src="${post.file.filePath}" alt="Post Image"> <p>좋아요: ${post.like}</p> <button
-      onclick="update(${post.id})">수정</button> <button onclick="remove(${post.id})">삭제</button> `;
-      postList.appendChild(postItem); }); } async function create() { const title =
-      document.getElementById('title').value; const content = document.getElementById('content').value; const category =
-      document.getElementById('category').value; const file = document.getElementById('file').files[0]; const formData =
-      new FormData(); formData.append('title', title); formData.append('content', content); formData.append('category',
-      category); formData.append('file', file); try { const response = await fetch('/post', { method: 'POST', body:
-      formData, }); const data = await response.json(); posts.push(data.post); displayPosts(); } catch (error) {
-      console.error('Error creating post:', error); } } async function update(postId) { const updatedTitle =
-      prompt('수정할 제목을 입력하세요:'); const updatedContent = prompt('수정할 내용을 입력하세요:'); const
-      updatedCategory = prompt('수정할 카테고리를 선택하세요: (tech, news, tutorial)'); if (updatedTitle &&
-      updatedContent && updatedCategory) { try { const response = await fetch(`/post/${postId}`, { method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', }, body: JSON.stringify({ title: updatedTitle, content:
-      updatedContent, category: updatedCategory, }), }); const data = await response.json(); const updatedPostIndex =
-      posts.findIndex(post => post.id === postId); posts[updatedPostIndex] = data.updatedPost; displayPosts(); } catch
-      (error) { console.error('Error updating post:', error); } } else { alert('제목, 내용, 카테고리를 모두 입력해야
-      합니다.'); } } async function remove(postId) { const confirmDelete = confirm('정말로 이 게시글을
-      삭제하시겠습니까?'); if (confirmDelete) { try { const response = await fetch(`/post/${postId}`, { method:
-      'DELETE', }); const data = await response.json(); posts = posts.filter(post => post.id !== postId);
-      displayPosts(); } catch (error) { console.error('Error deleting post:', error); } } } window.onload = function ()
-      { displayPosts(); }; document.getElementById('post-form').addEventListener('submit', function (event) {
-      event.preventDefault(); create(); });
-    </script>
+    </form>
+    <div id='post-list'></div>
+    <script src='/post.js'></script>
   </body>
 </html>
