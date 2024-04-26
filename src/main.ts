@@ -16,10 +16,13 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 204,
+    credentials: true,
   });
-  app.useStaticAssets(join(__dirname, '..', 'public'));
+  app.useStaticAssets('public');
+  app.useStaticAssets(join(process.cwd(), 'public'));
+
   app.setBaseViewsDir(join(process.cwd(), 'views'));
-  app.setViewEngine('hbs');
+  app.set('view engine', 'hbs');
   await app.listen(3000);
 }
 bootstrap();
