@@ -93,16 +93,15 @@ export class UserController {
   @UseGuards(AuthGuard('refresh'))
   @Post('refreshToken')
   async newToken(@UserInfo() user: User, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    console.log('유저 컨트롤러: ', req);
+
     const refreshToken = req.cookies.Refresh;
     const email = user.email;
 
-    console.log('email: ', email);
-    console.log('refresh: ', refreshToken);
+    const tokens = await this.userService.newAccessToken(email, refreshToken);
 
-    const tokens = this.userService.newAccessToken(email, refreshToken);
-
-    res.cookie('authorization', (await tokens).accessToken, { httpOnly: true });
-    res.cookie('Refresh', (await tokens).refreshToken, { httpOnly: true });
+    res.cookie('authorization', tokens.accessToken, { httpOnly: true });
+    res.cookie('Refresh', tokens.refreshToken, { httpOnly: true });
 
     return tokens;
   }

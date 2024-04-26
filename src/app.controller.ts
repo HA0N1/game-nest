@@ -22,7 +22,7 @@ export class AppController {
   @Get('chat')
   getChatPage(@Res() res: Response) {
     const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
-    const filePath = join(process.cwd(), 'dist', staticPath, 'chat.html');
+    const filePath = join(process.cwd(), 'dist', staticPath, 'chat.hbs');
     res.sendFile(filePath);
   }
 

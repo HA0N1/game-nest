@@ -7,6 +7,7 @@ import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/co
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
+import { TokenExpiredError } from 'jsonwebtoken';
 
 @Injectable()
 export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
@@ -17,34 +18,16 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
-          console.log(request.cookies['Refresh']);
+          console.log('strategy 안: ', request.cookies['Refresh']);
 
           return request.cookies['Refresh'];
         },
       ]),
-      ignoreExpiration: false,
+      ignoreExpiration: true,
       secretOrKey: configService.get('JWT_SECRET_KEY'),
     });
   }
   async validate(payload: any) {
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (payload.exp < currentTime) {
-      fetch('http://localhost:3000/user/refreshToken', {
-        method: 'POST',
-      })
-        .then(res => {
-          if (res.status === 201) {
-            return res.json();
-          }
-        })
-        .then(json => {
-          const newAccessToken = json.accessToken;
-          window.localStorage.setItem('authorization', newAccessToken);
-        })
-        .catch(err => {
-          console.error('accessToken 재발급 중의 Error: ', err);
-        });
-    }
     const user = await this.userService.findUserByEmail(payload.email);
     if (_.isNil(user)) {
       throw new NotFoundException('해당하는 사용자를 찾을 수 없습니다.');

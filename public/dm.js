@@ -180,3 +180,10 @@ fetch(`http://localhost:3000/dm/history/${dmRoomId}`,{
 }))
 .catch(err=> console.error('채팅 내역 가져오는데 오류 발생: ', err));
 }
+
+socket.on('userDisconnected',()=>{
+ alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.')
+
+  window.location.href='http://localhost:3000/user/login'
+
+})

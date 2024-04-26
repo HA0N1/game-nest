@@ -34,6 +34,8 @@ import { DmEventModule } from './event/dmEvent.module';
 import { StoreModule } from './store/store.module';
 import { AwsModule } from './aws/aws.module';
 import { File } from './aws/entities/file.entity';
+import { APP_FILTER } from '@nestjs/core';
+import { TokenExpiredFilter } from './auth/guard/exception.filter';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -98,6 +100,6 @@ const typeOrmModuleOptions = {
     AwsModule,
   ],
   controllers: [AppController],
-  providers: [GameService],
+  providers: [GameService, { provide: APP_FILTER, useClass: TokenExpiredFilter }],
 })
 export class AppModule {}

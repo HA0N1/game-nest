@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import {
   ConnectedSocket,
   MessageBody,
@@ -46,29 +46,45 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.connectedClients[socket.id] = true;
 
-    const cookie = socket.handshake.headers.cookie;
-    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
-    const user = await this.findUserByCookie(authorizationCookie);
+    const cookies = socket.handshake.headers.cookie;
+    console.log('cookies: ', cookies);
+
+    const user = await this.findUserByCookie(cookies, socket);
+    if (user === undefined) {
+      socket.emit('userDisconnected');
+      socket.disconnect();
+      return;
+    }
 
     this.clientNickname[socket.id] = user.nickname;
 
     console.log('dm connected!');
   }
 
-  async findUserByCookie(cookie: string) {
+  async findUserByCookie(cookies: string, socket: Socket) {
     // const cookie = socket.handshake.headers.cookie; 로 미리 받아와야함
+    const access = cookies.split(';')[0];
 
-    const payload = this.jwtService.verify(cookie, { secret: this.config.get<string>('JWT_SECRET_KEY') });
-    const user = await this.userService.findUserByEmail(payload.email);
+    const token = access.split('=')[1];
 
-    return user;
+    try {
+      const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
+      const user = await this.userService.findUserByEmail(payload.email);
+
+      return user;
+    } catch (err) {
+      if (err instanceof TokenExpiredError) {
+        console.log('catch err');
+        socket.emit('userDisconnected');
+        socket.disconnect();
+
+        return;
+      }
+    }
   }
 
   async handleDisconnect(@ConnectedSocket() client: Socket) {
     delete this.connectedClients[client.id];
-    const cookie = client.handshake.headers.cookie;
-    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
-    const user = await this.findUserByCookie(authorizationCookie);
 
     Object.keys(this.roomUsers).forEach(room => {
       const index = this.roomUsers[room]?.indexOf(this.clientNickname[client.id]);
@@ -93,10 +109,6 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(dmRoomId).emit('bye', { nickname: this.clientNickname[socket.id], dmRoomId });
     }
 
-    const cookie = socket.handshake.headers.cookie;
-    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
-    const user = await this.findUserByCookie(authorizationCookie);
-
     this.server.to(dmRoomId).emit('bye', { nickname: this.clientNickname[socket.id], dmRoomId });
   }
 
@@ -105,9 +117,9 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (socket.rooms.has(dmRoomId)) {
       return;
     }
-    const cookie = socket.handshake.headers.cookie;
-    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
-    const user = await this.findUserByCookie(authorizationCookie);
+    const cookies = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookies, socket);
 
     socket.join(dmRoomId);
     console.log(`${user.nickname}의 벡엔드는 여기에 연결 중: ${dmRoomId}`);
@@ -123,9 +135,9 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('sendMessage')
   async handleMessage(@MessageBody() data, @ConnectedSocket() socket: Socket) {
-    const cookie = socket.handshake.headers.cookie;
-    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
-    const user = await this.findUserByCookie(authorizationCookie);
+    const cookies = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookies, socket);
 
     const userId = user.id;
     const nickname = user.nickname;
@@ -144,10 +156,9 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('dmRoomList')
   async dmRoomList(socket: Socket) {
-    const cookie = socket.handshake.headers.cookie;
-    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
-    const user = await this.findUserByCookie(authorizationCookie);
-    const userId = user.id;
+    const cookies = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookies, socket);
 
     const dmRooms = await this.dmService.getDMRooms(user.id);
 
