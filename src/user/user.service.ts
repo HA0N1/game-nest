@@ -133,9 +133,40 @@ export class UserService {
     const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    await this.redis.setex(`REFRESH_TOKEN:${user.id}`, 604800, refreshToken);
+    const hashedRefreshToken = await hash(refreshToken, 10);
+
+    await this.redis.setex(`REFRESH_TOKEN:${user.id}`, 604800, hashedRefreshToken);
 
     return { message: `${user.nickname}님 로그인 완료!`, accessToken, refreshToken };
+  }
+
+  // refreshToken으로 accessToken, refreshToken 재발급 받기
+  async newAccessToken(email: string, refreshToken: string) {
+    const user = await this.findUserByEmail(email);
+
+    const getRefreshToken = await this.redis.get(`REFRESH_TOKEN:${user.id}`);
+
+    if (!getRefreshToken) {
+      throw new NotFoundException(401, '로그인 내역이 없습니다. 로그인 내역을 확인해주세요.');
+    }
+
+    if (!(await compare(refreshToken, getRefreshToken))) {
+      throw new UnauthorizedException('RefreshToken이 다릅니다. 본인 확인이 필요합니다.');
+    }
+
+    const payload = { email, sub: user.id };
+
+    const newAccessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    const hashedNewRefreshToken = await hash(newRefreshToken, 10);
+    await this.redis.setex(`REFRESH_TOKEN:${user.id}`, 604800, hashedNewRefreshToken);
+
+    return {
+      message: `${user.nickname} accessToken 재발급 완료!`,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    };
   }
 
   async checkLogin(cookies) {

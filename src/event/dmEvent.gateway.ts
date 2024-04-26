@@ -47,7 +47,8 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.connectedClients[socket.id] = true;
 
     const cookie = socket.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
+    const user = await this.findUserByCookie(authorizationCookie);
 
     this.clientNickname[socket.id] = user.nickname;
 
@@ -57,8 +58,7 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async findUserByCookie(cookie: string) {
     // const cookie = socket.handshake.headers.cookie; 로 미리 받아와야함
 
-    const token = cookie.split('=')[1];
-    const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
+    const payload = this.jwtService.verify(cookie, { secret: this.config.get<string>('JWT_SECRET_KEY') });
     const user = await this.userService.findUserByEmail(payload.email);
 
     return user;
@@ -67,7 +67,8 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleDisconnect(@ConnectedSocket() client: Socket) {
     delete this.connectedClients[client.id];
     const cookie = client.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
+    const user = await this.findUserByCookie(authorizationCookie);
 
     Object.keys(this.roomUsers).forEach(room => {
       const index = this.roomUsers[room]?.indexOf(this.clientNickname[client.id]);
@@ -93,7 +94,8 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     const cookie = socket.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
+    const user = await this.findUserByCookie(authorizationCookie);
 
     this.server.to(dmRoomId).emit('bye', { nickname: this.clientNickname[socket.id], dmRoomId });
   }
@@ -104,7 +106,8 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     const cookie = socket.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
+    const user = await this.findUserByCookie(authorizationCookie);
 
     socket.join(dmRoomId);
     console.log(`${user.nickname}의 벡엔드는 여기에 연결 중: ${dmRoomId}`);
@@ -121,7 +124,8 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('sendMessage')
   async handleMessage(@MessageBody() data, @ConnectedSocket() socket: Socket) {
     const cookie = socket.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
+    const user = await this.findUserByCookie(authorizationCookie);
 
     const userId = user.id;
     const nickname = user.nickname;
@@ -141,7 +145,8 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('dmRoomList')
   async dmRoomList(socket: Socket) {
     const cookie = socket.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    const authorizationCookie = cookie.match(/authorization=([^;]*)/)[1];
+    const user = await this.findUserByCookie(authorizationCookie);
     const userId = user.id;
 
     const dmRooms = await this.dmService.getDMRooms(user.id);

@@ -73,7 +73,8 @@ export class UserController {
       maxAge: 3600000,
       httpOnly: true,
     });
-    return { message: login.message, accessToken: login.accessToken };
+    response.cookie('Refresh', login.refreshToken, { httpOnly: true });
+    return { message: login.message, accessToken: login.accessToken, refreshToken: login.refreshToken };
   }
 
   // 로그인했는지 안했는지 확인하기
@@ -88,8 +89,23 @@ export class UserController {
     }
   }
 
-  //TODO 토큰 관리 꼭 작성하기
   /* refreshtoken으로 accesstoken 재발급하기 */
+  @UseGuards(AuthGuard('refresh'))
+  @Post('refreshToken')
+  async newToken(@UserInfo() user: User, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = req.cookies.Refresh;
+    const email = user.email;
+
+    console.log('email: ', email);
+    console.log('refresh: ', refreshToken);
+
+    const tokens = this.userService.newAccessToken(email, refreshToken);
+
+    res.cookie('authorization', (await tokens).accessToken, { httpOnly: true });
+    res.cookie('Refresh', (await tokens).refreshToken, { httpOnly: true });
+
+    return tokens;
+  }
 
   /* 프로필 조회 */
   @UseGuards(AuthGuard('jwt'))
@@ -167,6 +183,7 @@ export class UserController {
     const userId = user.id;
 
     res.cookie('authorization', '', { maxAge: 0 });
+    res.cookie('Refresh', '', { maxAge: 0 });
     return await this.userService.logout(userId);
   }
 
