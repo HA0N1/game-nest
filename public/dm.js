@@ -110,13 +110,29 @@ const ul = dmRoom.querySelector('#newChats');
 // const fileName = fileInputs[0].name;
 // console.log('file name: ',fileName);
 const file = fileInputs.files[0];
-const reader = new FileReader();
+console.log(file);
+const data = new FormData()
 
-reader.onload=(e)=>{
-  const preview = createElement(e, file);
-  ul.appendChild(preview);
-}
-reader.readAsDataURL(file);
+data.append('file', file);
+
+const dmRoomName = dmRoom.querySelector('h3').textContent;
+const dmRoomId = dmRoomName.split(' ')[1];
+
+//TODO: 아래 fetch에서 400 bad request
+fetch(`http://localhost:3000/dm/file?dmRoomId=${dmRoomId}`,{
+  method:'POST',
+  headers:{
+    Authorization:`Bearer ${token}`
+},
+  body: data,
+  credentials:'include'
+}).then(res=>{
+  res.json();
+}).then(json=>{
+  console.log(json.filePath);
+}).catch(err=>{
+  console.error('이미지 채팅 진행 중의 오류: ', err)
+})
 
 
 }

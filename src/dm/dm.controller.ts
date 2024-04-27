@@ -74,7 +74,7 @@ export class DMController {
     @UploadedFile(new ResizeImagePipe()) file: Express.Multer.File,
     @Query('dmRoomId') dmRoomId: number,
   ) {
-    return this.dmService.sendFile(dmRoomId, user.id, file);
+    return await this.dmService.sendFile(dmRoomId, user.id, file);
   }
 
   @UseGuards(AuthGuard('jwt'))

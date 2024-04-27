@@ -154,6 +154,8 @@ export class DMService {
       DMRoom: dmRoom,
       file: filePath,
     });
+
+    return { filePath: filePath };
   }
 
   /* 채팅 내역 보내기 */
