@@ -130,7 +130,7 @@ export class UserService {
 
     const payload = { email, sub: user.id };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '1m' });
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     const hashedRefreshToken = await hash(refreshToken, 10);
@@ -156,7 +156,7 @@ export class UserService {
 
     const payload = { email, sub: user.id };
 
-    const newAccessToken = this.jwtService.sign(payload, { expiresIn: '1m' });
+    const newAccessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     const hashedNewRefreshToken = await hash(newRefreshToken, 10);

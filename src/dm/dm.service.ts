@@ -13,6 +13,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FriendDMs } from './entities/friendDMs.entity';
 import { DMRoom } from './entities/DM-room.entity';
+import { AwsService } from 'src/aws/aws.service';
+import { File } from 'src/aws/entities/file.entity';
 
 @Injectable()
 export class DMService {
@@ -25,6 +27,8 @@ export class DMService {
     private userRepository: Repository<User>,
     @InjectRepository(Friendship)
     private friendshipRepository: Repository<Friendship>,
+    private readonly awsService: AwsService,
+    @InjectRepository(File) private fileRepository: Repository<File>,
   ) {}
 
   /* friendshipId로 디엠 방 생성 함수 */
@@ -119,6 +123,36 @@ export class DMService {
       content,
       user: sender,
       DMRoom: dmRoom,
+    });
+  }
+
+  /* 파일 저장 */
+  async sendFile(dmRoomId: number, userId: number, file: Express.Multer.File) {
+    const sender = await this.userRepository.findOneBy({ id: userId });
+
+    if (!sender) {
+      throw new NotFoundException('조회되지 않는 사용자입니다.');
+    }
+
+    const dmRoom = await this.dmRoomRepository.findOneBy({ id: dmRoomId });
+    console.log(`${dmRoom.id}에 채팅 저장 완료`);
+
+    if (!dmRoom) {
+      throw new NotFoundException('존재하지 않는 디엠방입니다.');
+    }
+
+    const imageName = this.awsService.getUUID();
+    const ext = file.originalname.split('.').pop();
+    const fileName = `${imageName}.${ext}`;
+    const imageUrl = `https://s3.${process.env.AWS_S3_REGION}.amazonaws.com/${process.env.AWS_S3_BUCKET_NAME}/${fileName}`;
+    const newImageUrl = await this.awsService.imageUploadToS3(fileName, file, ext);
+
+    const filePath = await this.fileRepository.save({ filePath: newImageUrl });
+
+    const newMessage = await this.friendDMsRepository.save({
+      user: sender,
+      DMRoom: dmRoom,
+      file: filePath,
     });
   }
 

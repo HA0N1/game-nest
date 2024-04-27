@@ -12,6 +12,9 @@ gotoMain.addEventListener('click', goBack);
 const messageForm = dmRoom.querySelector('#message');
 messageForm.addEventListener('submit', handleDMSubmit);
 
+const fileBtn = document.getElementById('fileBtn');
+fileBtn.addEventListener('click',handleImageSubmit)
+
 let currentRoom = '';
 
 const toMain = document.getElementById('toMain');
@@ -85,6 +88,10 @@ function handleDMSubmit(event) {
   const input = dmRoom.querySelector('#message input');
   const value = input.value;
 
+  if(value.length===0){
+    return;
+  }
+
   const dmRoomName = dmRoom.querySelector('h3').textContent;
   const dmRoomId = dmRoomName.split(' ')[1];
 
@@ -93,6 +100,34 @@ function handleDMSubmit(event) {
   socket.emit('sendMessage', data);
   
   input.value = '';
+}
+
+function handleImageSubmit(event){
+event.preventDefault();
+const fileInputs = document.getElementById('inputFile');
+const ul = dmRoom.querySelector('#newChats');
+// console.log('file input: ',fileInputs);
+// const fileName = fileInputs[0].name;
+// console.log('file name: ',fileName);
+const file = fileInputs.files[0];
+const reader = new FileReader();
+
+reader.onload=(e)=>{
+  const preview = createElement(e, file);
+  ul.appendChild(preview);
+}
+reader.readAsDataURL(file);
+
+
+}
+
+function createElement(e, file){
+  const li = document.createElement('li')
+const img = document.createElement('img');
+img.setAttribute('src', e.target.result);
+img.setAttribute('data-file', file.name);
+li.appendChild(img);
+
 }
 
 function showRooms() {

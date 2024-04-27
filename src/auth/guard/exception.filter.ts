@@ -10,6 +10,7 @@ export class TokenExpiredFilter implements ExceptionFilter {
 
     fetch('http://localhost:3000/user/refreshToken', {
       method: 'POST',
+      credentials: 'include',
     })
       .then(res => {
         if (res.status === 201) {

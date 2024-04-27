@@ -47,7 +47,6 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.connectedClients[socket.id] = true;
 
     const cookies = socket.handshake.headers.cookie;
-    console.log('cookies: ', cookies);
 
     const user = await this.findUserByCookie(cookies, socket);
     if (user === undefined) {
@@ -122,7 +121,6 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = await this.findUserByCookie(cookies, socket);
 
     socket.join(dmRoomId);
-    console.log(`${user.nickname}의 벡엔드는 여기에 연결 중: ${dmRoomId}`);
 
     if (!this.roomUsers[dmRoomId]) {
       this.roomUsers[dmRoomId] = [];
@@ -147,12 +145,14 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.dmService.saveDM(dmRoomId, userId, content);
 
     socket.join(data.dmRoomId);
-    console.log('socket 백엔드: ', data.dmRoomId);
 
     const time = new Date();
 
     this.server.to(data.dmRoomId).emit('message', { dmRoomId, nickname, content, time });
   }
+
+  @SubscribeMessage('sendImage')
+  async handleImage(@ConnectedSocket() socket: Socket) {}
 
   @SubscribeMessage('dmRoomList')
   async dmRoomList(socket: Socket) {
