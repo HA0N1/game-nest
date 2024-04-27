@@ -1,4 +1,4 @@
-import { Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 import { Post } from '../../post/entities/post.entity';
 
@@ -7,11 +7,11 @@ export class Like {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @OneToOne(() => User, user => user.like)
+  @ManyToOne(() => User, user => user.like)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @OneToMany(() => Post, post => post.like)
+  @ManyToOne(() => Post, post => post.like)
   @JoinColumn({ name: 'post_id' })
-  post: Post[];
+  post: Post;
 }

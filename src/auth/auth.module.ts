@@ -6,6 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { FriendModule } from 'src/friend/friend.module';
+import { RefreshStrategy } from './refresh.strategy';
 
 @Module({
   imports: [
@@ -18,6 +19,6 @@ import { FriendModule } from 'src/friend/friend.module';
     }),
     UserModule,
   ],
-  providers: [JwtStrategy],
+  providers: [JwtStrategy, RefreshStrategy],
 })
 export class AuthModule {}

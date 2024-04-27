@@ -3,6 +3,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gamenest</title>
+    <link rel='stylesheet' href='/main.css' />
   </head>
   <body>
     <header><h1>Gamenest</h1></header>
@@ -15,8 +16,18 @@
       <div id="profile"><button>프로필</button></div>
       <div id="dm"><button>친구와 채팅</button></div>
     </main>
-
+    <h1>Game List</h1>
+    <ul>
+      {{#each games}}
+        <li>
+          <a href='/game/{{this.id}}'>{{this.title}}
+            <img src='{{this.screen_shot}}' alt='{{this.title}} screenshot' />
+          </a>
+        </li>
+      {{/each}}
+    </ul>
   </body>
-  <script src="/mainPage.js"></script>
-  <script src="/logout.js"></script>
+  <script src='/mainPage.js'></script>
+  <script src='/logout.js'></script>
+
 </html>

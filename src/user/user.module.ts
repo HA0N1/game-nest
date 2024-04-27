@@ -6,7 +6,6 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { InterestGenre } from './entities/interestGenre.entity';
-import { Redis } from 'ioredis';
 import { Genre } from 'src/game/entities/game-genre.entity';
 import { RedisAppModule } from 'src/redis/redis.module';
 import { FriendService } from 'src/friend/friend.service';
@@ -15,7 +14,6 @@ import { HttpModule } from '@nestjs/axios';
 import { AwsService } from 'src/aws/aws.service';
 import { File } from 'src/aws/entities/file.entity';
 import { AwsModule } from 'src/aws/aws.module';
-import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [

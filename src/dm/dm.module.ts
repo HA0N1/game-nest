@@ -10,6 +10,8 @@ import { DMService } from './dm.service';
 import { DMController } from './dm.controller';
 import { FriendDMs } from './entities/friendDMs.entity';
 import { DMRoom } from './entities/DM-room.entity';
+import { AwsService } from 'src/aws/aws.service';
+import { File } from 'src/aws/entities/file.entity';
 
 @Module({
   imports: [
@@ -19,12 +21,12 @@ import { DMRoom } from './entities/DM-room.entity';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Friendship, FriendDMs, DMRoom]),
+    TypeOrmModule.forFeature([User, Friendship, FriendDMs, DMRoom, File]),
     UserModule,
     FriendModule,
   ],
   controllers: [DMController],
-  providers: [DMService],
+  providers: [DMService, AwsService],
   exports: [DMService],
 })
 export class DMModule {}
