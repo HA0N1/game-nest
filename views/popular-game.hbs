@@ -1,0 +1,48 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  </head>
+  <body>
+<div id='popular-games'>
+        <h2>인기 게임</h2>
+        <div>
+
+          <button id='prev-button'>이전</button>
+          <button id='next-button'>다음</button>
+
+        </div>
+        {{#each popularGames.data}}
+
+          <div class='game'>
+            <p>
+              <span class='rank'>{{this.rank}}위</span>
+              <span class='title'>{{this.title}}</span>
+            </p>
+            <img src='{{this.screen_shot}}' alt='{{this.title}}' />
+          </div>
+        {{/each}}
+
+        {{#if popularGames.prevPage}}
+          <a href='?page={{popularGames.prevPage}}'>이전</a>
+        {{/if}}
+
+        <span>현재 {{popularGames.page}} 페이지 / 총 {{popularGames.lastPage}} 페이지</span>
+
+        {{#if popularGames.nextPage}}
+          <a href='?page={{popularGames.nextPage}}'>다음</a>
+        {{/if}}
+
+      </div>n id='hangupButton'>Hang Up</button>
+    </div>
+
+     <script>
+    const prevButton = document.getElementById('prev-button'); const nextButton =
+    document.getElementById('next-button'); let currentPage =
+    {{popularGames.page}}; prevButton.addEventListener('click', () => { currentPage--; if(currentPage < 1) currentPage =
+    1; moveToPage(currentPage); }); nextButton.addEventListener('click', () => { currentPage++; moveToPage(currentPage);
+    }); function moveToPage(page) { window.location.href = '/main?page=' + page; }
+  </script>
+  </body>
+</html>
+

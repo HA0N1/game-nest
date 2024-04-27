@@ -16,9 +16,9 @@ import { Like } from './user/entities/like.entity';
 import { Post } from './post/entities/post.entity';
 import { Game } from './game/entities/game.entity';
 import { GameService } from './game/game.service';
-import { Genre } from './game/entities/gameGenre.entity';
+import { Genre } from './game/entities/game-genre.entity';
 import { InterestGenre } from './user/entities/interestGenre.entity';
-import { GameComment } from './game/entities/gameComment.entity';
+import { GameComment } from './game/entities/game-comment.entity';
 import { CommentModule } from './comment/comment.module';
 import { PostModule } from './post/post.module';
 import { PostComment } from './comment/entities/comment.entity';
@@ -36,6 +36,8 @@ import { AwsModule } from './aws/aws.module';
 import { File } from './aws/entities/file.entity';
 import { APP_FILTER } from '@nestjs/core';
 import { TokenExpiredFilter } from './auth/guard/exception.filter';
+import { GameModule } from './game/game.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const typeOrmModuleOptions = {
   useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
@@ -98,6 +100,8 @@ const typeOrmModuleOptions = {
     DmEventModule,
     StoreModule,
     AwsModule,
+    GameModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [GameService, { provide: APP_FILTER, useClass: TokenExpiredFilter }],
