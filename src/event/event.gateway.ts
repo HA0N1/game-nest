@@ -78,10 +78,9 @@ export class RoomGateway implements OnGatewayConnection {
   ) {}
 
   rooms = [];
+  channelId = this.channelService.findAllChannel();
   @WebSocketServer() server: Server;
-
   nextMediasoupWorkerIdx = 0;
-
   async handleConnection(socket: Socket & { user: User }, data: any) {
     console.log(`connect: ${socket.id}`);
     const cookie = socket.handshake.headers.cookie;
@@ -91,9 +90,9 @@ export class RoomGateway implements OnGatewayConnection {
     }
     try {
       const token = cookie.split('=')[1];
+
       const payload = this.jwtService.verify(token, { secret: this.configService.get<string>('JWT_SECRET_KEY') });
       const user = await this.userService.findUserByEmail(payload.email);
-
       socket.user = user;
       const userId = socket.user.id;
       await this.redis.set(`socketId:${socket.id}`, +userId);
@@ -103,6 +102,25 @@ export class RoomGateway implements OnGatewayConnection {
     } catch (error) {
       throw new WsException(error.message);
     }
+  }
+  // server 연결 시 worker 생성
+  worker = this.createWorker();
+
+  async createWorker() {
+    worker = await mediasoup.createWorker({
+      logLevel: config.mediasoup.worker.logLevel,
+      logTags: config.mediasoup.worker.logTags,
+      rtcMinPort: config.mediasoup.worker.rtcMinPort,
+      rtcMaxPort: config.mediasoup.worker.rtcMaxPort,
+    });
+    console.log(`worker pid ${worker.pid}`);
+
+    worker.on('died', error => {
+      console.error('mediasoup worker has died');
+      setTimeout(() => process.exit(1), 2000); // exit in 2 seconds
+    });
+
+    return worker;
   }
   // on // 수신
   // emit // 발신
@@ -116,7 +134,7 @@ export class RoomGateway implements OnGatewayConnection {
       if (chat) throw new WsException('채팅방 이름이 중복되었습니다.');
       // 채널 서비스의 createChat 함수 호출
       await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
-      const rooms = await this.channelService.findAllChat();
+      const rooms = await this.channelService.findAllChat(2);
 
       this.server.emit('rooms', rooms);
     } catch (error) {
@@ -124,10 +142,41 @@ export class RoomGateway implements OnGatewayConnection {
     }
   }
 
+  @SubscribeMessage('chatType')
+  async handleChatType(socket: Socket, data: any) {
+    const { room } = data;
+    const channelRoom = await this.channelService.findOneChat(room);
+    const chatType = channelRoom.chatType;
+
+    this.server.emit('chatType', chatType);
+  }
+
+  @SubscribeMessage('message')
+  async handleMessageToRoom(socket: Socket & { user: User }, data: ChatMessageData): Promise<void> {
+    const { message, room } = data;
+    console.log(data);
+
+    const userId = socket.user.id;
+
+    const channelRoom = await this.channelService.findOneChat(room);
+    const foundUser = await this.userService.findUserById(+userId);
+    const nickname = foundUser.nickname;
+
+    // 메시지 저장
+    const dm = this.DMsRepo.create({
+      content: message,
+      senderId: socket.user.id,
+      channelChatId: +channelRoom.id,
+    });
+    await this.DMsRepo.save(dm);
+
+    socket.broadcast.to(room).emit(`message`, { message: `${nickname}: ${message}` });
+  }
+
   @SubscribeMessage('requestRooms')
   async handleRequestRooms(socket: Socket) {
     try {
-      const rooms = await this.channelService.findAllChat();
+      const rooms = await this.channelService.findAllChat(2);
 
       this.server.emit('rooms', rooms);
     } catch (error) {
@@ -180,17 +229,6 @@ export class RoomGateway implements OnGatewayConnection {
     // 채팅 타입 가져오기
     const channelRoom = await this.channelService.findOneChat(room);
     const chatType = channelRoom.chatType;
-
-    //! 2. server : worker가 router 생성, 서버가 클라이언트에 rtpCapabilities 전달
-    // chatType이 voice인 경우에만 Worker와 Router 생성
-    // if (chatType === 'voice') {
-    //   worker = await this.createWorker();
-    //   router = await worker.createRouter({ mediaCodecs });
-    //   // RTP Capabilities 가져오기
-    //   const rtpCapabilities = router.rtpCapabilities;
-    //   // 클라이언트에게 RTP Capabilities 전달
-    //   this.server.emit('getRtpCapabilities', rtpCapabilities);
-    // }
   }
 
   @SubscribeMessage('joinVoiceRoom')
@@ -201,19 +239,17 @@ export class RoomGateway implements OnGatewayConnection {
     //! 2. server : worker가 router 생성, 서버가 클라이언트에 rtpCapabilities 전달
     // chatType이 voice인 경우에만 Worker와 Router 생성
 
-    worker = await this.createWorker();
     router = await worker.createRouter({ mediaCodecs });
     // RTP Capabilities 가져오기
     const rtpCapabilities = router.rtpCapabilities;
     // 클라이언트에게 RTP Capabilities 전달
     this.server.emit('getRtpCapabilities', rtpCapabilities);
   }
+
   //! 5. server :⭐RP (router producer)생성, 생성한 tranport 정보 client에 반환
   @SubscribeMessage('createWebRtcTransport')
   async handleCreateTransport(@MessageBody() data) {
-    console.log('RoomGateway ~ handleCreateTransport ~ data:', data);
     const { consumer } = data;
-    console.log('RoomGateway ~ handleCreateTransport ~ consumer:', consumer);
 
     try {
       if (!consumer) {
@@ -285,10 +321,10 @@ export class RoomGateway implements OnGatewayConnection {
     console.log('생성', dtlsParameters);
     try {
       await producerTransport.connect({ dtlsParameters });
-      console.log('연결 성공');
+      console.log('producer 연결 성공');
       this.server.emit('transport-connect', { dtlsParameters });
     } catch (error) {
-      console.log('연결 실패:', error);
+      console.log('producer 연결 실패:', error);
     }
   }
 
@@ -310,33 +346,16 @@ export class RoomGateway implements OnGatewayConnection {
       console.log('produce 중 error', error.message);
     }
   }
-  async createWorker() {
-    worker = await mediasoup.createWorker({
-      logLevel: config.mediasoup.worker.logLevel,
-      logTags: config.mediasoup.worker.logTags,
-      rtcMinPort: config.mediasoup.worker.rtcMinPort,
-      rtcMaxPort: config.mediasoup.worker.rtcMaxPort,
-    });
-    console.log(`worker pid ${worker.pid}`);
-
-    worker.on('died', error => {
-      // This implies something serious happened, so kill the application
-      console.error('mediasoup worker has died');
-      setTimeout(() => process.exit(1), 2000); // exit in 2 seconds
-    });
-
-    return worker;
-  }
 
   @SubscribeMessage('transport-recv-connect')
   async transportConsumer(@MessageBody() { dtlsParameters }): Promise<void> {
     console.log('생성', dtlsParameters);
     try {
       await consumerTransport.connect({ dtlsParameters });
-      console.log('연결 성공');
+      console.log('consumer연결 성공');
       this.server.emit('transport-connect', { dtlsParameters });
     } catch (error) {
-      console.error('연결 실패:', error);
+      console.error('consumer연결 실패2222:', error);
     }
   }
 
@@ -345,34 +364,4 @@ export class RoomGateway implements OnGatewayConnection {
 
   @SubscribeMessage('consumer-resume')
   async consumerResume() {}
-
-  @SubscribeMessage('chatType')
-  async handleChatType(socket: Socket, data: any) {
-    const { room } = data;
-    const channelRoom = await this.channelService.findOneChat(room);
-    const chatType = channelRoom.chatType;
-
-    this.server.emit('chatType', chatType);
-  }
-
-  @SubscribeMessage('message')
-  async handleMessageToRoom(socket: Socket & { user: User }, data: ChatMessageData): Promise<void> {
-    const { message, room } = data;
-    console.log(data);
-
-    const userId = socket.user.id;
-
-    const channelRoom = await this.channelService.findOneChat(room);
-    const foundUser = await this.userService.findUserById(+userId);
-    const nickname = foundUser.nickname;
-
-    // 메시지 저장
-    const dm = this.DMsRepo.create({
-      content: message,
-      senderId: socket.user.id,
-      channelChatId: +channelRoom.id,
-    });
-    await this.DMsRepo.save(dm);
-    socket.broadcast.to(room).emit('message', { message: `${nickname}: ${message}` });
-  }
 }

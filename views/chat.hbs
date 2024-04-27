@@ -18,6 +18,7 @@
       <div class="channelList">
         <h2>채널 목록</h2>
         <ul id="channels"></ul>
+
       </div>
     </div>
     <div class="chatList">
@@ -26,6 +27,8 @@
         <ul id="rooms"></ul>
         <button id="joinBtn" style="display:none"></button>
         <button class="joinBtn" style="display:none"></button>
+        <button id="createRoomBtn">채팅 만들기</button>
+
       </div>
     </div>
     <div id="container">
@@ -59,7 +62,6 @@
       <div>
         <input type="text" id="message" placeholder="메시지 입력" />
         <button id="sendBtn">전송</button>
-        <button id="createRoomBtn">채팅 만들기</button>
       </div>
     </div>
 
@@ -67,9 +69,11 @@
       <h2>공지</h2>
       <div id="notice"></div>
     </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
     <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
-    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/bundle.js"></script>
   </body>

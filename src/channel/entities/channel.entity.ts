@@ -14,6 +14,9 @@ export class Channel {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column({ type: 'int', name: 'game_id', unsigned: true })
+  gameId: number;
+
   @ManyToOne(() => Game, game => game.channel)
   @JoinColumn({ name: 'game_id' })
   game: Game;

@@ -1,25 +1,24 @@
 const token = window.localStorage.getItem('authorization');
 
-function logout(){
-    fetch('http://localhost:3000/user/logout',{
-        method:'POST',
-        headers:{
-            Authorization:`Bearer ${token}`
-        }
-    })
-    .then(res=>{
-        if(res.status === 201){
-            window.localStorage.removeItem('authorization');
+function logout() {
+  fetch('http://localhost:3000/user/logout', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then(res => {
+      if (res.status === 201) {
+        window.localStorage.removeItem('authorization');
 
-            alert('로그아웃 성공');
+        alert('로그아웃 성공');
 
-            window.location.href = 'http://localhost:3000/main';
-        }else{
-            alert('로그아웃 실패');
-        }
+        window.location.href = 'http://localhost:3000/main';
+      } else {
+        alert('로그아웃 실패');
+      }
     })
-    .catch(error => 
-        console.error('Error:', error));
+    .catch(error => console.error('Error:', error));
 }
 
-document.getElementById('logout').addEventListener('click', logout)
+document.getElementById('logout').addEventListener('click', logout);

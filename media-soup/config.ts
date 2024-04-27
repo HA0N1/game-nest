@@ -3,7 +3,7 @@ import os from 'os';
 
 export const config = {
   listenIP: '0.0.0.0',
-  listenPort: 3016,
+  listenPort: 3000,
   mediasoup: {
     // 실행중인 워커 수 내 컴은 최대 6개
     numWorkers: Object.keys(os.cpus()).length,

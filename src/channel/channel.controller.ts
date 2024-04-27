@@ -21,12 +21,13 @@ export class ChannelController {
   }
 
   @Get()
-  @Render('chat.hbs')
-  findAllChannel() {
-    return this.channelService.findAllChannel();
+  @Render('channel.hbs')
+  async findAllChannel() {
+    const channels = await this.channelService.findAllChannel();
+    return { channels };
   }
 
-  @Get(':ichannelIdd')
+  @Get(':channelId')
   findOneChannel(@Param('channelId') channelId: string) {
     return this.channelService.findOneChannel(+channelId);
   }
@@ -79,6 +80,13 @@ export class ChannelController {
   async removeChat(@Param('channelId') channelId: string, @Param('chatId') chatId: string) {
     await this.channelService.deleteChat(+channelId, +chatId);
     return { message: '성공적으로 삭제되었습니다.' };
+  }
+
+  @Get(':channelId/chat')
+  @Render('chat.hbs')
+  async findAllChat(@Param('channelId') id: string) {
+    const chat = await this.channelService.findAllChat(+id);
+    return { chat };
   }
 
   //* dms

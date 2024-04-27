@@ -216,8 +216,11 @@ export class ChannelService {
     return chat;
   }
 
-  async findAllChat() {
-    const chat = await this.channelChatRepository.find();
+  async findAllChat(id: number) {
+    const channel = await this.findOneChannel(+id);
+    const chat = await this.channelChatRepository.find({
+      where: { channel: { id } },
+    });
     return chat;
   }
 

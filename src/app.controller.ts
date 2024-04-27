@@ -26,6 +26,14 @@ export class AppController {
     res.sendFile(filePath);
   }
 
+  // @Get('channel')
+  // @Render('channel.hbs')
+  // getChannelPage() { // @Res() res: Response
+  //   const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
+  //   const filePath = join(process.cwd(), 'dist', staticPath, 'channel.hbs');
+  //   res.sendFile(filePath);
+  // }
+
   @Get('main')
   @Render('main.hbs')
   getMainPage() {}
