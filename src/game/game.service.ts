@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { Game } from './entities/game.entity';
-import { IsNull, Not, Repository } from 'typeorm';
+import { IsNull, Like, Not, Repository } from 'typeorm';
 import { PlatformEnum } from './type/game-platform.type';
 import puppeteer from 'puppeteer';
 import { Cron } from '@nestjs/schedule';
@@ -75,7 +75,7 @@ export class GameService {
               developer: details.developers.join(', '),
               title: details.name,
               description: details.short_description,
-              screen_shot: details.screenshots[0]?.path_full,
+              screen_shot: details.header_image,
               metacritic: details.metacritic?.score,
               supported_languages: details.supported_languages,
               pc_requirements: JSON.stringify(details.pc_requirements),
@@ -94,7 +94,7 @@ export class GameService {
   }
 
   // 게임 목록 조회
-  async getGames(page = 1, limit = 10) {
+  async getGames(page = 1, limit = 40) {
     try {
       page = Math.max(page, 1);
       limit = Math.max(limit, 1);
@@ -102,7 +102,7 @@ export class GameService {
       const offset = (page - 1) * limit;
 
       const [games, total] = await this.gameRepository.findAndCount({
-        select: ['title', 'screen_shot'],
+        select: ['id', 'title', 'screen_shot'],
         skip: offset,
         take: limit,
       });
@@ -122,6 +122,9 @@ export class GameService {
     const game = await this.gameRepository.findOneBy({ id });
     if (!game) {
       throw new NotFoundException(`id가 ${id}인 게임을 찾을 수 없습니다.`);
+    }
+    if (game.metacritic === null) {
+      game.metacritic = 0;
     }
     return game;
   }
@@ -146,7 +149,7 @@ export class GameService {
   }
 
   // 인기순 저장
-  @Cron('0 5 0 * * *')
+  @Cron('0 16 1 * * *')
   async savePopularGames() {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -258,6 +261,9 @@ export class GameService {
 
   // 신작 조회
   async getNewGames(page: number, limit: number) {
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -271,7 +277,7 @@ export class GameService {
       .andWhere('game.developer IS NULL')
       .getRawOne();
 
-    const offset = (page - 1) * limit;
+    const offset = (pageNumber - 1) * limitNumber;
 
     const newGames = await this.gameRepository
       .createQueryBuilder('game')
@@ -290,5 +296,12 @@ export class GameService {
       limit,
       total: parseInt(total.count, 10),
     };
+  }
+
+  // 게임 검색
+  async searchGames(query: string) {
+    return this.gameRepository.find({
+      where: { title: Like(`%${query}`) },
+    });
   }
 }

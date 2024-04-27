@@ -1,0 +1,75 @@
+/* 전체 페이지에 대한 기본 스타일 */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  color: #333;
+}
+
+/* 헤더 스타일 */
+header {
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  padding: 20px;
+}
+
+/* 메인 컨텐츠 스타일 */
+main {
+  padding: 20px;
+}
+
+/* 버튼 공통 스타일 */
+button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* 게임 목록 스타일 */
+ul {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px;
+}
+
+ul li {
+  margin-bottom: 10px;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 스크린샷 이미지 스타일 */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-top: 10px;
+  width: auto;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  header,
+  main {
+    padding: 10px;
+  }
+  ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  button {
+    padding: 5px 10px;
+  }
+}
