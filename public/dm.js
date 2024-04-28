@@ -28,7 +28,7 @@ function checkLogin(){
   if(!token){
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href='http://localhost:3000/user/login'
+    window.location.href='http://chuncik.store:3000/user/login'
   }
 }
 
@@ -62,7 +62,7 @@ function sayBye() {
 }
 
 function goBack() {
-  window.location.href = 'http://localhost:3000/main';
+  window.location.href = 'http://chuncik.store:3000/main';
 }
 
 socket.on('dmRoomsList', function () {
@@ -123,7 +123,7 @@ socket.on('receiveUserInfo', userInfo=>{
   const dmRoomId = dmRoomName.split(' ')[1];
 
 //TODO: 아래 fetch에서 400 bad request
-fetch(`http://localhost:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`,{
+fetch(`http://chuncik.store:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`,{
   method:'POST',
   body: data,
   credentials:'include'
@@ -243,7 +243,7 @@ socket.on('messageWithImage', data=>{
 })
 
 function history(dmRoomId){
-fetch(`http://localhost:3000/dm/history/${dmRoomId}`,{
+fetch(`http://chuncik.store:3000/dm/history/${dmRoomId}`,{
   headers:{
     Authorization:`Bearer ${token}`
 }
@@ -266,6 +266,6 @@ fetch(`http://localhost:3000/dm/history/${dmRoomId}`,{
 socket.on('userDisconnected',()=>{
  alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.')
 
-  window.location.href='http://localhost:3000/user/login'
+  window.location.href='http://chuncik.store:3000/user/login'
 
 })
