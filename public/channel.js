@@ -32,8 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const channels = document.querySelectorAll('.channel');
 
     channels.forEach(channel => {
-      const channelGenre = channel.dataset.genre;
-      if (!selectedGenre || selectedGenre === channelGenre) {
+      const channelGenreId = channel.dataset.genre; // 장르 번호를 가져옴
+      const channelGenreName = getGenreName(channelGenreId); // 번호에 해당하는 장르명을 가져옴
+      // 선택한 장르와 채널의 장르명이 일치하는 경우에만 표시
+      if (!selectedGenre || selectedGenre === channelGenreName) {
         channel.style.display = 'block';
       } else {
         channel.style.display = 'none';
@@ -92,4 +94,37 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('채널 이름과 게임 ID를 입력해주세요.');
     }
   };
+
+  document.querySelectorAll('.channel a').forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault(); // Prevent default behavior of link click
+      const channelId = link.closest('.channel').dataset.id; // Get the channel ID
+      window.location.href = `/channel/${channelId}/chat`; // Redirect to the chat room page with the channel ID
+    });
+  });
+  // 장르 매핑
+  function getGenreName(genreId) {
+    switch (parseInt(genreId)) {
+      case 1:
+        return 'Action';
+      case 2:
+        return 'RPG';
+      case 3:
+        return 'Adventure';
+      case 4:
+        return 'Strategy';
+      case 5:
+        return 'Simulation';
+      case 6:
+        return 'Casual';
+      case 7:
+        return 'Indie';
+      case 8:
+        return 'Sports';
+      case 9:
+        return 'Racing';
+      default:
+        return '';
+    }
+  }
 });

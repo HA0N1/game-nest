@@ -25,8 +25,13 @@
 
     <ul class="channel-list" id="channelList">
       {{#each channels}}
-        <li class="channel" data-genre="{{this.genre}}">
-          <a href="/channel/{{this.id}}">{{this.name}}</a>
+        <li class="channel" data-genre="{{this.genre}}" data-id="{{this.id}}">
+          <a href="/channel/{{this.id}}/chat">
+            채널명:
+            {{this.name}}
+            <br />게임 이름:
+            {{this.game.title}}
+          </a>
         </li>
       {{/each}}
     </ul>

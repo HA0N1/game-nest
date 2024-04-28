@@ -11,11 +11,6 @@ export class AppController {
     private readonly gameService: GameService,
   ) {}
 
-  @Get('test')
-  @Render('test2')
-  getTestPage() {
-    console.log('연결완');
-  }
   @Get('login')
   getLoginPage(@Res() res: Response) {
     const staticPath = this.configService.get<string>('STATIC_FILES_PATH');

@@ -3,8 +3,14 @@ document.getElementById('container').style.display = 'none';
 document.getElementById('chatBox').style.display = 'none';
 
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
-document.getElementById('createRoomBtn').addEventListener('click', createRoom);
+document.getElementById('createRoomBtn').addEventListener('click', openModal);
+document.querySelector('.close').addEventListener('click', closeModal);
+document.getElementById('createRoomForm').addEventListener('submit', createRoomWithModal);
 
+const preferredDisplaySurface = document.getElementById('displaySurface');
+const startButton = document.getElementById('startButton');
+const screenShareBtn = document.getElementById('screenShareBtn');
+document.getElementById('myModal').style.display = 'none';
 let device;
 let rtpCapabilities;
 let producerTransport;
@@ -30,7 +36,31 @@ console.log('token:', token);
 const socket = io('/chat', { auth: { token: token } });
 
 let currentRoom = '';
-// const channel = prompt('채널명을 입력해주세요');
+
+function createRoomWithModal(event) {
+  event.preventDefault(); // 폼 제출 기본 동작 방지
+  const roomName = document.getElementById('roomName').value;
+  const chatType = document.getElementById('chatType').value;
+  const maximumPeople = document.getElementById('maximumPeople').value;
+  const channelId = document.getElementById('channelId').value;
+
+  // 입력 값으로 채팅방 생성 로직
+  socket.emit('createRoom', {
+    room: roomName,
+    createChatDto: { title: roomName, chatType, maximumPeople, channelId },
+  });
+
+  closeModal(); // 모달 창 닫기
+}
+
+function openModal() {
+  console.log('모달창 뜸');
+  document.getElementById('myModal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('myModal').style.display = 'none';
+}
 function sendMessage() {
   if (currentRoom === '') {
     alert('방을 선택해주세요');
@@ -42,17 +72,6 @@ function sendMessage() {
   $('#chat').append(`<div>나:${message}</div>`);
   socket.emit('message', data);
   return false;
-}
-
-function createRoom() {
-  const room = prompt('방이름을 입력해주세요.');
-  const chatType = prompt('채팅 타입을 입력해주세요.');
-  const maximumPeople = prompt('최대 인원을 입력해주세요.');
-  const channelId = prompt('만드려는 채팅의 채널ID를 입력해주세요.');
-  socket.emit('createRoom', {
-    room,
-    createChatDto: { title: room, chatType, maximumPeople, channelId },
-  });
 }
 
 function updateRoomList(rooms) {
@@ -341,11 +360,55 @@ const connectRecvTransport = async () => {
     socket.emit('consumer-resume');
   });
 };
+if (adapter.browserDetails.browser === 'chrome' && adapter.browserDetails.version >= 107) {
+  // See https://developer.chrome.com/docs/web-platform/screen-sharing-controls/
+  document.getElementById('options').style.display = 'block';
+} else if (adapter.browserDetails.browser === 'firefox') {
+  // Polyfill in Firefox.
+  // See https://blog.mozilla.org/webrtc/getdisplaymedia-now-available-in-adapter-js/
+  adapter.browserShim.shimGetDisplayMedia(window, 'screen');
+}
 
+function screenShare() {
+  const options = {
+    audio: false,
+    video: {
+      width: 1080,
+      height: 720,
+    },
+  };
+  const displaySurface = preferredDisplaySurface.options[preferredDisplaySurface.selectedIndex].value;
+  if (displaySurface !== 'default') {
+    options.video = { displaySurface };
+  }
+  navigator.mediaDevices.getDisplayMedia(options).then(handleSuccess);
+}
+
+if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
+  // startButton.disabled = false;
+} else {
+  errorMsg('getDisplayMedia is not supported');
+}
+
+function handleSuccess(stream) {
+  // startButton.disabled = true;
+  preferredDisplaySurface.disabled = true;
+  const video = document.querySelector('video');
+  video.srcObject = stream;
+
+  // demonstrates how to detect that the user has stopped
+  // sharing the screen via the browser UI.
+  stream.getVideoTracks()[0].addEventListener('ended', () => {
+    errorMsg('The user has ended sharing the screen');
+    startButton.disabled = false;
+    preferredDisplaySurface.disabled = false;
+  });
+}
 /**
  * 유저의 미디어 장비에 접근,
  * 오디오, 비디오 stream을 받고 서버에 Router rtpCapabilities 요청
  * */
+document.getElementById('screenShareBtn').addEventListener('click', screenShare);
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
 document.getElementById('remoteVideoOnBtn').addEventListener('click', createRecvTransport);
 document.getElementById('btnConnectRecvTransport').addEventListener('click', connectRecvTransport);

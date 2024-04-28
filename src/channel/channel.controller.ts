@@ -20,12 +20,18 @@ export class ChannelController {
     return { message: '채널 생성이 완료되었습니다.' };
   }
 
-  @Get()
+  @Get('/list')
   @Render('channel.hbs')
-  async findAllChannel() {
+  async findAllList() {
     const channels = await this.channelService.findAllChannel();
     return { channels };
   }
+
+  // @Get()
+  // async findAllChannel() {
+  //   const channels = await this.channelService.findAllChannel();
+  //   return { channels };
+  // }
 
   @Get(':channelId')
   findOneChannel(@Param('channelId') channelId: string) {
@@ -88,17 +94,4 @@ export class ChannelController {
     const chat = await this.channelService.findAllChat(+id);
     return { chat };
   }
-
-  //* dms
-  // @UseGuards(AuthGuard('jwt'))
-  // @Post(':channelId/chat/:chatId')
-  // async sendMessage(
-  //   @Param('channelId') channelId: string,
-  //   @Param('chatId') chatId: string,
-  //   @UserInfo() user: User,
-  //   @Body() content: string,
-  // ) {
-  //   console.log('ChannelController ~ sendMessage ~ user:', user);
-  //   await this.channelService.sendMessage(+channelId, +chatId, user.id, content);
-  // }
 }

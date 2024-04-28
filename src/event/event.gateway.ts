@@ -84,12 +84,14 @@ export class RoomGateway implements OnGatewayConnection {
   async handleConnection(socket: Socket & { user: User }, data: any) {
     console.log(`connect: ${socket.id}`);
     const cookie = socket.handshake.headers.cookie;
-
+    const cookieParts = cookie.split(';');
+    const authorizationCookie = cookieParts[0].trim().split('=');
     if (!cookie) {
       throw new WsException('토큰이 없습니다.');
     }
     try {
-      const token = cookie.split('=')[1];
+      const token = authorizationCookie[1];
+      console.log('RoomGateway ~ handleConnection ~ token:', token);
 
       const payload = this.jwtService.verify(token, { secret: this.configService.get<string>('JWT_SECRET_KEY') });
       const user = await this.userService.findUserByEmail(payload.email);
@@ -134,7 +136,7 @@ export class RoomGateway implements OnGatewayConnection {
       if (chat) throw new WsException('채팅방 이름이 중복되었습니다.');
       // 채널 서비스의 createChat 함수 호출
       await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
-      const rooms = await this.channelService.findAllChat(2);
+      const rooms = await this.channelService.findAllChat(1);
 
       this.server.emit('rooms', rooms);
     } catch (error) {
@@ -176,7 +178,7 @@ export class RoomGateway implements OnGatewayConnection {
   @SubscribeMessage('requestRooms')
   async handleRequestRooms(socket: Socket) {
     try {
-      const rooms = await this.channelService.findAllChat(2);
+      const rooms = await this.channelService.findAllChat(1);
 
       this.server.emit('rooms', rooms);
     } catch (error) {
@@ -364,4 +366,13 @@ export class RoomGateway implements OnGatewayConnection {
 
   @SubscribeMessage('consumer-resume')
   async consumerResume() {}
+
+  async handleBroadcastScreenSharing(socket: Socket, data: any): Promise<void> {
+    const { room, stream } = data;
+    console.log('RoomGateway ~ handleBroadcastScreenSharing ~ room:', room);
+    console.log('RoomGateway ~ handleBroadcastScreenSharing ~ stream:', stream);
+    // Get the room of the user sharing the screen
+    // Broadcast the screen sharing stream to all users in the room
+    socket.to(room).emit('screenSharingStream', { stream });
+  }
 }

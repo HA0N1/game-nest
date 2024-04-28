@@ -61,7 +61,7 @@ async function goLogin(event) {
 
 function goChannel(event) {
   console.log('채널 입장');
-  window.location.href = 'http://localhost:3000/channel';
+  window.location.href = 'http://localhost:3000/channel/list';
 }
 
 function goDM(event) {

@@ -13,7 +13,7 @@ const messageForm = dmRoom.querySelector('#message');
 messageForm.addEventListener('submit', handleDMSubmit);
 
 const fileBtn = document.getElementById('fileBtn');
-fileBtn.addEventListener('click',handleImageSubmit)
+fileBtn.addEventListener('click', handleImageSubmit);
 
 let currentRoom = '';
 
@@ -88,7 +88,7 @@ function handleDMSubmit(event) {
   const input = dmRoom.querySelector('#message input');
   const value = input.value;
 
-  if(value.length===0){
+  if (value.length === 0) {
     return;
   }
 
@@ -102,48 +102,48 @@ function handleDMSubmit(event) {
   input.value = '';
 }
 
-function handleImageSubmit(event){
-event.preventDefault();
-const fileInputs = document.getElementById('inputFile');
-const ul = dmRoom.querySelector('#newChats');
-// console.log('file input: ',fileInputs);
-// const fileName = fileInputs[0].name;
-// console.log('file name: ',fileName);
-const file = fileInputs.files[0];
-console.log(file);
-const data = new FormData()
+function handleImageSubmit(event) {
+  event.preventDefault();
+  const fileInputs = document.getElementById('inputFile');
+  const ul = dmRoom.querySelector('#newChats');
+  // console.log('file input: ',fileInputs);
+  // const fileName = fileInputs[0].name;
+  // console.log('file name: ',fileName);
+  const file = fileInputs.files[0];
+  console.log(file);
+  const data = new FormData();
 
-data.append('file', file);
+  data.append('file', file);
 
-const dmRoomName = dmRoom.querySelector('h3').textContent;
-const dmRoomId = dmRoomName.split(' ')[1];
+  const dmRoomName = dmRoom.querySelector('h3').textContent;
+  const dmRoomId = dmRoomName.split(' ')[1];
 
-//TODO: 아래 fetch에서 400 bad request
-fetch(`http://localhost:3000/dm/file?dmRoomId=${dmRoomId}`,{
-  method:'POST',
-  headers:{
-    Authorization:`Bearer ${token}`
-},
-  body: data,
-  credentials:'include'
-}).then(res=>{
-  res.json();
-}).then(json=>{
-  console.log(json.filePath);
-}).catch(err=>{
-  console.error('이미지 채팅 진행 중의 오류: ', err)
-})
-
-
+  //TODO: 아래 fetch에서 400 bad request
+  fetch(`http://localhost:3000/dm/file?dmRoomId=${dmRoomId}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: data,
+    credentials: 'include',
+  })
+    .then(res => {
+      res.json();
+    })
+    .then(json => {
+      console.log(json.filePath);
+    })
+    .catch(err => {
+      console.error('이미지 채팅 진행 중의 오류: ', err);
+    });
 }
 
-function createElement(e, file){
-  const li = document.createElement('li')
-const img = document.createElement('img');
-img.setAttribute('src', e.target.result);
-img.setAttribute('data-file', file.name);
-li.appendChild(img);
-
+function createElement(e, file) {
+  const li = document.createElement('li');
+  const img = document.createElement('img');
+  img.setAttribute('src', e.target.result);
+  img.setAttribute('data-file', file.name);
+  li.appendChild(img);
 }
 
 function showRooms() {
@@ -236,9 +236,8 @@ function history(dmRoomId) {
     .catch(err => console.error('채팅 내역 가져오는데 오류 발생: ', err));
 }
 
-socket.on('userDisconnected',()=>{
- alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.')
+socket.on('userDisconnected', () => {
+  alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.');
 
-  window.location.href='http://localhost:3000/user/login'
-
-})
+  window.location.href = 'http://localhost:3000/user/login';
+});
