@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -12,13 +13,14 @@ import {
 import { Friendship } from 'src/friend/entities/friendship.entity';
 import { Like } from './like.entity';
 import { Post } from '../../post/entities/post.entity';
+import { File } from 'src/aws/entities/file.entity';
 import { PostComment } from '../../comment/entities/comment.entity';
 import { ChannelDMs } from '../../channel/entities/channelDMs.entity';
 import { ChannelMember } from '../../channel/entities/channelMember.entity';
-import { FriendDMs } from 'src/friend/entities/friendDMs.entity';
+import { FriendDMs } from 'src/dm/entities/friendDMs.entity';
 import { Channel } from 'src/channel/entities/channel.entity';
 import { InterestGenre } from './interestGenre.entity';
-import { GameComment } from 'src/game/entities/gameComment.entity';
+import { GameComment } from 'src/game/entities/game-comment.entity';
 
 @Entity({ name: 'user' })
 export class User {
@@ -28,7 +30,7 @@ export class User {
   // @Column({ type: 'int' })
   // imageId?: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   email: string;
 
   @Column({ type: 'varchar' })
@@ -74,9 +76,9 @@ export class User {
   @JoinColumn({ name: 'interestGenre_id' })
   interestGenre: InterestGenre[];
 
-  // @OneToMany(()=>File, (file) => file.user)
-  // @JoinColumn({ name: 'file_id' })
-  // file:File[]
+  @ManyToOne(() => File, file => file.user)
+  @JoinColumn({ name: 'file_id' })
+  file: File;
 
   @OneToMany(() => FriendDMs, friendDMs => friendDMs.DMRoom)
   @JoinColumn({ name: 'friend_DM_id' })

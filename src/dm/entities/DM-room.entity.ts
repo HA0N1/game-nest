@@ -1,5 +1,5 @@
 import { Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Friendship } from './friendship.entity';
+import { Friendship } from 'src/friend/entities/friendship.entity';
 import { FriendDMs } from './friendDMs.entity';
 
 @Entity({ name: 'dm_room' })

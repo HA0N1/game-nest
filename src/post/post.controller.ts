@@ -32,12 +32,12 @@ export class PostController {
   @Post()
   async create(
     @UserInfo() user: User,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
     @Body() createPostDto: CreatePostDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
     const result = await this.postService.create(user.id, createPostDto, file);
-    return res.redirect('/post');
+    return result;
   }
 
   // 게시글 전체 조회
@@ -63,6 +63,9 @@ export class PostController {
   findOne(@Param('postId') id: string) {
     return this.postService.findOne(+id);
   }
+  @Get(':postId/page')
+  @Render('postDetail.hbs')
+  async detailpage() {}
 
   // 게시글 수정
   @UseInterceptors(FileInterceptor('file'))
@@ -70,21 +73,21 @@ export class PostController {
   @Patch(':postId')
   async update(
     @UserInfo() user: User,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
     @Param('postId') id: string,
     @Body() updatePostDto: UpdatePostDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
     const result = await this.postService.update(user.id, +id, updatePostDto, file);
-    return res.redirect('/post');
+    return result;
   }
 
   // 게시글 삭제
   @UseGuards(AuthGuard('jwt'))
   @Delete(':postId')
-  async remove(@UserInfo() user: User, @Res() res: Response, @Param('postId') id: string) {
+  async remove(@UserInfo() user: User, @Res({ passthrough: true }) res: Response, @Param('postId') id: string) {
     const result = await this.postService.remove(user.id, +id);
-    return res.redirect('/post');
+    return result;
   }
 
   //게시글 좋아요

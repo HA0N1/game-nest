@@ -1,13 +1,10 @@
 const postList = document.getElementById('post-list');
 
-window.onload = function () {
-  fetchPosts();
-};
-
 async function fetchPosts() {
   try {
     const response = await fetch('http://localhost:3000/post');
     const data = await response.json();
+
     displayPosts(data);
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -72,7 +69,7 @@ function displayPosts(posts) {
     removeButton.addEventListener('click', () => remove(post.id));
     postItem.appendChild(removeButton);
 
-    postList.appendChild(postItem);
+    postList.prepend(postItem);
   });
 }
 
@@ -88,31 +85,23 @@ async function create(event) {
     return;
   }
   try {
-    const response = await fetch('/post', {
+    const token = window.localStorage.getItem('authorization');
+    const response = await fetch('http://localhost:3000/post', {
       method: 'POST',
       body: formData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     const data = await response.json();
-    fetchPosts();
+    window.location.reload();
   } catch (error) {
     console.error('Error creating post:', error);
   }
 }
 
 async function update(postId) {
-  const response = await fetch(`/post/${postId}`);
-  const postData = await response.json();
-
-  if (!postData.user || !postData.user.id) {
-    console.error('Error deleting post: Invalid user data');
-    return;
-  }
-
-  const postuserId = postData.user.id;
-  if (postuserId !== logInUserId) {
-    alert('게시글을 삭제할 수 있는 권한이 없습니다.');
-    return;
-  }
+  const response = await fetch(`http://localhost:3000/post/${postId}`);
 
   const updatedTitle = prompt('수정할 제목을 입력하세요:');
   const updatedContent = prompt('수정할 내용을 입력하세요:');
@@ -122,14 +111,16 @@ async function update(postId) {
 
   if (updatedTitle && updatedContent && updatedCategory) {
     try {
-      const updateresponse = await fetch(`/post/${postId}`, {
+      const token = window.localStorage.getItem('authorization');
+      const updateresponse = await fetch(`http://localhost:3000/post/${postId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+
         body: JSON.stringify({ title: updatedTitle, content: updatedContent, category: updatedCategory }),
       });
 
       const data = await updateresponse.json();
-      // window.location.reload();
+      window.location.reload();
     } catch (error) {
       console.error('Error updating post:', error);
     }
@@ -139,29 +130,21 @@ async function update(postId) {
 }
 
 async function remove(postId) {
-  const logInUserId = 1; //나중에 수정예정 지금은 유저id값을 1로 설정해놓음
+  const logInUserId = window.localStorage.getItem('authorization');
   try {
-    const response = await fetch(`/post/${postId}`);
-    const postData = await response.json();
-
-    if (!postData.user || !postData.user.id) {
-      console.error('Error deleting post: Invalid user data');
-      return;
-    }
-
-    const postuserId = postData.user.id;
-    if (postuserId !== logInUserId) {
-      alert('게시글을 삭제할 수 있는 권한이 없습니다.');
-      return;
-    }
+    const response = await fetch(`http://localhost:3000/post/${postId}`);
 
     const confirmDelete = confirm('정말로 이 게시글을 삭제하시겠습니까?');
     if (confirmDelete) {
-      const deleteResponse = await fetch(`/post/${postId}`, {
+      const deleteResponse = await fetch(`http://localhost:3000/post/${postId}?userId=${logInUserId}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${logInUserId}`,
+        },
       });
+
       const data = await deleteResponse.json();
-      // window.location.reload();
+      window.location.reload();
     }
   } catch (error) {
     console.error('Error deleting post:', error);
@@ -172,8 +155,12 @@ async function like(postId, posts) {
   try {
     // 좋아요 상태에 따라 적절한 요청 보내기
     const post = posts.find(post => post.id === postId);
-    const response = await fetch(`/post/${postId}/like`, {
+    const token = window.localStorage.getItem('authorization');
+    const response = await fetch(`http://localhost:3000/post/${postId}/like`, {
       method: post.likes ? 'DELETE' : 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     // UI 업데이트를 위해 페이지 다시 로드
@@ -182,3 +169,4 @@ async function like(postId, posts) {
     console.error('Error toggling like:', error);
   }
 }
+fetchPosts();

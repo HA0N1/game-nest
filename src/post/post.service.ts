@@ -85,7 +85,7 @@ export class PostService {
 
   //게시글 수정
   async update(userId: number, id: number, updatePostDto: UpdatePostDto, file: Express.Multer.File) {
-    const post = await this.postRepository.findOne({ where: { id }, relations: ['file'] });
+    const post = await this.postRepository.findOne({ where: { id }, relations: ['file', 'user'] });
     if (!post) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
@@ -118,7 +118,7 @@ export class PostService {
 
   //게시글 삭제
   async remove(userId: number, id: number) {
-    const post = await this.postRepository.findOne({ where: { id } });
+    const post = await this.postRepository.findOne({ where: { id }, relations: ['user'] });
     if (!post) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
@@ -138,8 +138,8 @@ export class PostService {
       throw new NotFoundException('사용자 또는 게시물을 찾을 수 없습니다.');
     }
 
-    const alreadyLiked = user.like.some(likePost => likePost.id === id);
-    if (alreadyLiked) {
+    const alreadyLikedPosts = await this.likeRepository.findOne({ where: { user: { id: userId }, post: { id } } });
+    if (alreadyLikedPosts) {
       throw new BadRequestException('이미 좋아요를 누른 게시글입니다.');
     }
 
@@ -161,16 +161,18 @@ export class PostService {
       throw new NotFoundException('사용자 또는 게시물을 찾을 수 없습니다.');
     }
 
-    const likedPostIndex = user.like.findIndex(likedPost => likedPost.id === id);
-    if (likedPostIndex === -1) {
+    const likePost = await this.likeRepository.findOne({ where: { user: { id: userId }, post: { id } } });
+    if (!likePost) {
       throw new BadRequestException('좋아요를 취소할 게시글을 찾을 수 없습니다.');
     }
 
-    user.like.splice(likedPostIndex, 1);
     await this.userRepository.save(user);
 
-    post.likes--;
+    if (post.likes > 0) {
+      post.likes--;
+    }
     await this.postRepository.save(post);
+    await this.likeRepository.remove(likePost);
 
     return { message: '게시글에 대한 좋아요를 취소했습니다.' };
   }

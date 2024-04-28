@@ -8,7 +8,7 @@
   <body>
     <h1>게임 커뮤니티</h1>
 
-    <form id='post-form' onsubmit='create(event)' action='/post' method='POST' enctype='multipart/form-data'>
+    <form id='post-form' action='/post' method='POST' enctype='multipart/form-data'>
       <input type='text' id='title' name='title' placeholder='제목' />
       <textarea id='content' name='content' placeholder='내용'></textarea>
       <select id='category' name='category'>

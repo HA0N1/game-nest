@@ -41,8 +41,12 @@ export class FriendController {
   /* 친구 수락 */
   @UseGuards(AuthGuard('jwt'))
   @Patch('accept')
-  async accept(@UserInfo() user: User, @Query() id: number) {
-    return await this.friendService.accept(user, id);
+  async accept(@UserInfo() user: User, @Query() id: object) {
+    const valueId = Object.values(id);
+    const justId = valueId.join('');
+    const intId = parseInt(justId);
+
+    return await this.friendService.accept(user, intId);
   }
 
   /* 친구 삭제 */
