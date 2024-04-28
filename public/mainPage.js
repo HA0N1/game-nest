@@ -19,7 +19,7 @@ window.onload = function () {
 };
 
 function checkLoginStatus(){
-  fetch('http://chuncik.store:3000/user/checkLogin',{
+  fetch('http://chunsik.store:3000/user/checkLogin',{
         method:'GET',
       })
     .then(res => {
@@ -55,31 +55,31 @@ function showLoggedOutUI() {
 
 function goSignup(event) {
   console.log('회원 가입');
-  window.location.href = 'http://chuncik.store:3000/user/sign-up';
+  window.location.href = 'http://chunsik.store:3000/user/sign-up';
 }
 
 async function goLogin(event) {
   console.log('로그인');
-  window.location.href = 'http://chuncik.store:3000/user/login';
+  window.location.href = 'http://chunsik.store:3000/user/login';
   }
 
   function goChannel(event) {
     console.log('채널 입장');
-    window.location.href = 'http://chuncik.store:3000/channel/list';
+    window.location.href = 'http://chunsik.store:3000/channel/list';
   }
 
 function goDM(event) {  
   console.log('dm 입장');
-  window.location.href = 'http://chuncik.store:3000/dm';
+  window.location.href = 'http://chunsik.store:3000/dm';
 }
 
 function goProgile(event){
     console.log('프로필 이동');
-    window.location.href = 'http://chuncik.store:3000/user/userinfo'
+    window.location.href = 'http://chunsik.store:3000/user/userinfo'
   }
 
 
 function goPost(event) {
   console.log('커뮤니티 이동');
-  window.location.href = 'http://localhost:3000/post/page';
+  window.location.href = 'http://chunsik.store:3000/post/page';
 }
