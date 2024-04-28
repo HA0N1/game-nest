@@ -8,10 +8,8 @@ import { SocketIoAdapter } from './utils/socketio-adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
   app.useWebSocketAdapter(new SocketIoAdapter(app));
-  /**
-   * useStaticAssets : 정적 파일 경로 지정
-   */
 
   app.enableCors({
     origin: 'http://chuncik.store:3000',
@@ -20,11 +18,11 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
     credentials: true,
   });
-  app.useStaticAssets('public');
   app.use(cookieParser());
 
   app.useStaticAssets(join(process.cwd(), 'public'));
   app.setBaseViewsDir(join(process.cwd(), 'views'));
+
   app.set('view engine', 'hbs');
 
   await app.listen(3000);

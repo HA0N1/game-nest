@@ -122,7 +122,6 @@ socket.on('receiveUserInfo', userInfo=>{
   const dmRoomName = dmRoom.querySelector('h3').textContent;
   const dmRoomId = dmRoomName.split(' ')[1];
 
-//TODO: 아래 fetch에서 400 bad request
 fetch(`http://chuncik.store:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`,{
   method:'POST',
   body: data,
@@ -265,7 +264,6 @@ fetch(`http://chuncik.store:3000/dm/history/${dmRoomId}`,{
 
 socket.on('userDisconnected',()=>{
  alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.')
-
   window.location.href='http://chuncik.store:3000/user/login'
-
 })
+

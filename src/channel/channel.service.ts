@@ -65,7 +65,12 @@ export class ChannelService {
   }
   // 채널 전체 조회
   async findAllChannel() {
-    const channels = await this.channelRepository.find();
+    // TypeORM의 QueryBuilder를 사용하여 채널 정보와 함께 게임 정보도 함께 조회
+    const channels = await this.channelRepository
+      .createQueryBuilder('channel')
+      .leftJoinAndSelect('channel.game', 'game') // "game"은 channel 엔티티 내에서 게임 엔티티와 연결된 필드명이어야 합니다.
+      .getMany();
+
     return channels;
   }
   // 채널 상세 조회
@@ -216,8 +221,10 @@ export class ChannelService {
     return chat;
   }
 
-  async findAllChat() {
-    const chat = await this.channelChatRepository.find();
+  async findAllChat(id: number) {
+    const chat = await this.channelChatRepository.find({
+      where: { channel: { id } },
+    });
     return chat;
   }
 

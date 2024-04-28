@@ -3,13 +3,14 @@ import os from 'os';
 
 export const config = {
   listenIP: '0.0.0.0',
-  listenPort: 3016,
+  listenPort: 3000,
   mediasoup: {
-    // 실행중인 워커 수
+    // 실행중인 워커 수 내 컴은 최대 6개
     numWorkers: Object.keys(os.cpus()).length,
     worker: {
-      rtcMinPort: 10000,
-      rtcMaxPort: 10110,
+      // * EC2 올릴 때 포트 범위 보안 그룹 열기
+      rtcMinPort: 2000,
+      rtcMaxPort: 2100,
       logLevel: 'debug',
       logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'] as WorkerLogTag[],
     },
@@ -36,10 +37,16 @@ export const config = {
     WebRtcTransport: {
       listenIps: [
         {
-          ip: '0.0.0.0',
-          announcedIp: '127.0.0.1',
+          ip: '127.0.0.1',
+          announcedIp: null,
         },
-      ] as TransportListenInfo[], // 동일한 호스트에 있는 두 라우터 연결을 위한 정보 수신
+      ], // 동일한 호스트에 있는 두 라우터 연결을 위한 정보 수신
+      maxIncomingBitrate: 1500000,
+      initialAvailableOutgoingBitrate: 1000000,
     },
   },
+  // stun: {
+  //   hostname: 'stun:stun.l.google.com',
+  //   port: 19302,
+  // },
 } as const;

@@ -5,6 +5,7 @@ const dm = document.getElementById('dm');
 const profile = document.getElementById('profile');
 const post = document.getElementById('post');
 
+
 signUp.addEventListener('click', goSignup);
 login.addEventListener('click', goLogin);
 channel.addEventListener('click', goChannel);

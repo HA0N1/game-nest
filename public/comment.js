@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error('댓글 작성 중 오류 발생:', error);
       });
   });
+
   async function loadComments() {
     fetch(`http://chuncik.store:3000/games/${gameId}/comment`)
       .then(response => response.json())

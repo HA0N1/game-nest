@@ -27,7 +27,6 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { RedisAppModule } from './redis/redis.module';
 import { FriendModule } from './friend/friend.module';
-import { RoomGateway } from './event/event.gateway';
 import { EventModule } from './event/event.module';
 import { AppController } from './app.controller';
 import { DmEventModule } from './event/dmEvent.module';
