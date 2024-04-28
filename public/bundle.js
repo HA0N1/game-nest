@@ -16720,6 +16720,7 @@ const createSendTransport = async () => {
       try {
         socket.on('transport-connect', data => {
           const { dtlsParameters } = data;
+          console.log('producerTransport.on ~ dtlsParameters:', dtlsParameters);
           console.log('도착');
         });
 
@@ -16779,12 +16780,12 @@ const connectSendTransport = async () => {
     console.log('transport ended');
     // Close audio track
   });
+  console.log('createRecvTransport 만듦');
   createRecvTransport();
 };
 
 //! consumer
 const createRecvTransport = async () => {
-  console.log('오냐요');
   // Handle the response from the server to create Consumer Transport
   socket.on('createWebRtcTransport', async ({ consumer, params }) => {
     if (params.error) {
@@ -16794,14 +16795,19 @@ const createRecvTransport = async () => {
 
     consumerTransport = device.createRecvTransport(params);
     // ! 잘만들어짐
+    console.log('여기는 문제없지?');
 
     // consumer 연결
     consumerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+      console.log('여기가 잘돼야함');
       try {
-        await socket.emit('transport-recv-connect', { dtlsParameters });
+        socket.on('transport-recv-connect', data => {
+          const { consumerTransport } = data;
+          console.log('consumerTransport.on ~ data:', data);
+        });
 
-        // Notify that the parameters have been sent to the server
-        callback();
+        socket.emit('transport-recv-connect', { dtlsParameters });
+        // callback();
       } catch (error) {
         errback(error);
       }
@@ -16813,7 +16819,6 @@ const createRecvTransport = async () => {
 };
 
 const connectRecvTransport = async () => {
-  console.log('안녕', device.rtpCapabilities);
   // Emit the 'consume' event to the server with the RTP capabilities of the device
   await socket.emit('consume', { rtpCapabilities: device.rtpCapabilities, producerId }, async ({ params }) => {
     console.log('awaitsocket.emit ~ rtpCapabilities:', rtpCapabilities);
@@ -16823,6 +16828,7 @@ const connectRecvTransport = async () => {
       return;
     }
   });
+  console.log('안녕', rtpCapabilities);
 
   if (params.error) {
     console.log('Cannot Consume');

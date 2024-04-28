@@ -344,7 +344,9 @@ export class RoomGateway implements OnGatewayConnection {
     }
   }
   @SubscribeMessage('transport-connect')
-  async transportConnect(@MessageBody() { dtlsParameters }): Promise<void> {
+  async transportConnect(@MessageBody() data): Promise<void> {
+    const { dtlsParameters } = data;
+
     try {
       await producerTransport.connect({ dtlsParameters });
       console.log('producer 연결 성공');
@@ -380,6 +382,7 @@ export class RoomGateway implements OnGatewayConnection {
       await consumerTransport.connect({ dtlsParameters });
       console.log('RoomGateway ~ transportConsumer ~ consumerTransport:', consumerTransport);
       console.log('consumer연결 성공');
+      this.server.emit('transport-recv-connect', consumerTransport);
       // this.server.emit('transport-connect', { dtlsParameters });
     } catch (error) {
       console.error('consumer연결 실패2222:', error);
