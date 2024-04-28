@@ -155,7 +155,7 @@ export class DMService {
       file: filePath,
     });
 
-    return { filePath: filePath };
+    return { filePath: imageUrl };
   }
 
   /* 채팅 내역 보내기 */

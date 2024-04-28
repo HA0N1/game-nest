@@ -104,46 +104,56 @@ function handleDMSubmit(event) {
 
 function handleImageSubmit(event){
 event.preventDefault();
-const fileInputs = document.getElementById('inputFile');
-const ul = dmRoom.querySelector('#newChats');
-// console.log('file input: ',fileInputs);
-// const fileName = fileInputs[0].name;
-// console.log('file name: ',fileName);
-const file = fileInputs.files[0];
-console.log(file);
-const data = new FormData()
+socket.emit('userInfo');
 
-data.append('file', file);
+socket.on('receiveUserInfo', userInfo=>{
+  const userData = userInfo;
+  const userId = +userData.id;
+  
 
-const dmRoomName = dmRoom.querySelector('h3').textContent;
-const dmRoomId = dmRoomName.split(' ')[1];
+  const fileInputs = document.getElementById('inputFile');
+  const ul = dmRoom.querySelector('#newChats');
+
+  const file = fileInputs.files[0];
+  const data = new FormData();
+
+  data.append('filePath', file);
+
+  const dmRoomName = dmRoom.querySelector('h3').textContent;
+  const dmRoomId = dmRoomName.split(' ')[1];
 
 //TODO: 아래 fetch에서 400 bad request
-fetch(`http://localhost:3000/dm/file?dmRoomId=${dmRoomId}`,{
+fetch(`http://localhost:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`,{
   method:'POST',
-  headers:{
-    Authorization:`Bearer ${token}`
-},
   body: data,
   credentials:'include'
 }).then(res=>{
-  res.json();
+  return res.json();
 }).then(json=>{
-  console.log(json.filePath);
+  // path: "https://s3.ap-northeast-2.amazonaws.com/parksy-13-bucket1/9985c5eb-102d-4a89-be2b-327cf83d5959.png", object
+
+ const path = json.path
+const data = {value: path, dmRoomId: dmRoomId}
+socket.emit('sendImage', data);
+
 }).catch(err=>{
   console.error('이미지 채팅 진행 중의 오류: ', err)
 })
-
+})
 
 }
 
-function createElement(e, file){
-  const li = document.createElement('li')
-const img = document.createElement('img');
-img.setAttribute('src', e.target.result);
-img.setAttribute('data-file', file.name);
-li.appendChild(img);
+function sendImageDM(path){
+  const ul = dmRoom.querySelector('#newChats');
+  const li = document.createElement('li');
+  const img = document.createElement('img');
+  img.setAttribute('src', path);
+  img.setAttribute('alt','채팅 이미지');
+  li.appendChild(img);
+  ul.appendChild(li);
 
+  const input = document.querySelector('#inputFile')
+  input.value = '';
 }
 
 function showRooms() {
@@ -218,6 +228,19 @@ socket.on('message', data => {
 
   prepare()
 });
+
+//TODO: sendImageDM 함수 명 수정해야하는지 확인하기
+socket.on('messageWithImage', data=>{
+  const { nickname, content } = data;
+  
+  sendImageDM(`${content}`);
+
+  function prepare(){
+    window.setTimeout(scrollUI, 50)
+  }
+
+  prepare()
+})
 
 function history(dmRoomId){
 fetch(`http://localhost:3000/dm/history/${dmRoomId}`,{
