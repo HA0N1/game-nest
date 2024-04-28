@@ -50,6 +50,30 @@ ul li {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* 링크 기본 상태 */
+a:link {
+  color: black;
+  text-decoration: none;
+}
+
+/* 방문한 링크 상태 */
+a:visited {
+  color: black;
+  text-decoration: none;
+}
+
+/* 링크에 마우스를 올렸을 때 */
+a:hover {
+  color: red;
+  text-decoration: underline;
+}
+
+/* 링크 선택 상태 (클릭 중) */
+a:active {
+  color: black;
+  text-decoration: none;
+}
+
 /* 스크린샷 이미지 스타일 */
 img {
   max-width: 100%;

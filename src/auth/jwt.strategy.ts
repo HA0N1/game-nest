@@ -25,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     try {
       const currentTime = Math.floor(Date.now() / 1000);
       if (!payload) {
-        fetch('http://chuncik.store:3000/user/refreshToken', {
+        fetch('http://localhost:3000/user/refreshToken', {
           method: 'POST',
         })
           .then(res => {
@@ -51,7 +51,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       console.log('***********', err);
 
       if (err instanceof TokenExpiredError) {
-        fetch('http://chuncik.store:3000/user/refreshToken', {
+        fetch('http://localhost:3000/user/refreshToken', {
           method: 'POST',
         })
           .then(res => {
