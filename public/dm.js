@@ -229,9 +229,9 @@ socket.on('message', data => {
   prepare()
 });
 
-//TODO: sendImageDM 함수 명 수정해야하는지 확인하기
+
 socket.on('messageWithImage', data=>{
-  const { nickname, content } = data;
+  const { content } = data;
   
   sendImageDM(`${content}`);
 
@@ -249,9 +249,17 @@ fetch(`http://localhost:3000/dm/history/${dmRoomId}`,{
 }
 })
 .then(res=>res.json())
-.then(data=>data.map(chat=>{
-  sendDM(`${chat.us_nickname}:${chat.chat_content} ${chat.chat_created_at}`)
-}))
+.then(data=>
+  data.map(chat=>{
+    console.log(chat);
+    // 파일 path가 null인 경우: text가 있음
+    if(!chat.file_path){
+      sendDM(`${chat.us_nickname}:${chat.chat_content} ${chat.chat_created_at}`)
+    }else{
+      sendImageDM(`${chat.file_path}`);
+    }
+})
+)
 .catch(err=> console.error('채팅 내역 가져오는데 오류 발생: ', err));
 }
 
