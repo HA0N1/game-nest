@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import {
   ConnectedSocket,
   MessageBody,
@@ -46,28 +46,44 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.connectedClients[socket.id] = true;
 
-    const cookie = socket.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    const cookies = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookies, socket);
+    if (user === undefined) {
+      socket.emit('userDisconnected');
+      socket.disconnect();
+      return;
+    }
 
     this.clientNickname[socket.id] = user.nickname;
 
     console.log('dm connected!');
   }
 
-  async findUserByCookie(cookie: string) {
+  async findUserByCookie(cookies: string, socket: Socket) {
     // const cookie = socket.handshake.headers.cookie; 로 미리 받아와야함
+    const access = cookies.split(';')[0];
 
-    const token = cookie.split('=')[1];
-    const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
-    const user = await this.userService.findUserByEmail(payload.email);
+    const token = access.split('=')[1];
 
-    return user;
+    try {
+      const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET_KEY') });
+      const user = await this.userService.findUserByEmail(payload.email);
+
+      return user;
+    } catch (err) {
+      if (err instanceof TokenExpiredError) {
+        console.log('catch err');
+        socket.emit('userDisconnected');
+        socket.disconnect();
+
+        return;
+      }
+    }
   }
 
   async handleDisconnect(@ConnectedSocket() client: Socket) {
     delete this.connectedClients[client.id];
-    const cookie = client.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
 
     Object.keys(this.roomUsers).forEach(room => {
       const index = this.roomUsers[room]?.indexOf(this.clientNickname[client.id]);
@@ -92,9 +108,6 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(dmRoomId).emit('bye', { nickname: this.clientNickname[socket.id], dmRoomId });
     }
 
-    const cookie = socket.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
-
     this.server.to(dmRoomId).emit('bye', { nickname: this.clientNickname[socket.id], dmRoomId });
   }
 
@@ -103,11 +116,11 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (socket.rooms.has(dmRoomId)) {
       return;
     }
-    const cookie = socket.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    const cookies = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookies, socket);
 
     socket.join(dmRoomId);
-    console.log(`${user.nickname}의 벡엔드는 여기에 연결 중: ${dmRoomId}`);
 
     if (!this.roomUsers[dmRoomId]) {
       this.roomUsers[dmRoomId] = [];
@@ -120,8 +133,9 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('sendMessage')
   async handleMessage(@MessageBody() data, @ConnectedSocket() socket: Socket) {
-    const cookie = socket.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
+    const cookies = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookies, socket);
 
     const userId = user.id;
     const nickname = user.nickname;
@@ -131,18 +145,34 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.dmService.saveDM(dmRoomId, userId, content);
 
     socket.join(data.dmRoomId);
-    console.log('socket 백엔드: ', data.dmRoomId);
 
     const time = new Date();
 
     this.server.to(data.dmRoomId).emit('message', { dmRoomId, nickname, content, time });
   }
 
+  @SubscribeMessage('sendImage')
+  async handleImage(@MessageBody() data, @ConnectedSocket() socket: Socket) {
+    const cookies = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookies, socket);
+    const nickname = user.nickname;
+    const dmRoomId = +data.dmRoomId;
+
+    const content = data.value;
+
+    console.log('백엔드 sendImage test: ', content);
+
+    socket.join(data.dmRoomId);
+
+    this.server.to(data.dmRoomId).emit('messageWithImage', { dmRoomId, nickname, content });
+  }
+
   @SubscribeMessage('dmRoomList')
   async dmRoomList(socket: Socket) {
-    const cookie = socket.handshake.headers.cookie;
-    const user = await this.findUserByCookie(cookie);
-    const userId = user.id;
+    const cookies = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookies, socket);
 
     const dmRooms = await this.dmService.getDMRooms(user.id);
 
@@ -162,5 +192,15 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const dmRoomIds = await Promise.all(promiseDmRoomIds);
 
     socket.emit('rooms', dmRoomIds);
+  }
+
+  @SubscribeMessage('userInfo')
+  async userInfo(socket: Socket) {
+    const cookie = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookie, socket);
+
+    socket.emit('receiveUserInfo', user);
+    console.log('유저 정보 전송 완료');
   }
 }

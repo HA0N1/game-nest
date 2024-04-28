@@ -1,0 +1,37 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>게임 상세 정보</title>
+
+  </head>
+  <body>
+    <div class='game-detail'>
+      <img src='{{game.screen_shot}}' alt='게임 스크린샷' />
+      <p><strong>Id:</strong> {{game.id}}</p>
+      <h1>{{game.title}}</h1>
+      <p><strong>개발자:</strong>{{game.developer}}</p>
+      <p>{{game.description}}</p>
+      <p><strong>출시일:</strong> {{game.release_date}}</p>
+      <p><strong>메타크리틱점수:</strong> {{game.metacritic}}점 (0 = null입니다)</p>
+      <p><strong>장르:</strong> {{game.genreName}}</p>
+      <p><strong>지원언어:</strong> {{game.supported_languages}}</p>
+      <p><strong>PC 요구사항:</strong> {{game.pc_requirements}}</p>
+      <p><strong>배급사:</strong> {{game.publisher}}</p>
+    </div>
+    <div class='comment-section'>
+        <h2>댓글</h2>
+        <form id="commentForm">
+            <textarea id="commentContent" placeholder="댓글을 입력하세요"></textarea>
+            <button type="submit">댓글 작성</button>
+        </form>
+        <ul id="commentList"></ul>
+        <button class='edit' style='display: none;'>수정</button>
+        <button class='delete' style='display: none;'>삭제</button>
+    </div>
+    <a href='/main'>게임 목록으로 돌아가기</a>
+    </div>
+  </body>
+  <script src='/comment.js'></script>
+
+</html>

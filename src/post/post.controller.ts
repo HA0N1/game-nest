@@ -9,30 +9,48 @@ import {
   UploadedFile,
   UseInterceptors,
   Render,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Category } from './entities/type/post.type';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from '@nestjs/passport';
+import { UserInfo } from 'src/utils/decorators/userInfo';
+import { User } from 'src/user/entities/user.entity';
 
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
   // 게시글 작성
-  @UseInterceptors(FileInterceptor('filePath'))
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(@Body() createPostDto: CreatePostDto, @UploadedFile() file: Express.Multer.File) {
-    return this.postService.create(createPostDto, file);
+  async create(
+    @UserInfo() user: User,
+    @Res({ passthrough: true }) res: Response,
+    @Body() createPostDto: CreatePostDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const result = await this.postService.create(user.id, createPostDto, file);
+    return result;
   }
 
   // 게시글 전체 조회
   @Get()
-  @Render('post')
-  findAll() {
-    return this.postService.findAll();
+  async findAll() {
+    const posts = await this.postService.findAll();
+    return posts;
   }
+
+  //프론트엔드 전체 조회
+  @Get('/page')
+  @Render('post.hbs')
+  async page() {}
 
   // 게시글 카테고리별 조회
   @Get('category/:category')
@@ -45,29 +63,46 @@ export class PostController {
   findOne(@Param('postId') id: string) {
     return this.postService.findOne(+id);
   }
+  @Get(':postId/page')
+  @Render('postDetail.hbs')
+  async detailpage() {}
 
   // 게시글 수정
-  @UseInterceptors(FileInterceptor('filePath'))
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':postId')
-  update(@Param('postId') id: string, @Body() updatePostDto: UpdatePostDto, @UploadedFile() file: Express.Multer.File) {
-    return this.postService.update(+id, updatePostDto, file);
+  async update(
+    @UserInfo() user: User,
+    @Res({ passthrough: true }) res: Response,
+    @Param('postId') id: string,
+    @Body() updatePostDto: UpdatePostDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const result = await this.postService.update(user.id, +id, updatePostDto, file);
+    return result;
   }
 
   // 게시글 삭제
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':postId')
-  remove(@Param('postId') id: string) {
-    return this.postService.remove(+id);
+  async remove(@UserInfo() user: User, @Res({ passthrough: true }) res: Response, @Param('postId') id: string) {
+    const result = await this.postService.remove(user.id, +id);
+    return result;
   }
 
   //게시글 좋아요
+  @UseGuards(AuthGuard('jwt'))
   @Post(':postId/like')
-  async likePost(@Param('postId') id: number) {
-    return this.postService.likePost(id);
+  async likePost(@UserInfo() user: User, @Res() res: Response, @Param('postId') id: number) {
+    const result = await this.postService.likePost(user.id, id);
+    return res.redirect('/post');
   }
 
   //게시글 좋아요 삭제
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':postId/like')
-  async unlikePost(@Param('postId') id: number) {
-    return this.postService.unlikePost(id);
+  async unlikePost(@UserInfo() user: User, @Res() res: Response, @Param('postId') id: number) {
+    const result = await this.postService.unlikePost(user.id, id);
+    return res.redirect('/post');
   }
 }

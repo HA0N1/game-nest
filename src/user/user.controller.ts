@@ -25,6 +25,7 @@ import { UserInfo } from 'src/utils/decorators/userInfo';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { Request, Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ResizeImagePipe } from 'src/utils/resizeImage.pipe';
 
 @Controller('user')
 export class UserController {
@@ -68,11 +69,12 @@ export class UserController {
     const login = await this.userService.emailLogin(emailLoginDto);
 
     response.cookie('authorization', login.accessToken, {
-      domain: 'localhost',
+      domain: 'chuncik.store',
       maxAge: 3600000,
       httpOnly: true,
     });
-    return { message: login.message, accessToken: login.accessToken };
+    response.cookie('Refresh', login.refreshToken, { httpOnly: true });
+    return { message: login.message, accessToken: login.accessToken, refreshToken: login.refreshToken };
   }
 
   // 로그인했는지 안했는지 확인하기
@@ -87,8 +89,22 @@ export class UserController {
     }
   }
 
-  //TODO 토큰 관리 꼭 작성하기
   /* refreshtoken으로 accesstoken 재발급하기 */
+  @UseGuards(AuthGuard('refresh'))
+  @Post('refreshToken')
+  async newToken(@UserInfo() user: User, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    console.log('유저 컨트롤러: ', req);
+
+    const refreshToken = req.cookies.Refresh;
+    const email = user.email;
+
+    const tokens = await this.userService.newAccessToken(email, refreshToken);
+
+    res.cookie('authorization', tokens.accessToken, { httpOnly: true });
+    res.cookie('Refresh', tokens.refreshToken, { httpOnly: true });
+
+    return tokens;
+  }
 
   /* 프로필 조회 */
   @UseGuards(AuthGuard('jwt'))
@@ -115,7 +131,7 @@ export class UserController {
   @UseInterceptors(FileInterceptor('filePath'))
   @UseGuards(AuthGuard('jwt'))
   @Patch('image')
-  async addImage(@UserInfo() user: User, @UploadedFile() file: Express.Multer.File) {
+  async addImage(@UserInfo() user: User, @UploadedFile(new ResizeImagePipe()) file: Express.Multer.File) {
     return this.userService.addImage(user, file);
   }
 
@@ -166,6 +182,7 @@ export class UserController {
     const userId = user.id;
 
     res.cookie('authorization', '', { maxAge: 0 });
+    res.cookie('Refresh', '', { maxAge: 0 });
     return await this.userService.logout(userId);
   }
 

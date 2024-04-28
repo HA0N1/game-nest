@@ -25,9 +25,9 @@ export class GameController {
   @Get()
   async getGames(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(40), ParseIntPipe) limit: number,
   ) {
-    const maxLimit = 50;
+    const maxLimit = 40;
     if (limit > maxLimit) {
       throw new HttpException(`최대 검색 가능 개수는 ${maxLimit}개입니다.`, HttpStatus.BAD_REQUEST);
     }
@@ -85,13 +85,19 @@ export class GameController {
     return newGames;
   }
 
-  //신작 조회
+  // 신작 조회
   @Get('newGames')
   async getNewGames(@Query('page') page: string, @Query('limit') limit: string) {
     const pageNumber = parseInt(page, 10) || 1;
     const limitNumber = parseInt(limit, 10) || 10;
 
-    const newGames = this.gameService.getNewGames(pageNumber, limitNumber);
+    const newGames = await this.gameService.getNewGames(pageNumber, limitNumber);
     return newGames;
+  }
+
+  // 게임 검색
+  @Get('search')
+  async searchGames(@Query('query') query: string) {
+    return this.gameService.searchGames(query);
   }
 }

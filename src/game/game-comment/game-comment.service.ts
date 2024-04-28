@@ -95,7 +95,7 @@ export class GameCommentService {
       throw new NotFoundException('댓글을 찾을 수 없습니다.');
     }
     if (comment.user.id !== userId) {
-      throw new UnauthorizedException('댓글을 수정할 수 있는 권한이 없습니다.');
+      throw new UnauthorizedException('댓글을 삭제할 수 있는 권한이 없습니다.');
     }
 
     await this.gameCommentRepository.remove(comment);

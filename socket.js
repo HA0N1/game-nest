@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 
 // 서버 주소와 포트에 맞게 수정해주세요
-const socket = io('http://localhost:3000/channel/chat', {
+const socket = io('http://chuncik.store:3000/channel/chat', {
   reconnection: true,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,

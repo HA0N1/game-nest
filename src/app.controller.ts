@@ -1,17 +1,16 @@
-import { Controller, Get, Render, Res } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query, Render, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
+import { GameService } from './game/game.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly gameService: GameService,
+  ) {}
 
-  @Get('test')
-  @Render('test')
-  getTestPage() {
-    return { message: 'HI' };
-  }
   @Get('login')
   getLoginPage(@Res() res: Response) {
     const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
@@ -22,11 +21,53 @@ export class AppController {
   @Get('chat')
   getChatPage(@Res() res: Response) {
     const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
-    const filePath = join(process.cwd(), 'dist', staticPath, 'chat.html');
+    const filePath = join(process.cwd(), 'dist', staticPath, 'chat.hbs');
     res.sendFile(filePath);
   }
 
+  // @Get('channel')
+  // @Render('channel.hbs')
+  // getChannelPage() { // @Res() res: Response
+  //   const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
+  //   const filePath = join(process.cwd(), 'dist', staticPath, 'channel.hbs');
+  //   res.sendFile(filePath);
+  // }
+
   @Get('main')
   @Render('main.hbs')
-  getMainPage() {}
+  async getGames(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(40), ParseIntPipe) limit: number,
+  ) {
+    const result = await this.gameService.getGames(page, limit);
+    return { games: result.data };
+  }
+
+  @Get('game/:id')
+  @Render('game-detail.hbs')
+  async getGamePage(@Param('id') id: number) {
+    const game = await this.gameService.getGameDetail(id);
+
+    const idToGenreMapping = {
+      1: 'Adventure',
+      2: 'RPG',
+      3: 'Action',
+      4: 'Strategy',
+      5: 'Simulation',
+      6: 'Casual',
+      7: 'Indie',
+      8: 'Racing',
+      9: 'Sports',
+    };
+    const genreName = idToGenreMapping[game.genre_id];
+    const gameDetail = {
+      ...game,
+      genreName,
+    };
+    return { game: gameDetail };
+  }
+
+  @Get('popular')
+  @Render('popular-game.hbs')
+  async getPopularPage() {}
 }

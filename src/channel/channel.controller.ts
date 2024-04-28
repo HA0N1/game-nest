@@ -20,13 +20,20 @@ export class ChannelController {
     return { message: '채널 생성이 완료되었습니다.' };
   }
 
-  @Get()
-  @Render('chat')
-  findAllChannel() {
-    return this.channelService.findAllChannel();
+  @Get('/list')
+  @Render('channel.hbs')
+  async findAllList() {
+    const channels = await this.channelService.findAllChannel();
+    return { channels };
   }
 
-  @Get(':ichannelIdd')
+  // @Get()
+  // async findAllChannel() {
+  //   const channels = await this.channelService.findAllChannel();
+  //   return { channels };
+  // }
+
+  @Get(':channelId')
   findOneChannel(@Param('channelId') channelId: string) {
     return this.channelService.findOneChannel(+channelId);
   }
@@ -81,16 +88,10 @@ export class ChannelController {
     return { message: '성공적으로 삭제되었습니다.' };
   }
 
-  //* dms
-  // @UseGuards(AuthGuard('jwt'))
-  // @Post(':channelId/chat/:chatId')
-  // async sendMessage(
-  //   @Param('channelId') channelId: string,
-  //   @Param('chatId') chatId: string,
-  //   @UserInfo() user: User,
-  //   @Body() content: string,
-  // ) {
-  //   console.log('ChannelController ~ sendMessage ~ user:', user);
-  //   await this.channelService.sendMessage(+channelId, +chatId, user.id, content);
-  // }
+  @Get(':channelId/chat')
+  @Render('chat.hbs')
+  async findAllChat(@Param('channelId') id: string) {
+    const chat = await this.channelService.findAllChat(+id);
+    return { chat };
+  }
 }

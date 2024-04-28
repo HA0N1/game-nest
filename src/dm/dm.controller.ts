@@ -13,8 +13,12 @@ import {
   Query,
   HttpStatus,
   Render,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { DMService } from './dm.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ResizeImagePipe } from 'src/utils/resizeImage.pipe';
 
 @Controller('dm')
 export class DMController {
@@ -60,6 +64,20 @@ export class DMController {
     }
 
     return await this.dmService.deleteRoom(user.id, dmroomId);
+  }
+
+  @UseInterceptors(FileInterceptor('filePath'))
+  @Post('file')
+  async sendFile(
+    @UploadedFile(new ResizeImagePipe()) file: Express.Multer.File,
+    @Query('dmRoomId') dmRoomId: number,
+    @Query('userId') userId: number,
+  ) {
+    const path = await this.dmService.sendFile(dmRoomId, userId, file);
+    JSON.stringify(path);
+    console.log('controller test: ', path);
+
+    return { path: path.filePath };
   }
 
   @UseGuards(AuthGuard('jwt'))
