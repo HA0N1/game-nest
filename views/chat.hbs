@@ -65,11 +65,11 @@
 
     <script>
       document.getElementById('container').style.display = 'none'; const token = document.cookie; const socket =
-      io('http://localhost:3000/room', { auth: { token: token } }); let currentRoom = ''; function sendMessage() { if
-      (currentRoom === '') { alert('방을 선택해주세요'); return; } const message = $('#message').val(); const data = {
-      message, room: currentRoom }; $('#chat').append(`<div>나:${message}</div>`); socket.emit('message', data); return
-      false; } function createRoom() { const room = prompt('방이름을 입력해주세요.'); const chatType = prompt('채팅
-      타입을 입력해주세요.'); const maximumPeople = prompt('최대 인원을 입력해주세요.'); const channelId =
+      io('http://chuncik.store:3000/room', { auth: { token: token } }); let currentRoom = ''; function sendMessage() {
+      if (currentRoom === '') { alert('방을 선택해주세요'); return; } const message = $('#message').val(); const data =
+      { message, room: currentRoom }; $('#chat').append(`<div>나:${message}</div>`); socket.emit('message', data);
+      return false; } function createRoom() { const room = prompt('방이름을 입력해주세요.'); const chatType =
+      prompt('채팅 타입을 입력해주세요.'); const maximumPeople = prompt('최대 인원을 입력해주세요.'); const channelId =
       prompt('만드려는 채팅의 채널ID를 입력해주세요.'); socket.emit('createRoom', { room, createChatDto: { title: room,
       chatType, maximumPeople, channelId }, }); } function updateRoomList(rooms) { $('#rooms').empty();
       rooms.forEach(room => { $('#rooms').append(`<li>${room.title} <button
