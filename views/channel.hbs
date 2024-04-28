@@ -1,0 +1,54 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Channel Search</title>
+    <link rel="stylesheet" href="/channel.css" />
+
+  </head>
+  <body>
+    <div class="search-container">
+      <input type="text" id="channelSearch" placeholder="채널 이름이나 게임 이름을 입력해주세요." />
+      <select id="genreFilter">
+        <option value="">All Genres</option>
+        <option value="Action">Action</option>
+        <option value="RPG">RPG</option>
+        <option value="Adventure">Adventure</option>
+        <option value="Simulation">Simulation</option>
+        <option value="Casual">Casual</option>
+        <option value="Indie">Indie</option>
+        <option value="Sports">Sports</option>
+        <option value="Racing">Racing</option>
+      </select>
+    </div>
+    <button id="createChannelButton">채널 생성</button>
+
+    <ul class="channel-list" id="channelList">
+      {{#each channels}}
+        <li class="channel" data-genre="{{this.genre}}" data-id="{{this.id}}">
+          <a href="/channel/{{this.id}}/chat">
+            채널명:
+            {{this.name}}
+            <br />게임 이름:
+            {{this.game.title}}
+          </a>
+        </li>
+      {{/each}}
+    </ul>
+    <!-- 모달 창 구조 -->
+    <div id="channelCreationModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <input type="text" id="name" placeholder="채널이름" />
+        <input type="text" id="gameId" placeholder="게임 ID" />
+        <li>게임ID는 게임 상세페이지에서 확인 가능합니다</li>
+        <button id="createChannel">채널 생성</button>
+      </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+    <script src="/channel.js"></script>
+  </body>
+
+</html>

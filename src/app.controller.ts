@@ -11,11 +11,6 @@ export class AppController {
     private readonly gameService: GameService,
   ) {}
 
-  @Get('test')
-  @Render('test')
-  getTestPage() {
-    return { message: 'HI' };
-  }
   @Get('login')
   getLoginPage(@Res() res: Response) {
     const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
@@ -29,6 +24,14 @@ export class AppController {
     const filePath = join(process.cwd(), 'dist', staticPath, 'chat.hbs');
     res.sendFile(filePath);
   }
+
+  // @Get('channel')
+  // @Render('channel.hbs')
+  // getChannelPage() { // @Res() res: Response
+  //   const staticPath = this.configService.get<string>('STATIC_FILES_PATH');
+  //   const filePath = join(process.cwd(), 'dist', staticPath, 'channel.hbs');
+  //   res.sendFile(filePath);
+  // }
 
   @Get('main')
   @Render('main.hbs')

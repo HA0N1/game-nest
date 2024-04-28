@@ -8,12 +8,12 @@
   "bracketSpacing": true,
   "arrowParens": "avoid",
   "proseWrap": "never",
-  "endOfLine": "auto",
   "overrides": [
     {
       "files": "*.hbs",
       "options": {
-        "parser": "glimmer"
+        "parser": "glimmer",
+        "singleQuote": false
       }
     }
   ]

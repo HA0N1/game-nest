@@ -1,38 +1,44 @@
-<html lang='en'>
+<html lang="en">
   <head>
-    <meta charset='UTF-8' />
-    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FriendDM</title>
-    <link rel='stylesheet' href='/dm.css' />
+    <link rel="stylesheet" href="/dm.css" />
   </head>
   <body>
     <header>
       <h1>FriendDM</h1>
-      <div><button id='gotoMain'>메인 화면으로</button></div>
+      <div><button id="gotoMain">메인 화면으로</button></div>
     </header>
     <main>
-      <div id='dmMain'>
+      <div id="dmMain">
         <h4>DM Rooms:</h4>
-        <ul id='rooms'></ul>
+        <ul id="rooms"></ul>
       </div>
 
-      <div id='dmRoom'>
-        <button id='toMain'>전체 채팅창</button>
-        <div id='room'></div>
-        <ul id='exist'></ul>
-        <ul id='newChats'></ul>
-        <form id='message'>
-          <input placeholder='메세지를 입력하세요.' , type='text' />
+      <div id="dmRoom">
+        <button id="toMain">전체 채팅창</button>
+        <div id="room"></div>
+        <ul id="exist"></ul>
+        <ul id="newChats"></ul>
+        <form id="message">
+          <input placeholder="메세지를 입력하세요." , type="text" />
           <button>메세지 전송</button>
         </form>
-        <form id='image'>
-          <input type='file' id='inputFile' accept='image/*' />
-          <button id='fileBtn'>파일 전송</button>
+        <form id="image">
+          <input type="file" id="inputFile" accept="image/*" />
+          <button id="fileBtn">파일 전송</button>
         </form>
       </div>
     </main>
   </body>
+<<<<<<< HEAD
   <script src='http://code.jquery.com/jquery-3.6.1.slim.js'></script>
-  <script src='http://localhost:3000/socket.io/socket.io.js'></script>
+  <script src='http://chuncik.store:3000/socket.io/socket.io.js'></script>
   <script type='module' src='/dm.js'></script>
+=======
+  <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
+  <script src="http://chuncik.store:3000/socket.io/socket.io.js"></script>
+  <script type="module" src="/dm.js"></script>
+>>>>>>> 7653d7848af3cfe4a87ca05a6f66e5ef7ecf8409
 </html>
