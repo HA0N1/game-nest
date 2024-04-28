@@ -1,13 +1,11 @@
 const token = window.localStorage.getItem('authorization');
-const socket = io('http://localhost:3000/friendDM', { auth: { token: token } });
-const socket = io('http://localhost:3000/friendDM', { auth: { token: token } });
+const socket = io('http://chuncik.store:3000/friendDM', { auth: { token: token } });
 
 const dmMain = document.getElementById('dmMain');
 const rooms = dmMain.querySelector('#rooms');
 const dmRoom = document.getElementById('dmRoom');
 dmRoom.hidden = true;
 
-const gotoMain = document.getElementById('gotoMain');
 const gotoMain = document.getElementById('gotoMain');
 gotoMain.addEventListener('click', goBack);
 
@@ -16,7 +14,6 @@ messageForm.addEventListener('submit', handleDMSubmit);
 
 const fileBtn = document.getElementById('fileBtn');
 fileBtn.addEventListener('click', handleImageSubmit);
-fileBtn.addEventListener('click', handleImageSubmit);
 
 let currentRoom = '';
 
@@ -24,19 +21,14 @@ const toMain = document.getElementById('toMain');
 toMain.addEventListener('click', toDMRooms);
 
 window.onload = function () {
-window.onload = function () {
   checkLogin();
-};
 };
 
 function checkLogin() {
   if (!token) {
-function checkLogin() {
-  if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'http://localhost:3000/user/login';
-    window.location.href = 'http://localhost:3000/user/login';
+    window.location.href = 'http://chuncik.store:3000/user/login';
   }
 }
 
@@ -47,18 +39,14 @@ function toDMRooms() {
   const pastChats = newChats.querySelectorAll('li');
   const chatsArray = Array.from(pastChats);
   chatsArray.forEach(li => {
-  chatsArray.forEach(li => {
     li.remove();
-  });
   });
 
   const exist = document.getElementById('exist');
   const existTexts = exist.querySelectorAll('li');
   const existArray = Array.from(existTexts);
   existArray.forEach(li => {
-  existArray.forEach(li => {
     li.remove();
-  });
   });
 
   dmRoom.hidden = true;
@@ -74,7 +62,7 @@ function sayBye() {
 }
 
 function goBack() {
-  window.location.href = 'http://localhost:3000/main';
+  window.location.href = 'http://chuncik.store:3000/main';
 }
 
 socket.on('dmRoomsList', function () {
@@ -89,11 +77,9 @@ function sendDM(message) {
 }
 
 function showExist(message) {
-function showExist(message) {
   const ul = dmRoom.querySelector('#exist');
   const li = document.createElement('li');
   li.innerText = message;
-  ul.appendChild(li);
   ul.appendChild(li);
 }
 
@@ -102,7 +88,6 @@ function handleDMSubmit(event) {
   const input = dmRoom.querySelector('#message input');
   const value = input.value;
 
-  if (value.length === 0) {
   if (value.length === 0) {
     return;
   }
@@ -113,7 +98,6 @@ function handleDMSubmit(event) {
   const data = { value, dmRoomId };
 
   socket.emit('sendMessage', data);
-
 
   input.value = '';
 }
@@ -138,7 +122,7 @@ function handleImageSubmit(event) {
     const dmRoomId = dmRoomName.split(' ')[1];
 
     //TODO: 아래 fetch에서 400 bad request
-    fetch(`http://localhost:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`, {
+    fetch(`http://chuncik.store:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`, {
       method: 'POST',
       body: data,
       credentials: 'include',
@@ -200,10 +184,6 @@ $(document).on('click', '#rooms li button', function () {
   const liId = $(this).closest('li').attr('id');
   joinDM(liId);
 });
-$(document).on('click', '#rooms li button', function () {
-  const liId = $(this).closest('li').attr('id');
-  joinDM(liId);
-});
 
 function joinDM(room) {
   dmRoom.hidden = false;
@@ -217,15 +197,11 @@ function joinDM(room) {
 
   function prepare() {
     window.setTimeout(scrollUI, 50);
-  function prepare() {
-    window.setTimeout(scrollUI, 50);
   }
 
   prepare();
-  prepare();
 }
 
-function scrollUI() {
 function scrollUI() {
   const chatUI = document.querySelector('#newChats');
   chatUI.scrollTop = chatUI.scrollHeight;
@@ -240,7 +216,6 @@ socket.on('welcome', data => {
 socket.on('bye', data => {
   const { nickname, dmRoomId } = data;
 
-
   showExist(`${nickname}이 퇴장했습니다.`);
 });
 
@@ -249,8 +224,6 @@ socket.on('message', data => {
 
   sendDM(`${nickname}:${content} ${time}`);
 
-  function prepare() {
-    window.setTimeout(scrollUI, 50);
   function prepare() {
     window.setTimeout(scrollUI, 50);
   }
@@ -271,7 +244,7 @@ socket.on('messageWithImage', data => {
 });
 
 function history(dmRoomId) {
-  fetch(`http://localhost:3000/dm/history/${dmRoomId}`, {
+  fetch(`http://chuncik.store:3000/dm/history/${dmRoomId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -293,8 +266,6 @@ function history(dmRoomId) {
 
 socket.on('userDisconnected', () => {
   alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.');
-socket.on('userDisconnected', () => {
-  alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.');
 
-  window.location.href = 'http://localhost:3000/user/login';
+  window.location.href = 'http://chuncik.store:3000/user/login';
 });
