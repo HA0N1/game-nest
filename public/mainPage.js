@@ -3,12 +3,15 @@ const login = document.getElementById('login');
 const channel = document.getElementById('channel');
 const dm = document.getElementById('dm');
 const profile = document.getElementById('profile');
+const post = document.getElementById('post');
 
 signUp.addEventListener('click', goSignup);
 login.addEventListener('click', goLogin);
 channel.addEventListener('click', goChannel);
 dm.addEventListener('click', goDM);
 profile.addEventListener('click', goProgile);
+
+post.addEventListener('click', goPost);
 
 window.onload = function () {
   checkLoginStatus();
@@ -58,7 +61,6 @@ async function goLogin(event) {
   console.log('로그인');
   window.location.href = 'http://localhost:3000/user/login';
 }
-
 function goChannel(event) {
   console.log('채널 입장');
   window.location.href = 'http://localhost:3000/channel/list';
@@ -72,4 +74,9 @@ function goDM(event) {
 function goProgile(event) {
   console.log('프로필 이동');
   window.location.href = 'http://localhost:3000/user/userinfo';
+}
+
+function goPost(event) {
+  console.log('커뮤니티 이동');
+  window.location.href = 'http://localhost:3000/post/page';
 }

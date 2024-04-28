@@ -3,15 +3,15 @@ document.addEventListener('DOMContentLoaded', function () {
   const commentList = document.getElementById('commentList');
   const gameId = window.location.pathname.split('/')[2];
   const token = window.localStorage.getItem('authorization');
-  if (!token) {
-    alert('로그인이 필요합니다.');
-    return;
-  }
 
   commentForm.addEventListener('submit', function (e) {
     e.preventDefault();
     const content = document.getElementById('commentContent').value;
-
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      window.location.href = 'http://localhost:3000/user/login';
+      return;
+    }
     if (!content) {
       alert('댓글을 입력해주세요.');
       return;
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 
-  function loadComments() {
+  async function loadComments() {
     fetch(`http://localhost:3000/games/${gameId}/comment`)
       .then(response => response.json())
       .then(data => {
@@ -54,13 +54,19 @@ document.addEventListener('DOMContentLoaded', function () {
             if (newContent !== null && newContent !== '') {
               editComment(gameId, comment.id, newContent)
                 .then(() => loadComments())
-                .catch(error => alert.error('다른 사람의 댓글은 수정할 수 없습니다.', error));
+                .catch(error => {
+                  alert('다른 사람의 댓글은 수정할 수 없습니다.');
+                });
             }
           });
 
           const deleteButton = document.createElement('button');
           deleteButton.textContent = '삭제';
-          deleteButton.addEventListener('click', () => deleteComment(comment.id));
+          deleteButton.addEventListener('click', () => {
+            if (confirm('댓글을 삭제하시겠습니까?')) {
+              deleteComment(gameId, comment.id).then(() => loadComments());
+            }
+          });
 
           li.appendChild(editButton);
           li.appendChild(deleteButton);
@@ -71,28 +77,54 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   loadComments();
-});
 
-async function editComment(gameId, commentId, content) {
-  const token = localStorage.getItem('authorization');
+  async function editComment(gameId, commentId, content) {
+    const token = window.localStorage.getItem('authorization');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      window.location.href = 'http://localhost:3000/user/login';
+      return;
+    }
 
-  const response = await fetch(`http://localhost:3000/games/${gameId}/comment/${commentId}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ content }),
-  });
+    const response = await fetch(`http://localhost:3000/games/${gameId}/comment/${commentId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ content }),
+    });
 
-  if (!response.ok) {
-    if (response.status === 403) {
-      throw new Error('다른 사람의 댓글은 수정할 수 없습니다.');
-    } else {
-      throw new Error('댓글 수정에 실패했습니다.');
+    if (!response.ok) {
+      if (response.status === 403) {
+        throw new Error('다른 사람의 댓글은 수정할 수 없습니다.');
+      } else if (response.status === 401) {
+        throw new Error('로그인이 필요합니다.');
+      }
     }
   }
 
-  const data = await response.json();
-  return data;
-}
+  async function deleteComment(gameId, commentId) {
+    const token = window.localStorage.getItem('authorization');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      window.location.href = 'http://localhost:3000/user/login';
+      return;
+    }
+
+    const response = await fetch(`http://localhost:3000/games/${gameId}/comment/${commentId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        alert('다른 사람의 댓글은 삭제할 수 없습니다.');
+      }
+      return;
+    }
+    await loadComments();
+  }
+});

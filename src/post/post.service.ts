@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Post } from './entities/post.entity';
@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/type/post.type';
 import { AwsService } from 'src/aws/aws.service';
 import { File } from 'src/aws/entities/file.entity';
+import { User } from 'src/user/entities/user.entity';
+import { Like } from 'src/user/entities/like.entity';
 
 @Injectable()
 export class PostService {
@@ -15,10 +17,12 @@ export class PostService {
   constructor(
     private readonly awsService: AwsService,
     @InjectRepository(File) private fileRepository: Repository<File>,
+    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Like) private likeRepository: Repository<Like>,
   ) {}
 
   //게시글 작성
-  async create(createPostDto: CreatePostDto, file: Express.Multer.File) {
+  async create(userId: number, createPostDto: CreatePostDto, file: Express.Multer.File) {
     const { title, content, category } = createPostDto;
     if (!category) {
       throw new BadRequestException('카테고리를 입력해주세요.');
@@ -35,6 +39,7 @@ export class PostService {
         category,
         view_count: 0,
         file: filePath,
+        user: { id: userId },
       });
       return { message: '게시글이 생성되었습니다.', postimage };
     }
@@ -43,6 +48,7 @@ export class PostService {
       content,
       category,
       view_count: 0,
+      user: { id: userId },
     });
     return { message: '게시글이 생성되었습니다.', post };
   }
@@ -78,12 +84,14 @@ export class PostService {
   }
 
   //게시글 수정
-  async update(id: number, updatePostDto: UpdatePostDto, file: Express.Multer.File) {
-    const post = await this.postRepository.findOne({ where: { id }, relations: ['file'] });
+  async update(userId: number, id: number, updatePostDto: UpdatePostDto, file: Express.Multer.File) {
+    const post = await this.postRepository.findOne({ where: { id }, relations: ['file', 'user'] });
     if (!post) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
-    console.log(post);
+    if (post.user.id !== userId) {
+      throw new UnauthorizedException('게시글을 수정할 수 있는 권한이 없습니다.');
+    }
     const { title, content, category } = updatePostDto;
     post.title = title;
     post.content = content;
@@ -109,22 +117,34 @@ export class PostService {
   }
 
   //게시글 삭제
-  async remove(id: number) {
-    const post = await this.postRepository.findOne({ where: { id } });
+  async remove(userId: number, id: number) {
+    const post = await this.postRepository.findOne({ where: { id }, relations: ['user'] });
     if (!post) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
-
+    if (post.user.id !== userId) {
+      throw new UnauthorizedException('게시글을 삭제할 수 있는 권한이 없습니다.');
+    }
     await this.postRepository.remove(post);
     return { message: '게시글이 삭제되었습니다' };
   }
 
   //게시글 좋아요
-  async likePost(id: number) {
+  async likePost(userId: number, id: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['like'] });
     const post = await this.postRepository.findOne({ where: { id } });
-    if (!post) {
-      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+
+    if (!user || !post) {
+      throw new NotFoundException('사용자 또는 게시물을 찾을 수 없습니다.');
     }
+
+    const alreadyLikedPosts = await this.likeRepository.findOne({ where: { user: { id: userId }, post: { id } } });
+    if (alreadyLikedPosts) {
+      throw new BadRequestException('이미 좋아요를 누른 게시글입니다.');
+    }
+
+    const like = this.likeRepository.create({ user, post });
+    await this.likeRepository.save(like);
 
     post.likes++;
     await this.postRepository.save(post);
@@ -132,17 +152,27 @@ export class PostService {
     return { message: '게시글에 좋아요를 추가했습니다.' };
   }
 
-  //게시글 좋아요 삭제
-  async unlikePost(id: number) {
+  //게시글 좋아요 취소
+  async unlikePost(userId: number, id: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['like'] });
     const post = await this.postRepository.findOne({ where: { id } });
-    if (!post) {
-      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+
+    if (!user || !post) {
+      throw new NotFoundException('사용자 또는 게시물을 찾을 수 없습니다.');
     }
+
+    const likePost = await this.likeRepository.findOne({ where: { user: { id: userId }, post: { id } } });
+    if (!likePost) {
+      throw new BadRequestException('좋아요를 취소할 게시글을 찾을 수 없습니다.');
+    }
+
+    await this.userRepository.save(user);
 
     if (post.likes > 0) {
       post.likes--;
-      await this.postRepository.save(post);
     }
+    await this.postRepository.save(post);
+    await this.likeRepository.remove(likePost);
 
     return { message: '게시글에 대한 좋아요를 취소했습니다.' };
   }
