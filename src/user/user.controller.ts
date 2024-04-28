@@ -69,7 +69,6 @@ export class UserController {
     const login = await this.userService.emailLogin(emailLoginDto);
 
     response.cookie('authorization', login.accessToken, {
-      domain: 'chunsik.store',
       maxAge: 3600000,
       httpOnly: true,
     });
