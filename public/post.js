@@ -101,7 +101,7 @@ async function create(event) {
 }
 
 async function update(postId) {
-  const response = await fetch(`http://chunsik.store/post:3000/${postId}`);
+  const response = await fetch(`http://chunsik.store:3000/post/${postId}`);
 
   const updatedTitle = prompt('수정할 제목을 입력하세요:');
   const updatedContent = prompt('수정할 내용을 입력하세요:');
