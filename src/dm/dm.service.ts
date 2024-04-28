@@ -155,7 +155,7 @@ export class DMService {
       file: filePath,
     });
 
-    return { filePath: filePath };
+    return { filePath: imageUrl };
   }
 
   /* 채팅 내역 보내기 */
@@ -169,10 +169,11 @@ export class DMService {
     //TODO 디엠 내역 페이지네이션
     const dms = await this.friendDMsRepository
       .createQueryBuilder('chat')
-      .select(['us.nickname', 'chat.content', 'chat.createdAt'])
+      .select(['us.nickname', 'chat.content', 'file.file_path', 'chat.createdAt'])
       .where('room.id = :dmRoomId', { dmRoomId: dmRoomId })
       .leftJoin('chat.user', 'us')
       .leftJoin('chat.DMRoom', 'room')
+      .leftJoin('chat.file', 'file')
       .orderBy('chat.created_at', 'ASC')
       .take(take)
       .skip((page - 1) * take)

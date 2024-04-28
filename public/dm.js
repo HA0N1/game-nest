@@ -104,6 +104,7 @@ function handleDMSubmit(event) {
 
 function handleImageSubmit(event) {
   event.preventDefault();
+<<<<<<< HEAD
   const fileInputs = document.getElementById('inputFile');
   const ul = dmRoom.querySelector('#newChats');
   // console.log('file input: ',fileInputs);
@@ -144,6 +145,58 @@ function createElement(e, file) {
   img.setAttribute('src', e.target.result);
   img.setAttribute('data-file', file.name);
   li.appendChild(img);
+=======
+  socket.emit('userInfo');
+
+  socket.on('receiveUserInfo', userInfo => {
+    const userData = userInfo;
+    const userId = +userData.id;
+
+    const fileInputs = document.getElementById('inputFile');
+    const ul = dmRoom.querySelector('#newChats');
+
+    const file = fileInputs.files[0];
+    const data = new FormData();
+
+    data.append('filePath', file);
+
+    const dmRoomName = dmRoom.querySelector('h3').textContent;
+    const dmRoomId = dmRoomName.split(' ')[1];
+
+    //TODO: 아래 fetch에서 400 bad request
+    fetch(`http://localhost:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`, {
+      method: 'POST',
+      body: data,
+      credentials: 'include',
+    })
+      .then(res => {
+        return res.json();
+      })
+      .then(json => {
+        // path: "https://s3.ap-northeast-2.amazonaws.com/parksy-13-bucket1/9985c5eb-102d-4a89-be2b-327cf83d5959.png", object
+
+        const path = json.path;
+        const data = { value: path, dmRoomId: dmRoomId };
+        socket.emit('sendImage', data);
+      })
+      .catch(err => {
+        console.error('이미지 채팅 진행 중의 오류: ', err);
+      });
+  });
+}
+
+function sendImageDM(path) {
+  const ul = dmRoom.querySelector('#newChats');
+  const li = document.createElement('li');
+  const img = document.createElement('img');
+  img.setAttribute('src', path);
+  img.setAttribute('alt', '채팅 이미지');
+  li.appendChild(img);
+  ul.appendChild(li);
+
+  const input = document.querySelector('#inputFile');
+  input.value = '';
+>>>>>>> 9ab53e4e3d3e1e8e083dc28f2584a168e6d1a9ef
 }
 
 function showRooms() {
@@ -221,6 +274,21 @@ socket.on('message', data => {
   prepare();
 });
 
+<<<<<<< HEAD
+=======
+socket.on('messageWithImage', data => {
+  const { content } = data;
+
+  sendImageDM(`${content}`);
+
+  function prepare() {
+    window.setTimeout(scrollUI, 50);
+  }
+
+  prepare();
+});
+
+>>>>>>> 9ab53e4e3d3e1e8e083dc28f2584a168e6d1a9ef
 function history(dmRoomId) {
   fetch(`http://localhost:3000/dm/history/${dmRoomId}`, {
     headers: {
@@ -230,7 +298,17 @@ function history(dmRoomId) {
     .then(res => res.json())
     .then(data =>
       data.map(chat => {
+<<<<<<< HEAD
         sendDM(`${chat.us_nickname}:${chat.chat_content} ${chat.chat_created_at}`);
+=======
+        console.log(chat);
+        // 파일 path가 null인 경우: text가 있음
+        if (!chat.file_path) {
+          sendDM(`${chat.us_nickname}:${chat.chat_content} ${chat.chat_created_at}`);
+        } else {
+          sendImageDM(`${chat.file_path}`);
+        }
+>>>>>>> 9ab53e4e3d3e1e8e083dc28f2584a168e6d1a9ef
       }),
     )
     .catch(err => console.error('채팅 내역 가져오는데 오류 발생: ', err));

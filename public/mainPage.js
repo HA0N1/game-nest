@@ -14,12 +14,18 @@ window.onload = function () {
   checkLoginStatus();
 };
 
+<<<<<<< HEAD
 function checkLoginStatus() {
   fetch('http://localhost:3000/user/checkLogin', {
     method: 'GET',
   })
     .then(res => {
       return res.json();
+=======
+    function checkLoginStatus(){
+    fetch('http://chuncik.store:3000/user/checkLogin',{
+        method:'GET',
+>>>>>>> 9ab53e4e3d3e1e8e083dc28f2584a168e6d1a9ef
     })
     .then(json => {
       if (json.isLoggedIn) {
@@ -41,6 +47,7 @@ function showLoggedInUI() {
   document.getElementById('login').style.display = 'none';
 }
 
+<<<<<<< HEAD
 function showLoggedOutUI() {
   document.getElementById('logout').style.display = 'none';
   document.getElementById('profile').style.display = 'none';
@@ -53,6 +60,16 @@ function goSignup(event) {
   console.log('회원 가입');
   window.location.href = 'http://localhost:3000/user/sign-up';
 }
+=======
+    function goSignup(event) {
+      console.log('회원 가입');
+      window.location.href = 'http://chuncik.store:3000/user/sign-up';
+    }
+
+    async function goLogin(event) {
+      console.log('로그인');
+      window.location.href = 'http://chuncik.store:3000/user/login';
+>>>>>>> 9ab53e4e3d3e1e8e083dc28f2584a168e6d1a9ef
 
 async function goLogin(event) {
   console.log('로그인');
@@ -64,6 +81,7 @@ function goChannel(event) {
   window.location.href = 'http://localhost:3000/channel/list';
 }
 
+<<<<<<< HEAD
 function goDM(event) {
   console.log('dm 입장');
   window.location.href = 'http://localhost:3000/dm';
@@ -73,3 +91,14 @@ function goProgile(event) {
   console.log('프로필 이동');
   window.location.href = 'http://localhost:3000/user/userinfo';
 }
+=======
+    function goDM(event) {
+      console.log('dm 입장');
+      window.location.href = 'http://chuncik.store:3000/dm';
+    }
+
+    function goProgile(event){
+        console.log('프로필 이동');
+        window.location.href = 'http://chuncik.store:3000/user/userinfo'
+    }
+>>>>>>> 9ab53e4e3d3e1e8e083dc28f2584a168e6d1a9ef

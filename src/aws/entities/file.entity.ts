@@ -32,6 +32,6 @@ export class File {
   // @OneToMany(()=>ChannelDMs,channeldms=>channeldms.file)
   // channelDMs:ChannelDMs[]
 
-  @OneToMany(() => FriendDMs, friendms => friendms.file, { onDelete: 'CASCADE' })
+  @OneToMany(() => FriendDMs, friendms => friendms.file)
   friendms: FriendDMs[];
 }
