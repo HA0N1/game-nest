@@ -12,7 +12,7 @@ async function bootstrap() {
   app.useWebSocketAdapter(new SocketIoAdapter(app));
 
   app.enableCors({
-    origin: 'http://chuncik.store:3000',
+    origin: 'http://chunsik.store:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 204,

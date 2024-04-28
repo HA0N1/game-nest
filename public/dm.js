@@ -1,5 +1,5 @@
 const token = window.localStorage.getItem('authorization');
-const socket = io('http://chuncik.store:3000/friendDM',{ auth: { token: token } });
+const socket = io('http://chunsik.store:3000/friendDM',{ auth: { token: token } });
 
 const dmMain = document.getElementById('dmMain');
 const rooms = dmMain.querySelector('#rooms');
@@ -28,7 +28,7 @@ function checkLogin(){
   if(!token){
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href='http://chuncik.store:3000/user/login'
+    window.location.href='http://chunsik.store:3000/user/login'
   }
 }
 
@@ -62,7 +62,7 @@ function sayBye() {
 }
 
 function goBack() {
-  window.location.href = 'http://chuncik.store:3000/main';
+  window.location.href = 'http://chunsik.store:3000/main';
 }
 
 socket.on('dmRoomsList', function () {
@@ -122,7 +122,7 @@ socket.on('receiveUserInfo', userInfo=>{
   const dmRoomName = dmRoom.querySelector('h3').textContent;
   const dmRoomId = dmRoomName.split(' ')[1];
 
-fetch(`http://chuncik.store:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`,{
+fetch(`http://chunsik.store:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`,{
   method:'POST',
   body: data,
   credentials:'include'
@@ -242,7 +242,7 @@ socket.on('messageWithImage', data=>{
 })
 
 function history(dmRoomId){
-fetch(`http://chuncik.store:3000/dm/history/${dmRoomId}`,{
+fetch(`http://chunsik.store:3000/dm/history/${dmRoomId}`,{
   headers:{
     Authorization:`Bearer ${token}`
 }
@@ -264,6 +264,6 @@ fetch(`http://chuncik.store:3000/dm/history/${dmRoomId}`,{
 
 socket.on('userDisconnected',()=>{
  alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.')
-  window.location.href='http://chuncik.store:3000/user/login'
+  window.location.href='http://chunsik.store:3000/user/login'
 })
 
