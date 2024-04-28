@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 // document.getElementById('container').style.display = 'none';
 
 const token = document.cookie;
-const socket = io('http://localhost:3000/room', { auth: { token: token } });
+const socket = io('http://chuncik.store:3000/room', { auth: { token: token } });
 let currentRoom = '';
 
 // @ts-ignore

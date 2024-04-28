@@ -1,5 +1,5 @@
 const token = window.localStorage.getItem('authorization');
-const socket = io('http://localhost:3000/friendDM',{ auth: { token: token } });
+const socket = io('http://chuncik.store:3000/friendDM',{ auth: { token: token } });
 
 const dmMain = document.getElementById('dmMain');
 const rooms = dmMain.querySelector('#rooms');
