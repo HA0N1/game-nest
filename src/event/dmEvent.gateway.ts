@@ -152,7 +152,21 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('sendImage')
-  async handleImage(@ConnectedSocket() socket: Socket) {}
+  async handleImage(@MessageBody() data, @ConnectedSocket() socket: Socket) {
+    const cookies = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookies, socket);
+    const nickname = user.nickname;
+    const dmRoomId = +data.dmRoomId;
+
+    const content = data.value;
+
+    console.log('백엔드 sendImage test: ', content);
+
+    socket.join(data.dmRoomId);
+
+    this.server.to(data.dmRoomId).emit('messageWithImage', { dmRoomId, nickname, content });
+  }
 
   @SubscribeMessage('dmRoomList')
   async dmRoomList(socket: Socket) {
@@ -178,5 +192,15 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const dmRoomIds = await Promise.all(promiseDmRoomIds);
 
     socket.emit('rooms', dmRoomIds);
+  }
+
+  @SubscribeMessage('userInfo')
+  async userInfo(socket: Socket) {
+    const cookie = socket.handshake.headers.cookie;
+
+    const user = await this.findUserByCookie(cookie, socket);
+
+    socket.emit('receiveUserInfo', user);
+    console.log('유저 정보 전송 완료');
   }
 }

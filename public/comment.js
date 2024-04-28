@@ -2,6 +2,11 @@ document.addEventListener('DOMContentLoaded', function () {
   const commentForm = document.getElementById('commentForm');
   const commentList = document.getElementById('commentList');
   const gameId = window.location.pathname.split('/')[2];
+  const token = window.localStorage.getItem('authorization');
+  if (!token) {
+    alert('로그인이 필요합니다.');
+    return;
+  }
 
   commentForm.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -12,11 +17,11 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    fetch(`/${gameId}/comment`, {
+    fetch(`http://localhost:3000/games/${gameId}/comment`, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ content }),
     })
@@ -33,44 +38,61 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   function loadComments() {
-    fetch(`/${gameId}/comments`)
+    fetch(`http://localhost:3000/games/${gameId}/comment`)
       .then(response => response.json())
       .then(data => {
         commentList.innerHTML = '';
+
         data.forEach(comment => {
           const li = document.createElement('li');
           li.textContent = comment.content;
+
+          const editButton = document.createElement('button');
+          editButton.textContent = '수정';
+          editButton.addEventListener('click', () => {
+            const newContent = prompt('댓글을 수정하세요:', comment.content);
+            if (newContent !== null && newContent !== '') {
+              editComment(gameId, comment.id, newContent)
+                .then(() => loadComments())
+                .catch(error => alert.error('다른 사람의 댓글은 수정할 수 없습니다.', error));
+            }
+          });
+
+          const deleteButton = document.createElement('button');
+          deleteButton.textContent = '삭제';
+          deleteButton.addEventListener('click', () => deleteComment(comment.id));
+
+          li.appendChild(editButton);
+          li.appendChild(deleteButton);
+
           commentList.appendChild(li);
         });
-      })
-      .catch(error => {
-        console.error('댓글 목록 로딩 중 오류 발생:', error);
       });
   }
 
   loadComments();
 });
 
-async function updateComment(gameId, commentId, content) {
-  const token = localStorage.getItem('token');
+async function editComment(gameId, commentId, content) {
+  const token = localStorage.getItem('authorization');
 
-  try {
-    const response = await fetch(`/${gameId}/comment/${commentId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ content }),
-    });
+  const response = await fetch(`http://localhost:3000/games/${gameId}/comment/${commentId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ content }),
+  });
 
-    if (!response.ok) {
+  if (!response.ok) {
+    if (response.status === 403) {
+      throw new Error('다른 사람의 댓글은 수정할 수 없습니다.');
+    } else {
       throw new Error('댓글 수정에 실패했습니다.');
     }
-
-    const data = await response.json();
-    console.log('댓글이 수정되었습니다:', data);
-  } catch (error) {
-    console.error('댓글 수정 중 오류가 발생했습니다:', error);
   }
+
+  const data = await response.json();
+  return data;
 }

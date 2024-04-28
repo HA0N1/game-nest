@@ -67,14 +67,17 @@ export class DMController {
   }
 
   @UseInterceptors(FileInterceptor('filePath'))
-  @UseGuards(AuthGuard('jwt'))
   @Post('file')
   async sendFile(
-    @UserInfo() user: User,
     @UploadedFile(new ResizeImagePipe()) file: Express.Multer.File,
     @Query('dmRoomId') dmRoomId: number,
+    @Query('userId') userId: number,
   ) {
-    return await this.dmService.sendFile(dmRoomId, user.id, file);
+    const path = await this.dmService.sendFile(dmRoomId, userId, file);
+    JSON.stringify(path);
+    console.log('controller test: ', path);
+
+    return { path: path.filePath };
   }
 
   @UseGuards(AuthGuard('jwt'))

@@ -8,7 +8,7 @@ export class FriendDMs {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   content: string;
 
   @CreateDateColumn()
