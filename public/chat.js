@@ -37,17 +37,25 @@ const socket = io('/chat', { auth: { token: token } });
 
 let currentRoom = '';
 
+document.addEventListener('DOMContentLoaded', function () {
+  const currentUrl = window.location.href;
+  console.log('currentUrl:', currentUrl);
+
+  const urlParts = currentUrl.split('/');
+  const channelId = urlParts[urlParts.indexOf('channel') + 1];
+  console.log('channelId:', channelId);
+});
+
 function createRoomWithModal(event) {
   event.preventDefault(); // 폼 제출 기본 동작 방지
   const roomName = document.getElementById('roomName').value;
   const chatType = document.getElementById('chatType').value;
   const maximumPeople = document.getElementById('maximumPeople').value;
-  const channelId = document.getElementById('channelId').value;
 
   // 입력 값으로 채팅방 생성 로직
   socket.emit('createRoom', {
     room: roomName,
-    createChatDto: { title: roomName, chatType, maximumPeople, channelId },
+    createChatDto: { title: roomName, chatType, maximumPeople },
   });
 
   closeModal(); // 모달 창 닫기

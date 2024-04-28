@@ -21,7 +21,7 @@ import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import * as mediasoup from 'mediasoup';
 import { config } from 'media-soup/config';
-import { Router } from 'mediasoup/node/lib/types';
+import { ChannelMember } from 'src/channel/entities/channelMember.entity';
 
 /**
  * 게이트 웨이 설정
@@ -64,6 +64,8 @@ interface ScreenSharingData {
   room: string;
   stream: MediaStream;
 }
+
+let channelId;
 @WebSocketGateway({ namespace: 'chat' })
 export class RoomGateway implements OnGatewayConnection {
   constructor(
@@ -74,13 +76,16 @@ export class RoomGateway implements OnGatewayConnection {
 
     @InjectRepository(ChannelDMs)
     private DMsRepo: Repository<ChannelDMs>,
+    @InjectRepository(ChannelMember)
+    private MemberRepo: Repository<ChannelMember>,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
   rooms = [];
-  channelId = this.channelService.findAllChannel();
+
   @WebSocketServer() server: Server;
   nextMediasoupWorkerIdx = 0;
+
   async handleConnection(socket: Socket & { user: User }, data: any) {
     console.log(`connect: ${socket.id}`);
     const cookie = socket.handshake.headers.cookie;
@@ -98,8 +103,16 @@ export class RoomGateway implements OnGatewayConnection {
       socket.user = user;
       const userId = socket.user.id;
       await this.redis.set(`socketId:${socket.id}`, +userId);
-      // TODO: 브라우저에서 서버 연결 시 채널멤버 추가 해야 함
-      // await this.channelService.createMember(userId, channelId);
+      const refererUrl = socket.handshake.headers.referer;
+      const url = new URL(refererUrl);
+      const path = url.pathname;
+      const parts = path.split('/');
+      channelId = +parts[2];
+      const existingMember = await this.MemberRepo.findOne({ where: { userId } });
+      if (!existingMember) {
+        await this.channelService.createMember(userId, channelId);
+      }
+      console.log(channelId);
       return true;
     } catch (error) {
       throw new WsException(error.message);
@@ -127,16 +140,18 @@ export class RoomGateway implements OnGatewayConnection {
   // on // 수신
   // emit // 발신
   @SubscribeMessage('createRoom')
-  async handleMessage(socket: Socket & { user: User }, data: CreateRoomData) {
+  async handleMessage(socket: Socket & { user: User }, data) {
     const { room, createChatDto } = data;
-    const { title, chatType, channelId, maximumPeople } = createChatDto;
+    console.log('RoomGateway ~ handleMessage ~ data:', data);
+
+    const { title, chatType, maximumPeople } = createChatDto;
     try {
       const chat = await this.channelService.findOneChat(room);
       console.log('RoomGateway ~ handleMessage ~ chat:', chat);
       if (chat) throw new WsException('채팅방 이름이 중복되었습니다.');
       // 채널 서비스의 createChat 함수 호출
       await this.channelService.createChat(channelId, { title: room, chatType, maximumPeople });
-      const rooms = await this.channelService.findAllChat(1);
+      const rooms = await this.channelService.findAllChat(channelId);
 
       this.server.emit('rooms', rooms);
     } catch (error) {
@@ -178,7 +193,13 @@ export class RoomGateway implements OnGatewayConnection {
   @SubscribeMessage('requestRooms')
   async handleRequestRooms(socket: Socket) {
     try {
-      const rooms = await this.channelService.findAllChat(1);
+      const refererUrl = socket.handshake.headers.referer;
+      const url = new URL(refererUrl);
+      const path = url.pathname;
+      const parts = path.split('/');
+      const channelId = +parts[2];
+      const rooms = await this.channelService.findAllChat(channelId);
+      console.log('RoomGateway ~ handleRequestRooms ~ channelId:', channelId);
 
       this.server.emit('rooms', rooms);
     } catch (error) {
