@@ -14,12 +14,12 @@ document.getElementById('myModal').style.display = 'none';
 let device;
 let rtpCapabilities;
 let producerTransport;
-let consumerTransport = [];
+let consumerTransport;
 let audioProducer;
 let videoProducer;
 let producer;
 let consumer;
-
+let producerId;
 let params = {
   encoding: [
     { rid: 'r0', maxBitrate: 100000, scalabiltyMode: 'S1T3' },
@@ -32,7 +32,17 @@ let params = {
 };
 const token = window.localStorage.getItem('authorization');
 console.log('token:', token);
+window.onload = function () {
+  checkLogin();
+};
 
+function checkLogin() {
+  if (!token) {
+    socket.disconnect();
+    alert('로그인을 해야 할 수 있는 서비스입니다.');
+    window.location.href = 'http://localhost:3000/user/login';
+  }
+}
 const socket = io('/chat', { auth: { token: token } });
 
 let currentRoom = '';
@@ -195,11 +205,7 @@ const getLocalStream = () => {
 const createDevice = async () => {
   try {
     device = new mediasoupClient.Device();
-
-    // https://mediasoup.org/documentation/v3/mediasoup-client/api/#device-load
-    // Loads the device with RTP capabilities of the Router (server side)
     await device.load({
-      // see getRtpCapabilities() below
       routerRtpCapabilities: rtpCapabilities,
     });
 
@@ -211,7 +217,7 @@ const createDevice = async () => {
 };
 
 // ! LP = SendTransport 생성을 위한 Transport 생성
-const createSendTransport = () => {
+const createSendTransport = async () => {
   // Socket event listener for createWebRtcTransport response
   socket.on('createWebRtcTransport', ({ consumer, params }) => {
     if (params.error) {
@@ -220,17 +226,17 @@ const createSendTransport = () => {
     }
 
     producerTransport = device.createSendTransport(params);
-    console.log('socket.on ~ params:', params);
-    console.log('test1');
+
     //! 잘만들어짐
 
     producerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       try {
         socket.on('transport-connect', data => {
           const { dtlsParameters } = data;
+          console.log('도착');
         });
 
-        socket.emit('transport-connect', { dtlsParameters });
+        await socket.emit('transport-connect', { dtlsParameters });
         //LP 생성. Send transport
         callback();
       } catch (error) {
@@ -242,6 +248,7 @@ const createSendTransport = () => {
       try {
         socket.on('transport-produce', data => {
           const { id } = data;
+          producerId = id;
           callback({ id });
         });
 
@@ -255,26 +262,17 @@ const createSendTransport = () => {
         errback(error);
       }
     });
-
     connectSendTransport();
-    createRecvTransport();
   });
   socket.emit('createWebRtcTransport', { consumer: false });
 };
 
 const connectSendTransport = async () => {
-  try {
-    videoProducer = await producerTransport.produce(videoParams);
-    console.log('connectSendTransport ~ videoProducer:', videoProducer);
-  } catch (error) {
-    console.log(error);
-  }
-  try {
-    audioProducer = await producerTransport.produce(audioParams);
-    console.log('connectSendTransport ~ audioProducer:', audioProducer);
-  } catch (error) {
-    console.log(error);
-  }
+  videoProducer = await producerTransport.produce(videoParams);
+  console.log('connectSendTransport ~ videoProducer:', videoProducer);
+
+  audioProducer = await producerTransport.produce(audioParams);
+  console.log('connectSendTransport ~ audioProducer:', audioProducer);
 
   // track 닫기
   videoProducer.on('trackended', () => {
@@ -294,80 +292,72 @@ const connectSendTransport = async () => {
     console.log('transport ended');
     // Close audio track
   });
+  createRecvTransport();
 };
 
 //! consumer
 const createRecvTransport = async () => {
-  // 서버에게 Consumer Transport를 생성하도록 요청
-  socket.emit('joinVoiceRoom', { room });
-
-  await socket.on('createWebRtcTransport', ({ consumer, params }) => {
-    // 서버로부터 Consumer Transport 생성에 필요한 매개변수를 받음
+  console.log('오냐요');
+  // Handle the response from the server to create Consumer Transport
+  socket.on('createWebRtcTransport', async ({ consumer, params }) => {
     if (params.error) {
       console.log(params.error);
       return;
     }
 
-    console.log('params !!!!', params);
-    console.log('consumer !!!!', consumer);
-
-    console.log('awaitsocket.emit ~ consumerTransport111111:', consumerTransport);
-    // 서버의 Consumer Transport 매개변수를 기반으로 새로운 Consumer Transport를 생성
     consumerTransport = device.createRecvTransport(params);
-    console.log('awaitsocket.emit ~ consumerTransport222:', consumerTransport);
+    // ! 잘만들어짐
 
-    // Consumer Transport의 연결(connect) 이벤트 처리
+    // consumer 연결
     consumerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       try {
-        socket.on('transport-recv-connect', data => {
-          const { dtlsParameters } = data;
-        });
-
-        // 서버 측 Transport에 로컬 DTLS 매개변수를 신호로 전송
         await socket.emit('transport-recv-connect', { dtlsParameters });
 
-        // Transport에 매개변수가 전송되었음을 알림
+        // Notify that the parameters have been sent to the server
         callback();
       } catch (error) {
         errback(error);
       }
-      connectRecvTransport();
     });
+    connectRecvTransport();
   });
-  // 서버에서 RC 생성
+  // 서버에 consumerTransport 생성 요청
   socket.emit('createWebRtcTransport', { consumer: true });
 };
 
 const connectRecvTransport = async () => {
-  // for consumer, we need to tell the server first
-  // to create a consumer based on the rtpCapabilities and consume
-  // if the router can consume, it will send back a set of params as below
-  await socket.emit('consume', { rtpCapabilities: device.rtpCapabilities }, async ({ params }) => {
+  // Emit the 'consume' event to the server with the RTP capabilities of the device
+  await socket.emit('consume', { rtpCapabilities: device.rtpCapabilities, producerId }, async ({ params }) => {
+    console.log('awaitsocket.emit ~ rtpCapabilities:', rtpCapabilities);
+    console.log('awaitsocket.emit ~ params:', params);
     if (params.error) {
       console.log('Cannot Consume');
       return;
     }
-
-    console.log(params);
-    // then consume with the local consumer transport
-    // which creates a consumer
-    consumer = await consumerTransport.consume({
-      id: params.id,
-      producerId: params.producerId,
-      kind: params.kind,
-      rtpParameters: params.rtpParameters,
-    });
-
-    // destructure and retrieve the video track from the producer
-    const { track } = consumer;
-
-    remoteVideo.srcObject = new MediaStream([track]);
-
-    // the server consumer started with media paused
-    // so we need to inform the server to resume
-    socket.emit('consumer-resume');
   });
+  console.log('안녕', rtpCapabilities);
+
+  if (params.error) {
+    console.log('Cannot Consume');
+    return;
+  }
+
+  // Consume with the local consumer transport to create a consumer
+  consumer = await consumerTransport.consume({
+    id: params.id,
+    producerId: params.producerId,
+    kind: params.kind,
+    rtpParameters: params.rtpParameters,
+  });
+
+  // Retrieve the video track from the producer and set it to the remote video element
+  const { track } = consumer;
+  remoteVideo.srcObject = new MediaStream([track]);
+
+  // Inform the server to resume the consumer
+  socket.emit('consumer-resume');
 };
+
 if (adapter.browserDetails.browser === 'chrome' && adapter.browserDetails.version >= 107) {
   // See https://developer.chrome.com/docs/web-platform/screen-sharing-controls/
   document.getElementById('options').style.display = 'block';
@@ -376,7 +366,7 @@ if (adapter.browserDetails.browser === 'chrome' && adapter.browserDetails.versio
   // See https://blog.mozilla.org/webrtc/getdisplaymedia-now-available-in-adapter-js/
   adapter.browserShim.shimGetDisplayMedia(window, 'screen');
 }
-
+// 화면공유
 function screenShare() {
   const options = {
     audio: false,
@@ -401,7 +391,7 @@ if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
 function handleSuccess(stream) {
   // startButton.disabled = true;
   preferredDisplaySurface.disabled = true;
-  const video = document.querySelector('video');
+  const video = document.getElementById('screenShare');
   video.srcObject = stream;
 
   // demonstrates how to detect that the user has stopped
@@ -419,4 +409,4 @@ function handleSuccess(stream) {
 document.getElementById('screenShareBtn').addEventListener('click', screenShare);
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
 document.getElementById('remoteVideoOnBtn').addEventListener('click', createRecvTransport);
-document.getElementById('btnConnectRecvTransport').addEventListener('click', connectRecvTransport);
+// document.getElementById('btnConnectRecvTransport').addEventListener('click', connectRecvTransport);

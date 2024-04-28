@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    fetch(`http://localhost:3000/games/${gameId}/comment`, {
+    fetch(`http://chuncik.store:3000/games/${gameId}/comment`, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   function loadComments() {
-    fetch(`http://localhost:3000/games/${gameId}/comment`)
+    fetch(`http://chuncik.store:3000/games/${gameId}/comment`)
       .then(response => response.json())
       .then(data => {
         commentList.innerHTML = '';
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
 async function editComment(gameId, commentId, content) {
   const token = localStorage.getItem('authorization');
 
-  const response = await fetch(`http://localhost:3000/games/${gameId}/comment/${commentId}`, {
+  const response = await fetch(`http://chuncik.store:3000/games/${gameId}/comment/${commentId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

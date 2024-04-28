@@ -2,25 +2,6 @@
   width: 640px; /* 너비 설정 */
   height: 360px; /* 높이 설정 */
 }
-.sidebar h2 {
-  padding: 10px;
-  margin: 0;
-}
-
-.sidebar ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebar ul li {
-  padding: 10px;
-  cursor: pointer;
-}
-
-.sidebar ul li:hover {
-  background-color: #40444b;
-}
 
 .chatList {
   width: 250px;
@@ -50,7 +31,9 @@
 .chatList ul li:hover {
   background-color: #40444b;
 }
-
+#container {
+  margin-left: 260px;
+}
 #chatBox {
   margin-left: 260px;
   width: auto;

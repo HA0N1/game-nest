@@ -8,6 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const channelNameInput = document.getElementById('name');
   const gameIdInput = document.getElementById('gameId');
   const token = window.localStorage.getItem('authorization');
+
+  window.onload = function () {
+    checkLogin();
+  };
+
+  function checkLogin() {
+    if (!token) {
+      alert('로그인을 하셔야 이용할 수 있는 서비스입니다.');
+      window.location.href = 'http://localhost:3000/user/login';
+    }
+  }
   // Search functionality
   // Search functionality
   channelSearch.addEventListener('input', () => {
