@@ -9,7 +9,6 @@ document.getElementById('createRoomForm').addEventListener('submit', createRoomW
 
 const preferredDisplaySurface = document.getElementById('displaySurface');
 const startButton = document.getElementById('startButton');
-const screenShareBtn = document.getElementById('screenShareBtn');
 const remoteColum = document.querySelector('.remoteColum');
 document.getElementById('myModal').style.display = 'none';
 let device;
@@ -18,9 +17,8 @@ let producerTransport;
 let consumerTransport;
 let audioProducer;
 let videoProducer;
-let producer;
-let consumer;
 let producerId;
+let remoteVideo;
 let params = {
   encoding: [
     { rid: 'r0', maxBitrate: 100000, scalabiltyMode: 'S1T3' },
@@ -181,26 +179,20 @@ const streamSuccess = async stream => {
 };
 
 const getLocalStream = () => {
+  document.getElementById('localVideoOnBtn').style.display = 'none';
   console.log('연결');
-  navigator.getUserMedia(
-    {
+  navigator.mediaDevices
+    .getUserMedia({
       audio: true,
       video: {
-        width: {
-          min: 640,
-          max: 1920,
-        },
-        height: {
-          min: 400,
-          max: 1080,
-        },
+        width: 720,
+        height: 600,
       },
-    },
-    streamSuccess,
-    error => {
+    })
+    .then(streamSuccess)
+    .catch(error => {
       console.log(error.message);
-    },
-  );
+    });
 };
 
 const createDevice = async () => {
@@ -227,9 +219,6 @@ const createSendTransport = async () => {
     }
 
     producerTransport = device.createSendTransport(params);
-
-    console.log('producerTransport.on ~ producerTransport:', producerTransport);
-    //! 잘만들어짐
 
     producerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       try {
@@ -269,8 +258,6 @@ const createSendTransport = async () => {
 };
 
 const connectSendTransport = async () => {
-  //! 생성 잘됨
-
   audioProducer = await producerTransport.produce(audioParams);
   console.log('connectSendTransport ~ audioProducer:', audioProducer);
 
@@ -305,23 +292,17 @@ const createRecvTransport = async () => {
     }
 
     consumerTransport = device.createRecvTransport(params);
-    console.log('socket.on ~ consumerTransport:', consumerTransport);
-    console.log(',consumerTransport 잘만들어짐 305');
-    // ! 잘만들어짐
-    // consumer 연결
-    //? 아래부분 작동하지 않음
+
     consumerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
-      console.log('여기가 잘돼야함');
       try {
         socket.on('transport-recv-connect', async data => {
           const { dtlsParameters } = data;
-          console.log('consumerTransport.on ~ dtlsParameters:', dtlsParameters);
         });
+        await socket.emit('transport-recv-connect', { dtlsParameters });
         callback();
       } catch (error) {
         errback(error);
       }
-      await socket.emit('transport-recv-connect', { dtlsParameters });
     });
     connectRecvTransport();
   });
@@ -346,16 +327,16 @@ const connectRecvTransport = async () => {
     });
     const { track } = consumer;
     // remoteVideo.srcObject = new MediaStream([track]);
-    // 새로운 video 요소를 생성합니다.
-    const remoteVideo = document.createElement('video');
+    // 새로운 video 요소를 생성
+    remoteVideo = document.createElement('video');
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
-    remoteVideo.muted = false; // 원격 비디오이므로 음소거를 해제합니다. 필요에 따라 조정하세요.
+    remoteVideo.muted = false; // 원격 비디오이므로 음소거를 해제
 
-    // 생성한 video 요소에 스트림을 연결합니다.
+    // 생성한 video 요소에 스트림을 연결
     remoteVideo.srcObject = new MediaStream([track]);
 
-    // 생성한 video 요소를 remoteColum div에 추가합니다.
+    // 생성한 video 요소를 remoteColum div에 추가
     remoteColum.appendChild(remoteVideo);
     await socket.emit('consumer-resume');
   });
@@ -364,6 +345,35 @@ const connectRecvTransport = async () => {
 
   // await socket.emit('consumer-resume');
 };
+
+function videoOff() {
+  const localVideo = document.getElementById('localVideo');
+  const remoteVideo = document.getElementById('remoteVideo');
+
+  // localVideo와 remoteVideo가 존재하는지 확인
+  if (localVideo && remoteVideo) {
+    const stream1 = localVideo.srcObject;
+    const stream2 = remoteVideo.srcObject;
+
+    if (stream1) {
+      const tracks1 = stream1.getTracks();
+      tracks1.forEach(track1 => {
+        track1.stop();
+      });
+      localVideo.srcObject = null;
+    }
+
+    if (stream2) {
+      const tracks2 = stream2.getTracks();
+      tracks2.forEach(track2 => {
+        track2.stop();
+      });
+      remoteVideo.srcObject = null;
+    }
+  } else {
+    console.error('localVideo 또는 remoteVideo 요소를 찾을 수 없습니다.');
+  }
+}
 
 // 화면공유
 
@@ -414,4 +424,4 @@ function handleSuccess(stream) {
  * */
 document.getElementById('screenShareBtn').addEventListener('click', screenShare);
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
-// document.getElementById('btnConnectRecvTransport').addEventListener('click', connectRecvTransport);
+document.getElementById('localVideoOffBtn').addEventListener('click', videoOff);

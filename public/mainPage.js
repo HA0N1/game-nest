@@ -10,7 +10,6 @@ login.addEventListener('click', goLogin);
 channel.addEventListener('click', goChannel);
 dm.addEventListener('click', goDM);
 profile.addEventListener('click', goProgile);
-
 post.addEventListener('click', goPost);
 
 window.onload = function () {

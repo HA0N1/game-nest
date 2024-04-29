@@ -16,7 +16,28 @@
       <div id="profile"><button>프로필</button></div>
       <div id="dm"><button>친구와 채팅</button></div>
       <div id="post"><button>커뮤니티</button></div>
+
+      <div id="sorting">
+        <button id="popularButton">인기순</button>
+        <button id="genreButton">장르별</button>
+        <div id="genreSelect" style="display: none;">
+          <select id="genreDropdown">
+            <option value="Adventure">어드벤처</option>
+            <option value="RPG">RPG</option>
+            <option value="Action">액션</option>
+            <option value="Strategy">전략</option>
+            <option value="Simulation">시뮬레이션</option>
+            <option value="Casual">캐주얼</option>
+            <option value="Indie">인디</option>
+            <option value="Racing">레이싱</option>
+            <option value="Sports">스포츠</option>
+          </select>
+          <button id="genreSubmit">선택</button>
+        </div>
+
+      </div>
     </main>
+
     <h1>Game List</h1>
     <ul>
       {{#each games}}
@@ -30,5 +51,7 @@
   </body>
   <script src="/mainPage.js"></script>
   <script src="/logout.js"></script>
+  <script src="/popularGames.js"></script>
+  <script src="genreGames.js"></script>
 
 </html>

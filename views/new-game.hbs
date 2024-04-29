@@ -1,0 +1,40 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  </head>
+  <body>
+<div id='new-games'>
+        <h2>신작 게임</h2>
+        <button id='prev-button'>이전</button>
+        <button id='next-button'>다음</button>
+
+        </div>
+        {{#each newGames.data}}
+
+          <div class='game'>
+            <p>
+              <span class='title'>{{this.title}}</span>
+            </p>
+            <p><span class='release_date'>발매일: {{this.release_date}}</span></p>
+          <p><span class='price'>가격: {{this.price}}</span></p>
+          <img src='{{this.screen_shot}}' alt='{{this.title}}' />
+          </div>
+        {{/each}}
+
+        {{#if newGames.prevPage}}
+          <a href='?page={{newGames.prevPage}}'>이전</a>
+        {{/if}}
+
+        <span>현재 {{newGames.page}} 페이지 / 총 {{newGames.lastPage}} 페이지</span>
+
+        {{#if newGames.nextPage}}
+          <a href='?page={{newGames.nextPage}}'>다음</a>
+        {{/if}}='hangupButton'>Hang Up</button>
+    </div>
+
+    <script src='https://webrtc.github.io/adapter/adapter-latest.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js'></script>
+    <script type='module' src='/test.js'></script>
+  </body>
+</html>
