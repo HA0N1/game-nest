@@ -33,7 +33,40 @@
 }
 #container {
   margin-left: 260px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
+
+.localColum {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.remoteColum {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.localColum button {
+  margin: 10px;
+  padding: 8px 16px;
+  font-size: 14px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.localColum button:hover {
+  background-color: #45a049;
+}
+
+.localColum button i {
+  margin-right: 5px;
+}
+
 #chatBox {
   margin-left: 260px;
   width: auto;
