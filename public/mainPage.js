@@ -5,7 +5,6 @@ const dm = document.getElementById('dm');
 const profile = document.getElementById('profile');
 const post = document.getElementById('post');
 
-
 signUp.addEventListener('click', goSignup);
 login.addEventListener('click', goLogin);
 channel.addEventListener('click', goChannel);
@@ -18,10 +17,10 @@ window.onload = function () {
   checkLoginStatus();
 };
 
-function checkLoginStatus(){
-  fetch('http://chunsik.store:3000/user/checkLogin',{
-        method:'GET',
-      })
+function checkLoginStatus() {
+  fetch('http://chunsik.store:3000/user/checkLogin', {
+    method: 'GET',
+  })
     .then(res => {
       return res.json();
     })
@@ -61,23 +60,22 @@ function goSignup(event) {
 async function goLogin(event) {
   console.log('로그인');
   window.location.href = 'http://chunsik.store:3000/user/login';
-  }
+}
 
-  function goChannel(event) {
-    console.log('채널 입장');
-    window.location.href = 'http://chunsik.store:3000/channel/list';
-  }
+function goChannel(event) {
+  console.log('채널 입장');
+  window.location.href = 'http://chunsik.store:3000/channel/list';
+}
 
-function goDM(event) {  
+function goDM(event) {
   console.log('dm 입장');
   window.location.href = 'http://chunsik.store:3000/dm';
 }
 
-function goProgile(event){
-    console.log('프로필 이동');
-    window.location.href = 'http://chunsik.store:3000/user/userinfo'
-  }
-
+function goProgile(event) {
+  console.log('프로필 이동');
+  window.location.href = 'http://chunsik.store:3000/user/userinfo';
+}
 
 function goPost(event) {
   console.log('커뮤니티 이동');

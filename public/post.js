@@ -114,7 +114,10 @@ async function update(postId) {
       const token = window.localStorage.getItem('authorization');
       const updateresponse = await fetch(`http://chunsik.store:3000/post/${postId}`, {
         method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
 
         body: JSON.stringify({ title: updatedTitle, content: updatedContent, category: updatedCategory }),
       });
