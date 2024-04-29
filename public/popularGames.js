@@ -1,7 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const prevButton = document.getElementById('prev-button');
-  const nextButton = document.getElementById('next-button');
-
   const popularButton = document.getElementById('popularButton');
 
   popularButton.addEventListener('click', function () {
