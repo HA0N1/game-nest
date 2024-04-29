@@ -1,34 +1,34 @@
 const token = window.localStorage.getItem('authorization');
-const socket = io('http://chunsik.store:3000/friendDM',{ auth: { token: token } });
+const socket = io('http://chunsik.store:3000/friendDM', { auth: { token: token } });
 
 const dmMain = document.getElementById('dmMain');
 const rooms = dmMain.querySelector('#rooms');
 const dmRoom = document.getElementById('dmRoom');
 dmRoom.hidden = true;
 
-const gotoMain=document.getElementById('gotoMain');
+const gotoMain = document.getElementById('gotoMain');
 gotoMain.addEventListener('click', goBack);
 
 const messageForm = dmRoom.querySelector('#message');
 messageForm.addEventListener('submit', handleDMSubmit);
 
 const fileBtn = document.getElementById('fileBtn');
-fileBtn.addEventListener('click',handleImageSubmit)
+fileBtn.addEventListener('click', handleImageSubmit);
 
 let currentRoom = '';
 
 const toMain = document.getElementById('toMain');
 toMain.addEventListener('click', toDMRooms);
 
-window.onload = function(){
+window.onload = function () {
   checkLogin();
-}
+};
 
-function checkLogin(){
-  if(!token){
+function checkLogin() {
+  if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href='http://chunsik.store:3000/user/login'
+    window.location.href = 'http://chunsik.store:3000/user/login';
   }
 }
 
@@ -38,16 +38,16 @@ function toDMRooms() {
   const newChats = document.getElementById('newChats');
   const pastChats = newChats.querySelectorAll('li');
   const chatsArray = Array.from(pastChats);
-  chatsArray.forEach((li)=>{
+  chatsArray.forEach(li => {
     li.remove();
-  })
+  });
 
   const exist = document.getElementById('exist');
   const existTexts = exist.querySelectorAll('li');
   const existArray = Array.from(existTexts);
-  existArray.forEach((li)=>{
+  existArray.forEach(li => {
     li.remove();
-  })
+  });
 
   dmRoom.hidden = true;
   dmMain.hidden = false;
@@ -76,11 +76,11 @@ function sendDM(message) {
   ul.appendChild(li);
 }
 
-function showExist(message){
+function showExist(message) {
   const ul = dmRoom.querySelector('#exist');
   const li = document.createElement('li');
   li.innerText = message;
-  ul.appendChild(li)
+  ul.appendChild(li);
 }
 
 function handleDMSubmit(event) {
@@ -88,7 +88,7 @@ function handleDMSubmit(event) {
   const input = dmRoom.querySelector('#message input');
   const value = input.value;
 
-  if(value.length===0){
+  if (value.length === 0) {
     return;
   }
 
@@ -98,60 +98,60 @@ function handleDMSubmit(event) {
   const data = { value, dmRoomId };
 
   socket.emit('sendMessage', data);
-  
+
   input.value = '';
 }
 
-function handleImageSubmit(event){
-event.preventDefault();
-socket.emit('userInfo');
+function handleImageSubmit(event) {
+  event.preventDefault();
+  socket.emit('userInfo');
 
-socket.on('receiveUserInfo', userInfo=>{
-  const userData = userInfo;
-  const userId = +userData.id;
-  
+  socket.on('receiveUserInfo', userInfo => {
+    const userData = userInfo;
+    const userId = +userData.id;
 
-  const fileInputs = document.getElementById('inputFile');
-  const ul = dmRoom.querySelector('#newChats');
+    const fileInputs = document.getElementById('inputFile');
+    const ul = dmRoom.querySelector('#newChats');
 
-  const file = fileInputs.files[0];
-  const data = new FormData();
+    const file = fileInputs.files[0];
+    const data = new FormData();
 
-  data.append('filePath', file);
+    data.append('filePath', file);
 
-  const dmRoomName = dmRoom.querySelector('h3').textContent;
-  const dmRoomId = dmRoomName.split(' ')[1];
+    const dmRoomName = dmRoom.querySelector('h3').textContent;
+    const dmRoomId = dmRoomName.split(' ')[1];
 
-fetch(`http://chunsik.store:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`,{
-  method:'POST',
-  body: data,
-  credentials:'include'
-}).then(res=>{
-  return res.json();
-}).then(json=>{
-  // path: "https://s3.ap-northeast-2.amazonaws.com/parksy-13-bucket1/9985c5eb-102d-4a89-be2b-327cf83d5959.png", object
+    fetch(`http://chunsik.store:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`, {
+      method: 'POST',
+      body: data,
+      credentials: 'include',
+    })
+      .then(res => {
+        return res.json();
+      })
+      .then(json => {
+        // path: "https://s3.ap-northeast-2.amazonaws.com/parksy-13-bucket1/9985c5eb-102d-4a89-be2b-327cf83d5959.png", object
 
- const path = json.path
-const data = {value: path, dmRoomId: dmRoomId}
-socket.emit('sendImage', data);
-
-}).catch(err=>{
-  console.error('이미지 채팅 진행 중의 오류: ', err)
-})
-})
-
+        const path = json.path;
+        const data = { value: path, dmRoomId: dmRoomId };
+        socket.emit('sendImage', data);
+      })
+      .catch(err => {
+        console.error('이미지 채팅 진행 중의 오류: ', err);
+      });
+  });
 }
 
-function sendImageDM(path){
+function sendImageDM(path) {
   const ul = dmRoom.querySelector('#newChats');
   const li = document.createElement('li');
   const img = document.createElement('img');
   img.setAttribute('src', path);
-  img.setAttribute('alt','채팅 이미지');
+  img.setAttribute('alt', '채팅 이미지');
   li.appendChild(img);
   ul.appendChild(li);
 
-  const input = document.querySelector('#inputFile')
+  const input = document.querySelector('#inputFile');
   input.value = '';
 }
 
@@ -179,7 +179,10 @@ function updateRoomList(data) {
 
 showRooms();
 
-$(document).on('click','#rooms li button',function(){const liId=$(this).closest('li').attr('id'); joinDM(liId)})
+$(document).on('click', '#rooms li button', function () {
+  const liId = $(this).closest('li').attr('id');
+  joinDM(liId);
+});
 
 function joinDM(room) {
   dmRoom.hidden = false;
@@ -191,15 +194,14 @@ function joinDM(room) {
 
   history(+room);
 
-  function prepare(){
-    window.setTimeout(scrollUI, 50)
+  function prepare() {
+    window.setTimeout(scrollUI, 50);
   }
 
-  prepare()
- 
+  prepare();
 }
 
-function scrollUI(){
+function scrollUI() {
   const chatUI = document.querySelector('#newChats');
   chatUI.scrollTop = chatUI.scrollHeight;
 }
@@ -212,7 +214,7 @@ socket.on('welcome', data => {
 
 socket.on('bye', data => {
   const { nickname, dmRoomId } = data;
-  
+
   showExist(`${nickname}이 퇴장했습니다.`);
 });
 
@@ -221,49 +223,47 @@ socket.on('message', data => {
 
   sendDM(`${nickname}:${content} ${time}`);
 
-  function prepare(){
-    window.setTimeout(scrollUI, 50)
+  function prepare() {
+    window.setTimeout(scrollUI, 50);
   }
 
-  prepare()
+  prepare();
 });
 
-
-socket.on('messageWithImage', data=>{
+socket.on('messageWithImage', data => {
   const { content } = data;
-  
+
   sendImageDM(`${content}`);
 
-  function prepare(){
-    window.setTimeout(scrollUI, 50)
+  function prepare() {
+    window.setTimeout(scrollUI, 50);
   }
 
-  prepare()
-})
+  prepare();
+});
 
-function history(dmRoomId){
-fetch(`http://chunsik.store:3000/dm/history/${dmRoomId}`,{
-  headers:{
-    Authorization:`Bearer ${token}`
+function history(dmRoomId) {
+  fetch(`http://chunsik.store:3000/dm/history/${dmRoomId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then(res => res.json())
+    .then(data =>
+      data.map(chat => {
+        console.log(chat);
+        // 파일 path가 null인 경우: text가 있음
+        if (!chat.file_path) {
+          sendDM(`${chat.us_nickname}:${chat.chat_content} ${chat.chat_created_at}`);
+        } else {
+          sendImageDM(`${chat.file_path}`);
+        }
+      }),
+    )
+    .catch(err => console.error('채팅 내역 가져오는데 오류 발생: ', err));
 }
-})
-.then(res=>res.json())
-.then(data=>
-  data.map(chat=>{
-    console.log(chat);
-    // 파일 path가 null인 경우: text가 있음
-    if(!chat.file_path){
-      sendDM(`${chat.us_nickname}:${chat.chat_content} ${chat.chat_created_at}`)
-    }else{
-      sendImageDM(`${chat.file_path}`);
-    }
-})
-)
-.catch(err=> console.error('채팅 내역 가져오는데 오류 발생: ', err));
-}
 
-socket.on('userDisconnected',()=>{
- alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.')
-  window.location.href='http://chunsik.store:3000/user/login'
-})
-
+socket.on('userDisconnected', () => {
+  alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.');
+  window.location.href = 'http://chunsik.store:3000/user/login';
+});
