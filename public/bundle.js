@@ -1067,14 +1067,14 @@
                 return false;
               }
 
-              // Is webkit? http://stackoverflow.com/a/16459606/376773
+              // Is webkit? https://stackoverflow.com/a/16459606/376773
               // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
               return (
                 (typeof document !== 'undefined' &&
                   document.documentElement &&
                   document.documentElement.style &&
                   document.documentElement.style.WebkitAppearance) ||
-                // Is firebug? http://stackoverflow.com/a/398120/376773
+                // Is firebug? https://stackoverflow.com/a/398120/376773
                 (typeof window !== 'undefined' &&
                   window.console &&
                   (window.console.firebug || (window.console.exception && window.console.table))) ||
@@ -1631,7 +1631,7 @@
         // instead. This workaround will only be done in an interim period to allow
         // external clients to update their code.
         //
-        // http://crbug/webrtc/6337.
+        // https://crbug/webrtc/6337.
         const DefaultProfileLevelId = new ProfileLevelId(Profile.ConstrainedBaseline, Level.L3_1);
         /**
          * Class for matching bit patterns such as "x1xx0000" where 'x' is allowed to
@@ -14813,7 +14813,7 @@
           // Reduce codecs' RTCP feedback. Use Transport-CC if available, REMB otherwise.
           if (
             rtpParameters.headerExtensions.some(
-              ext => ext.uri === 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+              ext => ext.uri === 'https://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
             )
           ) {
             for (const codec of rtpParameters.codecs) {
@@ -14821,7 +14821,7 @@
             }
           } else if (
             rtpParameters.headerExtensions.some(
-              ext => ext.uri === 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+              ext => ext.uri === 'https://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
             )
           ) {
             for (const codec of rtpParameters.codecs) {
@@ -17685,7 +17685,7 @@
           if (!token) {
             socket.disconnect();
             alert('로그인을 해야 할 수 있는 서비스입니다.');
-            window.location.href = 'http://chunsik.store:3000/user/login';
+            window.location.href = 'https://chunsik.store:3000/user/login';
           }
         }
         const socket = io('/chat', { auth: { token: token } });
