@@ -18058,7 +18058,6 @@
          * */
         document.getElementById('screenShareBtn').addEventListener('click', screenShare);
         document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
-        document.getElementById('remoteVideoOnBtn').addEventListener('click', createRecvTransport);
         // document.getElementById('btnConnectRecvTransport').addEventListener('click', connectRecvTransport);
       },
       { 'mediasoup-client': 40 },
