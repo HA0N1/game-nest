@@ -19,8 +19,13 @@
       <div id="post"><button>커뮤니티</button></div>
 
       <div id="sorting">
+        <div id="search">
+          <input type="text" id="searchInput" placeholder="게임 검색..." />
+          <button id="searchButton">검색</button>
+        </div>
         <button id="popularButton">인기순</button>
         <button id="genreButton">장르별</button>
+        <button id="newButton">신작</button>
         <div id="genreSelect" style="display: none;">
           <select id="genreDropdown">
             <option value="Adventure">어드벤처</option>
@@ -40,7 +45,7 @@
     </main>
 
     <h1>Game List</h1>
-    <ul>
+    <ul id="gameList">
       {{#each games}}
         <li>
           <a href="/game/{{this.id}}">{{this.title}}
@@ -49,10 +54,15 @@
         </li>
       {{/each}}
     </ul>
+    <div id="searchResults">
+      <h2>검색 결과</h2>
+      <ul id="resultsList"></ul>
+    </div>
   </body>
   <script src="/mainPage.js"></script>
   <script src="/logout.js"></script>
   <script src="/popularGames.js"></script>
   <script src="genreGames.js"></script>
-
+  <script src="search.js"></script>
+  <script src="newGame.js"></script>
 </html>

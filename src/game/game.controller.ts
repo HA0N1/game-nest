@@ -38,12 +38,20 @@ export class GameController {
 
   // 신작 조회
   @Get('newGames')
-  async getNewGames(@Query('page') page: string, @Query('limit') limit: string) {
-    const pageNumber = parseInt(page, 10) || 1;
-    const limitNumber = parseInt(limit, 10) || 10;
+  async getNewGames(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    {
+      const maxLimit = 50;
 
-    const newGames = await this.gameService.getNewGames(pageNumber, limitNumber);
-    return newGames;
+      if (limit > maxLimit) {
+        throw new HttpException(`최대 검색 가능 개수는 ${maxLimit}개입니다.`, HttpStatus.BAD_REQUEST);
+      }
+
+      const newGames = await this.gameService.getNewGames(page, limit);
+      return newGames;
+    }
   }
 
   // 게임 목록 조회
