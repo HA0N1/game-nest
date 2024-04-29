@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const content = document.getElementById('commentContent').value;
     if (!token) {
       alert('로그인이 필요합니다.');
-      window.location.href = 'http://localhost:3000/user/login';
+      window.location.href = 'http://chunsik.store:3000/user/login';
       return;
     }
     if (!content) {
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    fetch(`http://localhost:3000/games/${gameId}/comment`, {
+    fetch(`http://chunsik.store:3000/games/${gameId}/comment`, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   async function loadComments() {
-    fetch(`http://localhost:3000/games/${gameId}/comment`)
+    fetch(`http://chunsik.store:3000/games/${gameId}/comment`)
       .then(response => response.json())
       .then(data => {
         commentList.innerHTML = '';
@@ -82,11 +82,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const token = window.localStorage.getItem('authorization');
     if (!token) {
       alert('로그인이 필요합니다.');
-      window.location.href = 'http://localhost:3000/user/login';
+      window.location.href = 'http://chunsik.store:3000/user/login';
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/games/${gameId}/comment/${commentId}`, {
+    const response = await fetch(`http://chunsik.store:3000/games/${gameId}/comment/${commentId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -108,11 +108,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const token = window.localStorage.getItem('authorization');
     if (!token) {
       alert('로그인이 필요합니다.');
-      window.location.href = 'http://localhost:3000/user/login';
+      window.location.href = 'http://chunsik.store:3000/user/login';
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/games/${gameId}/comment/${commentId}`, {
+    const response = await fetch(`http://chunsik.store:3000/games/${gameId}/comment/${commentId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,

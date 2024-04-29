@@ -407,7 +407,7 @@ export class RoomGateway implements OnGatewayConnection {
     const { rtpCapabilities, producerId } = data;
     try {
       if (router.canConsume({ producerId, rtpCapabilities })) {
-        const consumer = await consumerTransport.consume({
+        consumer = await consumerTransport.consume({
           producerId,
           rtpCapabilities,
           paused: true,

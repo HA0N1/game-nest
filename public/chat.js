@@ -10,6 +10,7 @@ document.getElementById('createRoomForm').addEventListener('submit', createRoomW
 const preferredDisplaySurface = document.getElementById('displaySurface');
 const startButton = document.getElementById('startButton');
 const screenShareBtn = document.getElementById('screenShareBtn');
+const remoteColum = document.querySelector('.remoteColum');
 document.getElementById('myModal').style.display = 'none';
 let device;
 let rtpCapabilities;
@@ -40,7 +41,7 @@ function checkLogin() {
   if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'http://localhost:3000/user/login';
+    window.location.href = 'http://chunsik.store:3000/user/login';
   }
 }
 const socket = io('/chat', { auth: { token: token } });
@@ -269,19 +270,12 @@ const createSendTransport = async () => {
 
 const connectSendTransport = async () => {
   //! 생성 잘됨
-  videoProducer = await producerTransport.produce(videoParams);
-  console.log('connectSendTransport ~ videoProducer:', videoProducer);
 
   audioProducer = await producerTransport.produce(audioParams);
   console.log('connectSendTransport ~ audioProducer:', audioProducer);
 
-  videoProducer.on('trackended', () => {
-    console.log('video track ended');
-  });
-
-  videoProducer.on('transportclose', () => {
-    console.log('video transport ended');
-  });
+  videoProducer = await producerTransport.produce(videoParams);
+  console.log('connectSendTransport ~ videoProducer:', videoProducer);
 
   audioProducer.on('trackended', () => {
     console.log('track ended');
@@ -290,6 +284,14 @@ const connectSendTransport = async () => {
   audioProducer.on('transportclose', () => {
     console.log('transport ended');
   });
+  videoProducer.on('trackended', () => {
+    console.log('video track ended');
+  });
+
+  videoProducer.on('transportclose', () => {
+    console.log('video transport ended');
+  });
+
   createRecvTransport();
 };
 
@@ -328,6 +330,7 @@ const createRecvTransport = async () => {
 };
 
 const connectRecvTransport = async () => {
+  let consumer;
   socket.on('consume', async ({ params }) => {
     console.log('socket.on ~ params:', params);
     if (params.error) {
@@ -341,14 +344,25 @@ const connectRecvTransport = async () => {
       kind: params.kind,
       rtpParameters: params.rtpParameters,
     });
+    const { track } = consumer;
+    // remoteVideo.srcObject = new MediaStream([track]);
+    // 새로운 video 요소를 생성합니다.
+    const remoteVideo = document.createElement('video');
+    remoteVideo.autoplay = true;
+    remoteVideo.playsInline = true;
+    remoteVideo.muted = false; // 원격 비디오이므로 음소거를 해제합니다. 필요에 따라 조정하세요.
+
+    // 생성한 video 요소에 스트림을 연결합니다.
+    remoteVideo.srcObject = new MediaStream([track]);
+
+    // 생성한 video 요소를 remoteColum div에 추가합니다.
+    remoteColum.appendChild(remoteVideo);
+    await socket.emit('consumer-resume');
   });
 
-  await socket.emit('consume', { rtpCapabilities: device.rtpCapabilities, producerId });
-  console.log('connectRecvTransport ~ consumer:', consumer);
-  const { track } = consumer;
-  remoteVideo.srcObject = new MediaStream([track]);
+  socket.emit('consume', { rtpCapabilities: device.rtpCapabilities, producerId });
 
-  await socket.emit('consumer-resume');
+  // await socket.emit('consumer-resume');
 };
 
 // 화면공유
