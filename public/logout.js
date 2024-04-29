@@ -1,7 +1,7 @@
 const token = window.localStorage.getItem('authorization');
 
 function logout() {
-  fetch('http://localhost:3000/user/logout', {
+  fetch('https://chunsik.store:3000/user/logout', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -13,7 +13,7 @@ function logout() {
 
         alert('로그아웃 성공');
 
-        window.location.href = 'http://localhost:3000/main';
+        window.location.href = 'https://chunsik.store:3000/main';
       } else {
         alert('로그아웃 실패');
       }

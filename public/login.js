@@ -1,7 +1,7 @@
 function login() {
   const email = $('#email').val();
   const password = $('#password').val();
-  fetch('http://localhost:3000/user/email', {
+  fetch('https://chunsik.store:3000/user/email', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ function login() {
       const token = json.accessToken;
       window.localStorage.setItem('authorization', token);
 
-      window.location.href = 'http://localhost:3000/main';
+      window.location.href = 'https://chunsik.store:3000/main';
     })
     .catch(error => console.error('Error:', error));
 }
