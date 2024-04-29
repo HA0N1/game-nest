@@ -1,48 +1,36 @@
-<html lang='en'>
+<html lang="en">
   <head>
-    <meta charset='UTF-8' />
-    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>인기순 게임 목록</title>
+    <link rel="stylesheet" href="/popular.css" />
   </head>
   <body>
-<div id='popular-games'>
-        <h2>인기 게임</h2>
-        <div>
+    <div id="popular-games">
+      <h2>인기 게임</h2>
+      <ul>
+        {{#each popularGames}}
 
-          <button id='prev-button'>이전</button>
-          <button id='next-button'>다음</button>
-
-        </div>
-        {{#each popularGames.data}}
-
-          <div class='game'>
+          <div class="game">
+            <img src="{{this.screen_shot}}" alt="{{this.title}}" />
             <p>
-              <span class='rank'>{{this.rank}}위</span>
-              <span class='title'>{{this.title}}</span>
+              <span class="rank">{{this.rank}}위</span>
+              <span class="title">{{this.title}}</span>
+              <span class="price">{{this.price}}</span>
+              <span class="change">{{this.change}}</span>
             </p>
-            <img src='{{this.screen_shot}}' alt='{{this.title}}' />
           </div>
         {{/each}}
-
-        {{#if popularGames.prevPage}}
-          <a href='?page={{popularGames.prevPage}}'>이전</a>
+      </ul>
+      <div class="pagination">
+        {{#if page}}
+          <a href="?page={{decrement page}}&limit={{limit}}">이전 페이지</a>
         {{/if}}
-
-        <span>현재 {{popularGames.page}} 페이지 / 총 {{popularGames.lastPage}} 페이지</span>
-
-        {{#if popularGames.nextPage}}
-          <a href='?page={{popularGames.nextPage}}'>다음</a>
+        <span>페이지 {{page}} / {{lastPage}}</span>
+        {{#if lastPage}}
+          <a href="?page={{increment page}}&limit={{limit}}">다음 페이지</a>
         {{/if}}
-
-      </div>n id='hangupButton'>Hang Up</button>
+      </div>
     </div>
-
-     <script>
-    const prevButton = document.getElementById('prev-button'); const nextButton =
-    document.getElementById('next-button'); let currentPage =
-    {{popularGames.page}}; prevButton.addEventListener('click', () => { currentPage--; if(currentPage < 1) currentPage =
-    1; moveToPage(currentPage); }); nextButton.addEventListener('click', () => { currentPage++; moveToPage(currentPage);
-    }); function moveToPage(page) { window.location.href = '/main?page=' + page; }
-  </script>
   </body>
 </html>
-
