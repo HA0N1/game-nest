@@ -158,7 +158,7 @@ export class ChannelService {
     const userIdAndChannelId = `${user.id}_${channelId}`;
     await this.redis.set(`randomKey:${uuid}`, userIdAndChannelId);
 
-    const url = `http://chunsik.store:3000/channel/accept?code=${uuid}`;
+    const url = `https://chunsik.store/channel/accept?code=${uuid}`;
 
     return url;
   }

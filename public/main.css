@@ -97,3 +97,30 @@ img {
     padding: 5px 10px;
   }
 }
+
+#searchResults {
+  padding: 20px;
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+#searchResults h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+#resultsList {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px;
+  list-style: none;
+  padding: 0;
+}
+
+#resultsList li {
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

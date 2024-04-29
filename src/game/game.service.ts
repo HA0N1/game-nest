@@ -227,7 +227,7 @@ export class GameService {
         const imageElement = item.querySelector('.col.search_capsule img');
         const screen_shot = imageElement.getAttribute('src');
         const release_date = item.querySelector('.search_released').textContent;
-        const price = item.querySelector('.discount_final_price').textContent;
+        const price = item.querySelector('.discount_final_price').textContent ?? '가격 정보 없음';
         return { title, release_date, price, screen_shot };
       });
     });
@@ -287,12 +287,11 @@ export class GameService {
       .select(['title', 'screen_shot', 'release_date', 'price'])
       .where('game.release_date > :oneWeekAgo', { oneWeekAgo })
       .andWhere('game.release_date < :now', { now })
-      .andWhere('game.developer IS NULL')
       .orderBy('game.release_date', 'DESC')
       .offset(offset)
       .take(limit)
       .getRawMany();
-
+    console.log('s1', newGames);
     return {
       data: newGames,
       page,
