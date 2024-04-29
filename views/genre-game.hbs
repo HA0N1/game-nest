@@ -1,40 +1,32 @@
-<html lang='en'>
+<html lang="en">
   <head>
-    <meta charset='UTF-8' />
-    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>게임 장르별 목록</title>
+    <link rel="stylesheet" href="/genre.css" />
   </head>
   <body>
-<div id='new-games'>
-        <h2>신작 게임</h2>
-        <button id='prev-button'>이전</button>
-        <button id='next-button'>다음</button>
-
-        </div>
-        {{#each newGames.data}}
-
-          <div class='game'>
-            <p>
-              <span class='title'>{{this.title}}</span>
-            </p>
-            <p><span class='release_date'>발매일: {{this.release_date}}</span></p>
-          <p><span class='price'>가격: {{this.price}}</span></p>
-          <img src='{{this.screen_shot}}' alt='{{this.title}}' />
-          </div>
+    <header>
+      <h1>{{data.genre}}</h1>
+    </header>
+    <main>
+      <ul>
+        {{#each data}}
+          <li>
+            <h2>{{this.title}}</h2>
+            <img src="{{this.screen_shot}}" alt="{{this.title}} 스크린샷" />
+          </li>
         {{/each}}
-
-        {{#if newGames.prevPage}}
-          <a href='?page={{newGames.prevPage}}'>이전</a>
+      </ul>
+      <div class="pagination">
+        {{#if page}}
+          <a href="?page={{decrement page}}&limit={{limit}}">이전 페이지</a>
         {{/if}}
-
-        <span>현재 {{newGames.page}} 페이지 / 총 {{newGames.lastPage}} 페이지</span>
-
-        {{#if newGames.nextPage}}
-          <a href='?page={{newGames.nextPage}}'>다음</a>
-        {{/if}}='hangupButton'>Hang Up</button>
-    </div>
-
-    <script src='https://webrtc.github.io/adapter/adapter-latest.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js'></script>
-    <script type='module' src='/test.js'></script>
+        <span>페이지 {{page}} / {{lastPage}}</span>
+        {{#if lastPage}}
+          <a href="?page={{increment page}}&limit={{limit}}">다음 페이지</a>
+        {{/if}}
+      </div>
+    </main>
   </body>
 </html>

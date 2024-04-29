@@ -21,6 +21,31 @@ export class GameController {
     return { message: '스팀 게임 정보가 저장되었습니다.' };
   }
 
+  // 인기순 조회
+  @Get('popularGames')
+  async getPopularGames(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    const maxLimit = 50;
+    if (limit > maxLimit) {
+      throw new HttpException(`최대 검색 가능 개수는 ${maxLimit}개입니다.`, HttpStatus.BAD_REQUEST);
+    }
+    const popularGames = await this.gameService.getPopularGames(page, limit);
+
+    return popularGames;
+  }
+
+  // 신작 조회
+  @Get('newGames')
+  async getNewGames(@Query('page') page: string, @Query('limit') limit: string) {
+    const pageNumber = parseInt(page, 10) || 1;
+    const limitNumber = parseInt(limit, 10) || 10;
+
+    const newGames = await this.gameService.getNewGames(pageNumber, limitNumber);
+    return newGames;
+  }
+
   // 게임 목록 조회
   @Get()
   async getGames(
@@ -66,32 +91,11 @@ export class GameController {
     return popularGames;
   }
 
-  // 인기순 조회
-  @Get('popularGames')
-  async getPopularGames(@Query('page') page: string, @Query('limit') limit: string) {
-    const pageNumber = parseInt(page, 10) || 1;
-    const limitNumber = parseInt(limit, 10) || 10;
-
-    const popularGames = await this.gameService.getPopularGames(pageNumber, limitNumber);
-
-    return popularGames;
-  }
-
   // 신작 저장
   @Get('saveNewGames')
   async saveNewGames() {
     const newGames = await this.gameService.saveNewGames();
 
-    return newGames;
-  }
-
-  // 신작 조회
-  @Get('newGames')
-  async getNewGames(@Query('page') page: string, @Query('limit') limit: string) {
-    const pageNumber = parseInt(page, 10) || 1;
-    const limitNumber = parseInt(limit, 10) || 10;
-
-    const newGames = await this.gameService.getNewGames(pageNumber, limitNumber);
     return newGames;
   }
 
