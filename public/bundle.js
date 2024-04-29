@@ -16505,6 +16505,7 @@ let consumerTransport;
 let audioProducer;
 let videoProducer;
 let producerId;
+let remoteVideo;
 let params = {
   encoding: [
     { rid: 'r0', maxBitrate: 100000, scalabiltyMode: 'S1T3' },
@@ -16525,7 +16526,7 @@ function checkLogin() {
   if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'http://localhost:3000/user/login';
+    window.location.href = 'https://chunsik.store:3000/user/login';
   }
 }
 const socket = io('/chat', { auth: { token: token } });
@@ -16814,7 +16815,7 @@ const connectRecvTransport = async () => {
     const { track } = consumer;
     // remoteVideo.srcObject = new MediaStream([track]);
     // 새로운 video 요소를 생성
-    const remoteVideo = document.createElement('video');
+    remoteVideo = document.createElement('video');
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
     remoteVideo.muted = false; // 원격 비디오이므로 음소거를 해제
@@ -16831,6 +16832,35 @@ const connectRecvTransport = async () => {
 
   // await socket.emit('consumer-resume');
 };
+
+function videoOff() {
+  const localVideo = document.getElementById('localVideo');
+  const remoteVideo = document.getElementById('remoteVideo');
+
+  // localVideo와 remoteVideo가 존재하는지 확인
+  if (localVideo && remoteVideo) {
+    const stream1 = localVideo.srcObject;
+    const stream2 = remoteVideo.srcObject;
+
+    if (stream1) {
+      const tracks1 = stream1.getTracks();
+      tracks1.forEach(track1 => {
+        track1.stop();
+      });
+      localVideo.srcObject = null;
+    }
+
+    if (stream2) {
+      const tracks2 = stream2.getTracks();
+      tracks2.forEach(track2 => {
+        track2.stop();
+      });
+      remoteVideo.srcObject = null;
+    }
+  } else {
+    console.error('localVideo 또는 remoteVideo 요소를 찾을 수 없습니다.');
+  }
+}
 
 // 화면공유
 
@@ -16875,17 +16905,6 @@ function handleSuccess(stream) {
     preferredDisplaySurface.disabled = false;
   });
 }
-
-// function videoOff() {
-//   localVideo = document.getElementById('localVideo');
-
-//   const stream = localVideo.srcObject;
-//   const tracks = stream.getTracks();
-//   tracks.forEach(track => {
-//     track.stop();
-//   });
-//   localVideo.srcObject = null;
-// }
 /**
  * 유저의 미디어 장비에 접근,
  * 오디오, 비디오 stream을 받고 서버에 Router rtpCapabilities 요청
