@@ -16,7 +16,7 @@ document.getElementById('checkEmail').addEventListener('click', function (event)
 });
 
 function gotoMain() {
-  window.location.href = 'http://localhost:3000/main';
+  window.location.href = 'http://chunsik.store:3000/main';
 }
 
 function checkEmail() {
@@ -25,7 +25,7 @@ function checkEmail() {
     alert('이메일을 입력해주세요.');
     window.location.href = window.location.href;
   } else {
-    fetch('http://localhost:3000/user/checkEmail', {
+    fetch('http://chunsik.store:3000/user/checkEmail', {
       method: 'Post',
       headers: {
         'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ function signUp() {
   // console.log(typeof email, typeof nickname, typeof password, typeof checkPw); // test1@gmail.com 123 123 213
   // console.log('checkbox: ', interestGenres, typeof interestGenres); //['3', '4'] object
 
-  fetch('http://localhost/user/create', {
+  fetch('http://chunsik.store:3000/user/create', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ function signUp() {
     .then(json => {
       alert(json.message);
 
-      window.location.href = 'http://localhost:3000/main';
+      window.location.href = 'http://chunsik.store:3000/main';
     })
     .catch(error => {
       if ((error.code = 409)) {
