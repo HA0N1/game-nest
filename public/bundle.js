@@ -16705,8 +16705,8 @@ const createDevice = async () => {
 
 // ! LP = SendTransport 생성을 위한 Transport 생성
 const createSendTransport = async () => {
-  // Socket event listener for createWebRtcTransport response
-  socket.on('createWebRtcTransport', ({ consumer, params }) => {
+  socket.on('createWebRtcTransport1', ({ consumer, params }) => {
+    console.log('createSendTransport transport');
     if (params.error) {
       console.log(params.error);
       return;
@@ -16714,18 +16714,16 @@ const createSendTransport = async () => {
 
     producerTransport = device.createSendTransport(params);
 
+    console.log('producerTransport.on ~ producerTransport:', producerTransport);
     //! 잘만들어짐
 
     producerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       try {
         socket.on('transport-connect', data => {
           const { dtlsParameters } = data;
-          console.log('producerTransport.on ~ dtlsParameters:', dtlsParameters);
-          console.log('도착');
         });
-
-        await socket.emit('transport-connect', { dtlsParameters });
         //LP 생성. Send transport
+        await socket.emit('transport-connect', { dtlsParameters });
         callback();
       } catch (error) {
         errback(error);
@@ -16750,67 +16748,65 @@ const createSendTransport = async () => {
         errback(error);
       }
     });
+
     connectSendTransport();
   });
   socket.emit('createWebRtcTransport', { consumer: false });
 };
 
 const connectSendTransport = async () => {
+  //! 생성 잘됨
   videoProducer = await producerTransport.produce(videoParams);
   console.log('connectSendTransport ~ videoProducer:', videoProducer);
 
   audioProducer = await producerTransport.produce(audioParams);
   console.log('connectSendTransport ~ audioProducer:', audioProducer);
 
-  // track 닫기
   videoProducer.on('trackended', () => {
     console.log('video track ended');
-    // Close video track
   });
 
   videoProducer.on('transportclose', () => {
     console.log('video transport ended');
-    // Close video track
   });
+
   audioProducer.on('trackended', () => {
     console.log('track ended');
   });
 
   audioProducer.on('transportclose', () => {
     console.log('transport ended');
-    // Close audio track
   });
-  console.log('createRecvTransport 만듦');
   createRecvTransport();
 };
 
 //! consumer
 const createRecvTransport = async () => {
-  // Handle the response from the server to create Consumer Transport
-  socket.on('createWebRtcTransport', async ({ consumer, params }) => {
+  socket.on('createWebRtcTransport2', async ({ consumer, params }) => {
+    console.log('createRecvTransport transport');
     if (params.error) {
       console.log(params.error);
       return;
     }
 
     consumerTransport = device.createRecvTransport(params);
+    console.log('socket.on ~ consumerTransport:', consumerTransport);
+    console.log(',consumerTransport 잘만들어짐 305');
     // ! 잘만들어짐
-    console.log('여기는 문제없지?');
-
     // consumer 연결
+    //? 아래부분 작동하지 않음
     consumerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       console.log('여기가 잘돼야함');
       try {
-        socket.on('transport-recv-connect', data => {
-          const { consumerTransport } = data;
-          console.log('consumerTransport.on ~ data:', data);
+        socket.on('transport-recv-connect', async data => {
+          const { dtlsParameters } = data;
+          console.log('consumerTransport.on ~ dtlsParameters:', dtlsParameters);
         });
-
-        socket.emit('transport-recv-connect', { dtlsParameters });
-        // callback();
+        callback();
       } catch (error) {
         errback(error);
       }
+      await socket.emit('transport-recv-connect', { dtlsParameters });
     });
     connectRecvTransport();
   });
@@ -16819,47 +16815,37 @@ const createRecvTransport = async () => {
 };
 
 const connectRecvTransport = async () => {
-  // Emit the 'consume' event to the server with the RTP capabilities of the device
-  await socket.emit('consume', { rtpCapabilities: device.rtpCapabilities, producerId }, async ({ params }) => {
-    console.log('awaitsocket.emit ~ rtpCapabilities:', rtpCapabilities);
-    console.log('awaitsocket.emit ~ params:', params);
+  socket.on('consume', async ({ params }) => {
+    console.log('socket.on ~ params:', params);
     if (params.error) {
       console.log('Cannot Consume');
       return;
     }
-  });
-  console.log('안녕', rtpCapabilities);
 
-  if (params.error) {
-    console.log('Cannot Consume');
-    return;
-  }
-
-  // Consume with the local consumer transport to create a consumer
-  consumer = await consumerTransport.consume({
-    id: params.id,
-    producerId: params.producerId,
-    kind: params.kind,
-    rtpParameters: params.rtpParameters,
+    consumer = await consumerTransport.consume({
+      id: params.id,
+      producerId: params.producerId,
+      kind: params.kind,
+      rtpParameters: params.rtpParameters,
+    });
   });
 
-  // Retrieve the video track from the producer and set it to the remote video element
+  await socket.emit('consume', { rtpCapabilities: device.rtpCapabilities, producerId });
+  console.log('connectRecvTransport ~ consumer:', consumer);
   const { track } = consumer;
   remoteVideo.srcObject = new MediaStream([track]);
 
-  // Inform the server to resume the consumer
-  socket.emit('consumer-resume');
+  await socket.emit('consumer-resume');
 };
 
+// 화면공유
+
 if (adapter.browserDetails.browser === 'chrome' && adapter.browserDetails.version >= 107) {
-  // See https://developer.chrome.com/docs/web-platform/screen-sharing-controls/
   document.getElementById('options').style.display = 'block';
 } else if (adapter.browserDetails.browser === 'firefox') {
-  // Polyfill in Firefox.
-  // See https://blog.mozilla.org/webrtc/getdisplaymedia-now-available-in-adapter-js/
   adapter.browserShim.shimGetDisplayMedia(window, 'screen');
 }
-// 화면공유
+
 function screenShare() {
   const options = {
     audio: false,

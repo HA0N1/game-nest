@@ -35,14 +35,25 @@ import { ChannelMember } from 'src/channel/entities/channelMember.entity';
  */
 let worker;
 let router;
-let transport;
-let producerTransport;
-let consumerTransport;
+let producerTransport: {
+  id: any;
+  iceParameters: any;
+  iceCandidates: any;
+  dtlsParameters: any;
+  connect: (arg0: { dtlsParameters: any }) => any;
+  produce: (arg0: { kind: any; rtpParameters: any }) => any;
+};
+let consumerTransport: {
+  id: any;
+  iceParameters: any;
+  iceCandidates: any;
+  dtlsParameters: any;
+  connect: (arg0: { dtlsParameters: any }) => any;
+  consume: (arg0: { producerId: any; rtpCapabilities: any; paused: boolean }) => any;
+};
 let producer;
 let consumer;
 const mediaCodecs = config.mediasoup.router.mediaCodecs;
-let producerTransportConnected = false;
-let consumerTransportConnected = false;
 interface CreateRoomData {
   room: string;
   createChatDto: {
@@ -272,6 +283,44 @@ export class RoomGateway implements OnGatewayConnection {
     this.server.emit('getRtpCapabilities', rtpCapabilities);
   }
 
+  //! 5. server :⭐RP (router producer)생성, 생성한 tranport 정보 client에 반환
+  @SubscribeMessage('createWebRtcTransport')
+  async handleCreateTransport(@MessageBody() data) {
+    const { consumer } = data;
+    console.log('RoomGateway ~ handleCreateTransport ~ consumer:', consumer);
+
+    try {
+      if (!consumer) {
+        producerTransport = await this.createWebRtcTransport();
+        this.server.emit('createWebRtcTransport1', {
+          consumer,
+          params: {
+            id: producerTransport.id,
+            iceParameters: producerTransport.iceParameters,
+            iceCandidates: producerTransport.iceCandidates,
+            dtlsParameters: producerTransport.dtlsParameters,
+          },
+        });
+        console.log('producer로써');
+      } else {
+        consumerTransport = await this.createWebRtcTransport();
+        //! 잘만들어짐
+        this.server.emit('createWebRtcTransport2', {
+          consumer,
+          params: {
+            id: consumerTransport.id,
+            iceParameters: consumerTransport.iceParameters,
+            iceCandidates: consumerTransport.iceCandidates,
+            dtlsParameters: consumerTransport.dtlsParameters,
+          },
+        });
+        console.log('consumer로써');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async createWebRtcTransport() {
     try {
       const webRtcTransport_options = {
@@ -307,47 +356,12 @@ export class RoomGateway implements OnGatewayConnection {
     }
   }
 
-  //! 5. server :⭐RP (router producer)생성, 생성한 tranport 정보 client에 반환
-  @SubscribeMessage('createWebRtcTransport')
-  async handleCreateTransport(@MessageBody() data) {
-    const { consumer } = data;
-
-    try {
-      if (!consumer) {
-        producerTransport = await this.createWebRtcTransport();
-        this.server.emit('createWebRtcTransport', {
-          consumer,
-          params: {
-            id: producerTransport.id,
-            iceParameters: producerTransport.iceParameters,
-            iceCandidates: producerTransport.iceCandidates,
-            dtlsParameters: producerTransport.dtlsParameters,
-          },
-        });
-        console.log('producer로써');
-      } else {
-        consumerTransport = await this.createWebRtcTransport();
-        // 잘만들어짐
-        this.server.emit('createWebRtcTransport', {
-          consumer,
-          params: {
-            id: consumerTransport.id,
-            iceParameters: consumerTransport.iceParameters,
-            iceCandidates: consumerTransport.iceCandidates,
-            dtlsParameters: consumerTransport.dtlsParameters,
-          },
-        });
-        console.log('consumer로써');
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
   @SubscribeMessage('transport-connect')
   async transportConnect(@MessageBody() data): Promise<void> {
     const { dtlsParameters } = data;
 
     try {
+      //! 작동 잘함
       await producerTransport.connect({ dtlsParameters });
       console.log('producer 연결 성공');
       this.server.emit('transport-connect', { dtlsParameters });
@@ -375,48 +389,56 @@ export class RoomGateway implements OnGatewayConnection {
     }
   }
 
+  //? 도착못함. 함수 작동이 되지 않음
   @SubscribeMessage('transport-recv-connect')
-  async transportConsumer(@MessageBody() { dtlsParameters }): Promise<void> {
-    console.log('생성컨슈마', dtlsParameters);
+  async transportConsumer(@MessageBody() data): Promise<void> {
+    const { dtlsParameters } = data;
     try {
       await consumerTransport.connect({ dtlsParameters });
-      console.log('RoomGateway ~ transportConsumer ~ consumerTransport:', consumerTransport);
       console.log('consumer연결 성공');
-      this.server.emit('transport-recv-connect', consumerTransport);
-      // this.server.emit('transport-connect', { dtlsParameters });
+      this.server.emit('transport-recv-connect', { dtlsParameters });
     } catch (error) {
-      console.error('consumer연결 실패2222:', error);
+      console.log('consumer연결 실패2222:', error);
     }
   }
 
   @SubscribeMessage('consume')
   async consume(socket: Socket & { user: User }, data: any): Promise<void> {
     const { rtpCapabilities, producerId } = data;
-
     try {
-      // Check if router can consume based on provided rtpCapabilities
       if (router.canConsume({ producerId, rtpCapabilities })) {
-        // Create a consumer for the given rtpCapabilities
         const consumer = await consumerTransport.consume({
           producerId,
           rtpCapabilities,
           paused: true,
         });
-        // Optionally, add code to handle media consumption
-        // For example, attaching the consumer to a video element for playback
-      } else {
-        console.warn('Cannot consume media with the provided rtpCapabilities');
+        consumer.on('transportclose', () => {
+          console.log('transport close from consumer');
+        });
+
+        consumer.on('producerclose', () => {
+          console.log('producer of consumer closed');
+        });
+
+        const params = {
+          id: consumer.id,
+          producerId: producer.id,
+          kind: consumer.kind,
+          rtpParameters: consumer.rtpParameters,
+        };
+
+        this.server.emit('consume', { params });
       }
     } catch (error) {
-      console.error('Error consuming media:', error);
+      console.log('consume 중 error', error);
     }
   }
 
   @SubscribeMessage('consumer-resume')
   async consumerResume(socket: Socket & { user: User }): Promise<void> {
     try {
-      // Here you need to implement logic to restart or resume the consumer
-      // For example, if you have a paused consumer, you can resume it here
+      console.log('consumer resume');
+      consumer.resume();
     } catch (error) {
       console.error('Error resuming consumer:', error);
     }
