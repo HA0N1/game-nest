@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { GameService } from './game/game.service';
+import hbs from 'hbs';
 
 @Controller()
 export class AppController {
@@ -67,7 +68,30 @@ export class AppController {
     return { game: gameDetail };
   }
 
-  @Get('popular')
+  @Get('popular-game')
   @Render('popular-game.hbs')
-  async getPopularPage() {}
+  async getPopularGamesPage(@Query('page') page: number = 1, @Query('limit') limit: number = 10) {
+    const result = await this.gameService.getPopularGames(page, limit);
+
+    return { popularGames: result.data, page: result.page, limit: result.limit, lastPage: result.lastPage };
+  }
+
+  @Get('genre/:genreId')
+  @Render('genre-game.hbs')
+  async getGamesByGenre(
+    @Param('genreId') genreId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    const result = await this.gameService.getGamesByGenre(+genreId, page, limit);
+
+    return { data: result.data, page: result.page, limit: result.limit, lastPage: result.lastPage };
+  }
 }
+hbs.registerHelper('decrement', function (value) {
+  return value - 1;
+});
+
+hbs.registerHelper('increment', function (value) {
+  return value + 1;
+});
