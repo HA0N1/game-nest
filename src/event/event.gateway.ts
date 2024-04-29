@@ -109,8 +109,6 @@ export class RoomGateway implements OnGatewayConnection {
     }
     try {
       const token = authorizationCookie[1];
-      console.log('RoomGateway ~ handleConnection ~ token:', token);
-
       const payload = this.jwtService.verify(token, { secret: this.configService.get<string>('JWT_SECRET_KEY') });
       const user = await this.userService.findUserByEmail(payload.email);
       socket.user = user;
@@ -133,7 +131,6 @@ export class RoomGateway implements OnGatewayConnection {
     }
   }
   // server 연결 시 worker 생성
-  worker = this.createWorker();
 
   async createWorker() {
     worker = await mediasoup.createWorker({
@@ -213,7 +210,6 @@ export class RoomGateway implements OnGatewayConnection {
       const parts = path.split('/');
       const channelId = +parts[2];
       const rooms = await this.channelService.findAllChat(channelId);
-      console.log('RoomGateway ~ handleRequestRooms ~ channelId:', channelId);
 
       this.server.emit('rooms', rooms);
     } catch (error) {
@@ -275,12 +271,12 @@ export class RoomGateway implements OnGatewayConnection {
 
     //! 2. server : worker가 router 생성, 서버가 클라이언트에 rtpCapabilities 전달
     // chatType이 voice인 경우에만 Worker와 Router 생성
-
+    worker = await this.createWorker();
     router = await worker.createRouter({ mediaCodecs });
     // RTP Capabilities 가져오기
     const rtpCapabilities = router.rtpCapabilities;
     // 클라이언트에게 RTP Capabilities 전달
-    this.server.emit('getRtpCapabilities', rtpCapabilities);
+    this.server.to(room).emit('getRtpCapabilities', rtpCapabilities);
   }
 
   //! 5. server :⭐RP (router producer)생성, 생성한 tranport 정보 client에 반환
@@ -336,7 +332,6 @@ export class RoomGateway implements OnGatewayConnection {
         preferUdp: true,
       };
 
-      //! consumer 부분 수정해야함
       let transport = await router.createWebRtcTransport(webRtcTransport_options);
       console.log(`transport id: ${transport.id}`);
 
@@ -361,7 +356,6 @@ export class RoomGateway implements OnGatewayConnection {
     const { dtlsParameters } = data;
 
     try {
-      //! 작동 잘함
       await producerTransport.connect({ dtlsParameters });
       console.log('producer 연결 성공');
       this.server.emit('transport-connect', { dtlsParameters });
@@ -389,7 +383,6 @@ export class RoomGateway implements OnGatewayConnection {
     }
   }
 
-  //? 도착못함. 함수 작동이 되지 않음
   @SubscribeMessage('transport-recv-connect')
   async transportConsumer(@MessageBody() data): Promise<void> {
     const { dtlsParameters } = data;
@@ -398,7 +391,7 @@ export class RoomGateway implements OnGatewayConnection {
       console.log('consumer연결 성공');
       this.server.emit('transport-recv-connect', { dtlsParameters });
     } catch (error) {
-      console.log('consumer연결 실패2222:', error);
+      console.log('consumer연결 실패', error);
     }
   }
 
@@ -449,8 +442,7 @@ export class RoomGateway implements OnGatewayConnection {
     const { room, stream } = data;
     console.log('RoomGateway ~ handleBroadcastScreenSharing ~ room:', room);
     console.log('RoomGateway ~ handleBroadcastScreenSharing ~ stream:', stream);
-    // Get the room of the user sharing the screen
-    // Broadcast the screen sharing stream to all users in the room
+
     socket.to(room).emit('screenSharingStream', { stream });
   }
 }

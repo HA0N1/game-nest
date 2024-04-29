@@ -105,6 +105,10 @@ export class UserController {
     return tokens;
   }
 
+  @Get('profile')
+  @Render('profile.hbs')
+  profile() {}
+
   /* 프로필 조회 */
   @UseGuards(AuthGuard('jwt'))
   @Get('userinfo')
