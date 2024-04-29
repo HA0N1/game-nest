@@ -73,7 +73,7 @@ function signUp() {
   // console.log(typeof email, typeof nickname, typeof password, typeof checkPw); // test1@gmail.com 123 123 213
   // console.log('checkbox: ', interestGenres, typeof interestGenres); //['3', '4'] object
 
-  fetch('http://chunsik.store/user/create', {
+  fetch('http://chunsik.store:3000/user/create', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -61,6 +61,7 @@ async function goLogin(event) {
   console.log('로그인');
   window.location.href = 'http://chunsik.store:3000/user/login';
 }
+
 function goChannel(event) {
   console.log('채널 입장');
   window.location.href = 'http://chunsik.store:3000/channel/list';
