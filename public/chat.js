@@ -9,7 +9,6 @@ document.getElementById('createRoomForm').addEventListener('submit', createRoomW
 
 const preferredDisplaySurface = document.getElementById('displaySurface');
 const startButton = document.getElementById('startButton');
-const screenShareBtn = document.getElementById('screenShareBtn');
 const remoteColum = document.querySelector('.remoteColum');
 document.getElementById('myModal').style.display = 'none';
 let device;
@@ -18,8 +17,6 @@ let producerTransport;
 let consumerTransport;
 let audioProducer;
 let videoProducer;
-let producer;
-let consumer;
 let producerId;
 let params = {
   encoding: [
@@ -41,7 +38,7 @@ function checkLogin() {
   if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'http://chunsik.store:3000/user/login';
+    window.location.href = 'http://localhost:3000/user/login';
   }
 }
 const socket = io('/chat', { auth: { token: token } });
@@ -181,26 +178,20 @@ const streamSuccess = async stream => {
 };
 
 const getLocalStream = () => {
+  document.getElementById('localVideoOnBtn').style.display = 'none';
   console.log('연결');
-  navigator.getUserMedia(
-    {
+  navigator.mediaDevices
+    .getUserMedia({
       audio: true,
       video: {
-        width: {
-          min: 640,
-          max: 1920,
-        },
-        height: {
-          min: 400,
-          max: 1080,
-        },
+        width: 720,
+        height: 600,
       },
-    },
-    streamSuccess,
-    error => {
+    })
+    .then(streamSuccess)
+    .catch(error => {
       console.log(error.message);
-    },
-  );
+    });
 };
 
 const createDevice = async () => {
@@ -227,9 +218,6 @@ const createSendTransport = async () => {
     }
 
     producerTransport = device.createSendTransport(params);
-
-    console.log('producerTransport.on ~ producerTransport:', producerTransport);
-    //! 잘만들어짐
 
     producerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       try {
@@ -269,8 +257,6 @@ const createSendTransport = async () => {
 };
 
 const connectSendTransport = async () => {
-  //! 생성 잘됨
-
   audioProducer = await producerTransport.produce(audioParams);
   console.log('connectSendTransport ~ audioProducer:', audioProducer);
 
@@ -305,23 +291,17 @@ const createRecvTransport = async () => {
     }
 
     consumerTransport = device.createRecvTransport(params);
-    console.log('socket.on ~ consumerTransport:', consumerTransport);
-    console.log(',consumerTransport 잘만들어짐 305');
-    // ! 잘만들어짐
-    // consumer 연결
-    //? 아래부분 작동하지 않음
+
     consumerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
-      console.log('여기가 잘돼야함');
       try {
         socket.on('transport-recv-connect', async data => {
           const { dtlsParameters } = data;
-          console.log('consumerTransport.on ~ dtlsParameters:', dtlsParameters);
         });
+        await socket.emit('transport-recv-connect', { dtlsParameters });
         callback();
       } catch (error) {
         errback(error);
       }
-      await socket.emit('transport-recv-connect', { dtlsParameters });
     });
     connectRecvTransport();
   });
@@ -346,16 +326,16 @@ const connectRecvTransport = async () => {
     });
     const { track } = consumer;
     // remoteVideo.srcObject = new MediaStream([track]);
-    // 새로운 video 요소를 생성합니다.
+    // 새로운 video 요소를 생성
     const remoteVideo = document.createElement('video');
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
-    remoteVideo.muted = false; // 원격 비디오이므로 음소거를 해제합니다. 필요에 따라 조정하세요.
+    remoteVideo.muted = false; // 원격 비디오이므로 음소거를 해제
 
-    // 생성한 video 요소에 스트림을 연결합니다.
+    // 생성한 video 요소에 스트림을 연결
     remoteVideo.srcObject = new MediaStream([track]);
 
-    // 생성한 video 요소를 remoteColum div에 추가합니다.
+    // 생성한 video 요소를 remoteColum div에 추가
     remoteColum.appendChild(remoteVideo);
     await socket.emit('consumer-resume');
   });
@@ -408,10 +388,21 @@ function handleSuccess(stream) {
     preferredDisplaySurface.disabled = false;
   });
 }
+
+// function videoOff() {
+//   localVideo = document.getElementById('localVideo');
+
+//   const stream = localVideo.srcObject;
+//   const tracks = stream.getTracks();
+//   tracks.forEach(track => {
+//     track.stop();
+//   });
+//   localVideo.srcObject = null;
+// }
 /**
  * 유저의 미디어 장비에 접근,
  * 오디오, 비디오 stream을 받고 서버에 Router rtpCapabilities 요청
  * */
 document.getElementById('screenShareBtn').addEventListener('click', screenShare);
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
-// document.getElementById('btnConnectRecvTransport').addEventListener('click', connectRecvTransport);
+document.getElementById('localVideoOffBtn').addEventListener('click', videoOff);
