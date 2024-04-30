@@ -50,6 +50,7 @@ export class GameController {
       }
 
       const newGames = await this.gameService.getNewGames(page, limit);
+      console.log('s1', newGames);
       return newGames;
     }
   }

@@ -4,4 +4,4 @@ document.addEventListener('DOMContentLoaded', function () {
   popularButton.addEventListener('click', function () {
     window.location.href = '/popular-game';
   });
-})
+});
