@@ -264,24 +264,26 @@ export class GameService {
   }
 
   // 신작 조회
-  async getNewGames(page: number, limit: number) {
-    const pageNumber = Number(page);
-    const limitNumber = Number(limit);
+  async getNewGames(page = 1, limit = 10) {
+    page = Math.max(page, 1);
+    limit = Math.max(limit, 20);
+
+    const offset = (page - 1) * limit;
 
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
     const now = new Date();
 
-    const total = await this.gameRepository
+    const totalResult = await this.gameRepository
       .createQueryBuilder('game')
       .select('COUNT(*)', 'count')
       .where('game.release_date > :oneWeekAgo', { oneWeekAgo })
       .andWhere('game.release_date < :now', { now })
-      .andWhere('game.developer IS NULL')
       .getRawOne();
 
-    const offset = (pageNumber - 1) * limitNumber;
+    const total = Number(totalResult.count);
+    const lastPage = Math.ceil(total / limit);
 
     const newGames = await this.gameRepository
       .createQueryBuilder('game')
@@ -289,15 +291,15 @@ export class GameService {
       .where('game.release_date > :oneWeekAgo', { oneWeekAgo })
       .andWhere('game.release_date < :now', { now })
       .orderBy('game.release_date', 'DESC')
-      .offset(offset)
+      .skip(offset)
       .take(limit)
       .getRawMany();
-    console.log('s1', newGames);
     return {
       data: newGames,
       page,
       limit,
-      total: parseInt(total.count, 10),
+      total,
+      lastPage,
     };
   }
 
