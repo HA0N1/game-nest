@@ -162,6 +162,7 @@ let videoParams = { params };
 const streamSuccess = async stream => {
   const localVideo = document.getElementById('localVideo');
   localVideo.srcObject = stream;
+  console.log('streamSuccess ~ localVideo:', localVideo.srcObject);
   console.log('streamSuccess ~ stream:', stream);
 
   let room = currentRoom;
@@ -278,8 +279,6 @@ const connectSendTransport = async () => {
   videoProducer.on('transportclose', () => {
     console.log('video transport ended');
   });
-
-  createRecvTransport();
 };
 
 //! consumer
@@ -312,32 +311,37 @@ const createRecvTransport = async () => {
 
 const connectRecvTransport = async () => {
   let consumer;
+
   socket.on('consume', async ({ params }) => {
     console.log('socket.on ~ params:', params);
     if (params.error) {
       console.log('Cannot Consume');
       return;
     }
-
+    const produceId = params.producerId;
     consumer = await consumerTransport.consume({
       id: params.id,
       producerId: params.producerId,
       kind: params.kind,
       rtpParameters: params.rtpParameters,
     });
+    const wrapper = document.createElement('div');
+    const newElem = document.createElement('div'); // 비디오 화면
+    const newSpan = document.createElement('span');
+    // newElem.setAttribute('id', `td-${remoteProducerId}`)
+    wrapper.setAttribute('id', `td-${produceId}`);
+
+    newElem.setAttribute('class', 'remoteVideo');
+    newElem.innerHTML = '<video id="' + produceId + '" autoplay class="video"></video>';
+
+    wrapper.appendChild(newElem);
+    wrapper.appendChild(newSpan);
+    videoContainer.appendChild(wrapper);
+
+    // destructure and retrieve the video track from the producer
     const { track } = consumer;
-    // remoteVideo.srcObject = new MediaStream([track]);
-    // 새로운 video 요소를 생성
-    remoteVideo = document.createElement('video');
-    remoteVideo.autoplay = true;
-    remoteVideo.playsInline = true;
-    remoteVideo.muted = false; // 원격 비디오이므로 음소거를 해제
 
-    // 생성한 video 요소에 스트림을 연결
-    remoteVideo.srcObject = new MediaStream([track]);
-
-    // 생성한 video 요소를 remoteColum div에 추가
-    remoteColum.appendChild(remoteVideo);
+    document.getElementById(produceId).srcObject = new MediaStream([track]);
     await socket.emit('consumer-resume');
   });
 
@@ -415,3 +419,4 @@ function handleSuccess(stream) {
 document.getElementById('screenShareBtn').addEventListener('click', screenShare);
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
 document.getElementById('localVideoOffBtn').addEventListener('click', videoOff);
+document.getElementById('recv').addEventListener('click', createRecvTransport);

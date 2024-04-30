@@ -12,6 +12,8 @@ import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { UserModule } from 'src/user/user.module';
 import { HttpModule } from '@nestjs/axios';
+import { APP_FILTER } from '@nestjs/core';
+import { TokenExpiredFilter } from 'src/auth/guard/exception.filter';
 
 @Module({
   imports: [
@@ -31,6 +33,6 @@ import { HttpModule } from '@nestjs/axios';
     DMModule,
     UserModule,
   ],
-  providers: [DMGateway],
+  providers: [DMGateway, { provide: APP_FILTER, useClass: TokenExpiredFilter }],
 })
 export class DmEventModule {}

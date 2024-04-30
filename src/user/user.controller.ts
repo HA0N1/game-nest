@@ -12,6 +12,7 @@ import {
   Render,
   UploadedFile,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -23,7 +24,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { InterestGenre } from './entities/interestGenre.entity';
-import { Request, Response } from 'express';
+import { Request, Response, query } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResizeImagePipe } from 'src/utils/resizeImage.pipe';
 
@@ -88,6 +89,13 @@ export class UserController {
     }
   }
 
+  /* 유저 검색 기능 */
+  @Get('findUser')
+  async findUser(@Query() nickname) {
+    const value = nickname.input;
+    return await this.userService.findUserByNickname(value);
+  }
+
   /* refreshtoken으로 accesstoken 재발급하기 */
   @UseGuards(AuthGuard('refresh'))
   @Post('refreshToken')
@@ -121,13 +129,23 @@ export class UserController {
       return ig.genre_game_genre;
     });
 
-    return {
-      id: userInfo.id,
-      email: userInfo.email,
-      nickname: userInfo.nickname,
-      file: userInfo.file.filePath,
-      interestGenre: genreNames,
-    };
+    if (!userInfo.file) {
+      return {
+        id: userInfo.id,
+        email: userInfo.email,
+        nickname: userInfo.nickname,
+        file: process.env.DEFAULT_PROFILE_IMAGE,
+        interestGenre: genreNames,
+      };
+    } else {
+      return {
+        id: userInfo.id,
+        email: userInfo.email,
+        nickname: userInfo.nickname,
+        file: userInfo.file.filePath,
+        interestGenre: genreNames,
+      };
+    }
   }
 
   /* 프로필 이미지 추가 */
