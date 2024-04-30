@@ -11,6 +11,7 @@ import {
   Render,
   Res,
   UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { PostService } from './post.service';
@@ -42,8 +43,8 @@ export class PostController {
 
   // 게시글 전체 조회
   @Get()
-  async findAll() {
-    const posts = await this.postService.findAll();
+  async findAll(userId: number) {
+    const posts = await this.postService.findAll(userId);
     return posts;
   }
 
@@ -60,8 +61,8 @@ export class PostController {
 
   // 게시글 상세 조회
   @Get(':postId')
-  findOne(@Param('postId') id: string) {
-    return this.postService.findOne(+id);
+  findOne(@Param('postId') userId: number, id: number) {
+    return this.postService.findOne(+userId, id);
   }
   @Get(':postId/page')
   @Render('postDetail.hbs')
