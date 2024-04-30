@@ -303,8 +303,9 @@ export class GameService {
 
   // 게임 검색
   async searchGames(query: string) {
-    return this.gameRepository.find({
-      where: { title: Like(`%${query}`) },
+    const findGames = await this.gameRepository.find({
+      where: { title: Like(`%${query}%`) },
     });
+    return findGames;
   }
 }
