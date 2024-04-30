@@ -6,15 +6,10 @@ async function fetchPosts() {
     let data = await response.json();
     data = data.sort((a, b) => b.id - a.id);
 
-    data.map(async post => {
-      const likeResponse = await fetch(`https://chunsik.store/post/${post.id}/liked`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const { liked } = await likeResponse.json();
+    for (const post of data) {
+      const liked = await likeStatus(post.id);
       displayPosts(post, liked);
-    });
+    }
   } catch (error) {
     console.error('Error fetching posts:', error);
   }
@@ -64,7 +59,7 @@ function displayPosts(post, liked) {
   const likeButton = document.createElement('button');
   const unlikeButton = document.createElement('button');
   likeButton.textContent = '좋아요';
-  if (liked == true) {
+  if (liked) {
     likeButton.style.display = 'none';
     unlikeButton.textContent = '좋아요 취소';
     unlikeButton.addEventListener('click', () => unlike(post.id));
@@ -189,5 +184,17 @@ async function unlike(postId) {
     console.error('Error toggling unlike:', error);
   }
 }
-
+async function likeStatus(postId) {
+  try {
+    const response = await fetch(`https://chunsik.store/post/${postId}/liked`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const { liked } = await response.json();
+    return liked;
+  } catch (error) {
+    console.error('Error toggling like status:', error);
+  }
+}
 fetchPosts();

@@ -35,6 +35,9 @@ export class Post {
   @Column({ default: 0 })
   likes: number;
 
+  @Column({ default: false })
+  liked: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 
