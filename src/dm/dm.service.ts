@@ -106,7 +106,6 @@ export class DMService {
     }
 
     const dmRoom = await this.dmRoomRepository.findOneBy({ id: dmRoomId });
-    console.log(`${dmRoom.id}에 채팅 저장 완료`);
 
     if (!dmRoom) {
       throw new NotFoundException('존재하지 않는 디엠방입니다.');
@@ -128,7 +127,6 @@ export class DMService {
     }
 
     const dmRoom = await this.dmRoomRepository.findOneBy({ id: dmRoomId });
-    console.log(`${dmRoom.id}에 채팅 저장 완료`);
 
     if (!dmRoom) {
       throw new NotFoundException('존재하지 않는 디엠방입니다.');
