@@ -110,6 +110,7 @@ export class GameService {
         data: games,
         total: total,
         page: page,
+        limit: limit,
         lastPage: Math.ceil(total / limit),
       };
     } catch (error) {
