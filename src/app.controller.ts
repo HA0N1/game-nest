@@ -41,7 +41,7 @@ export class AppController {
     @Query('limit', new DefaultValuePipe(40), ParseIntPipe) limit: number,
   ) {
     const result = await this.gameService.getGames(page, limit);
-    return { games: result.data };
+    return { games: result.data, page: result.page, limit: result.limit, lastPage: result.lastPage };
   }
 
   @Get('game/:id')

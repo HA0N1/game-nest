@@ -1,6 +1,11 @@
+const searchResults = document.getElementById('searchResults');
+searchResults.hidden = true;
+
 document.addEventListener('DOMContentLoaded', function () {
   const searchButton = document.getElementById('searchButton');
   searchButton.addEventListener('click', function () {
+    searchResults.hidden = false;
+
     const query = document.getElementById('searchInput').value;
     fetch(`/games/search?query=${query}`)
       .then(response => response.json())

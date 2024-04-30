@@ -53,6 +53,15 @@
         </li>
       {{/each}}
     </ul>
+    <div class="pagination">
+      {{#if page}}
+        <a href="?page={{decrement page}}&limit={{limit}}">이전 페이지</a>
+      {{/if}}
+      <span>페이지 {{page}} / {{lastPage}}</span>
+      {{#if lastPage}}
+        <a href="?page={{increment page}}&limit={{limit}}">다음 페이지</a>
+      {{/if}}
+    </div>
     <div id="searchResults">
       <h2>검색 결과</h2>
       <ul id="resultsList"></ul>
