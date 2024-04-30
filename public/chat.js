@@ -39,7 +39,7 @@ function checkLogin() {
   if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'https://chunsik.store/user/login';
+    window.location.href = 'https://chunsik.store/main';
   }
 }
 const socket = io('/chat', { auth: { token: token } });
