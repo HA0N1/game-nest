@@ -39,5 +39,26 @@ function loadFriends(){
 }
 
 function makeBox(relationId, id, email, nickname){
-$('#friends').append(`<li id=${relationId}>${nickname}<br>${id}, ${email} <button id='delete'>친구 취소</button></li>`)
+$('#friends').append(`<li id=${relationId}>${nickname}<br>${id}, ${email} <button id='dmRoom'>채팅방</button> <button id='delete'>친구 취소</button></li>`)
 }
+
+$(document).on('click','#dmRoom' ,function(){
+    const relationshipId = $(this).closest('li').attr('id');
+    fetch(`https://chunsik.store/dm/create/${relationshipId}`,{
+        method:'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        credentials:'include'
+    })
+    .then(res=>{
+        return res.json();
+    })
+    .then(json=>{
+        alert(json.message);
+        window.location.href = 'https://chunsik.store/dm';
+    })
+    .catch(err=>{
+        console.error('DMRoom 생성: ', err)
+    })
+})

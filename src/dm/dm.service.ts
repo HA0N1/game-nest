@@ -54,7 +54,7 @@ export class DMService {
     const resistDmRoom = await this.dmRoomRepository.findOneBy({ friendship });
 
     if (resistDmRoom) {
-      throw new BadRequestException('이미 존재하는 디엠방입니다.');
+      return { message: 'DMRoom이 이미 존재합니다.', dmRoomId: resistDmRoom.id };
     }
 
     // friendshipId로 dmRoom 생성
@@ -62,14 +62,7 @@ export class DMService {
       friendship,
     });
 
-    // await this.friendshipRepository
-    //   .createQueryBuilder()
-    //   .update(Friendship)
-    //   .set({ DMroom: dmRoom })
-    //   .where('id = :id', { id: friendshipId })
-    //   .execute();
-
-    return { message: 'DMroom을 생성했습니다.' };
+    return { message: 'DMroom을 생성했습니다.', dmRoomId: dmRoom.id };
   }
 
   /* userId로 디엠 방 전체 조회 */
