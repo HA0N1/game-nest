@@ -138,3 +138,31 @@ img {
 .pagination span {
   margin: 0 5px;
 }
+
+#upBtns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#upBtns > div {
+  margin: 0 5px; /* 버튼들 사이의 간격을 설정 */
+}
+
+#upBtns button {
+  padding: 10px 20px; /* 버튼의 패딩 설정 */
+}
+
+#sorting {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#sorting > div {
+  margin: 0 5px; /* 버튼들 사이의 간격을 설정 */
+}
+
+#sorting button {
+  padding: 10px 20px; /* 버튼의 패딩 설정 */
+}
