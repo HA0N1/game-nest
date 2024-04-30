@@ -93,16 +93,24 @@ export class PostController {
   //게시글 좋아요
   @UseGuards(AuthGuard('jwt'))
   @Post(':postId/like')
-  async likePost(@UserInfo() user: User, @Res() res: Response, @Param('postId') id: number) {
+  async likePost(@UserInfo() user: User, @Res({ passthrough: true }) res: Response, @Param('postId') id: number) {
     const result = await this.postService.likePost(user.id, id);
-    return res.redirect('/post');
+    return result;
   }
 
-  //게시글 좋아요 삭제
+  //게시글 좋아요 취소
   @UseGuards(AuthGuard('jwt'))
   @Delete(':postId/like')
-  async unlikePost(@UserInfo() user: User, @Res() res: Response, @Param('postId') id: number) {
+  async unlikePost(@UserInfo() user: User, @Res({ passthrough: true }) res: Response, @Param('postId') id: number) {
     const result = await this.postService.unlikePost(user.id, id);
-    return res.redirect('/post');
+    return result;
+  }
+
+  //게시글 좋아요 확인
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':postId/liked')
+  async isLikedByUser(@UserInfo() user: User, @Param('postId') id: number) {
+    const liked = await this.postService.isLikedByUser(user.id, id);
+    return { liked };
   }
 }
