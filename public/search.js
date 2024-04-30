@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
           data.forEach(game => {
             const listItem = document.createElement('li');
             listItem.innerHTML = `
-              <a href="http://localhost:3000/game/${game.id}">${game.title}
+              <a href="https://chunsik.store/game/${game.id}">${game.title}
                 <img src="${game.screen_shot}" alt="${game.title} screenshot" />
               </a>
             `;

@@ -2,27 +2,27 @@ const token = window.localStorage.getItem('authorization');
 
 const toMain = document.getElementById('toMain');
 toMain.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/main';
+  window.location.href = 'https://chunsik.store/main';
 });
 const toProfile = document.getElementById('toProfile');
 toProfile.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/user/profile';
+  window.location.href = 'https://chunsik.store/user/profile';
 });
 
 const toDM = document.getElementById('toDM');
 toDM.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/dm';
+  window.location.href = 'https://chunsik.store/dm';
 });
 
 const friends = document.getElementById('friends');
 const sendFriend = document.getElementById('sendFriend');
 sendFriend.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/friend/sendFriend';
+  window.location.href = 'https://chunsik.store/friend/sendFriend';
 });
 
 const receiveFriend = document.getElementById('receiveFriend');
 receiveFriend.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/friend/friendRequest';
+  window.location.href = 'https://chunsik.store/friend/friendRequest';
 });
 
 window.onload = function () {
@@ -30,7 +30,7 @@ window.onload = function () {
 };
 
 function loadFriends() {
-  fetch('http://localhost:3000/friend/find', {
+  fetch('https://chunsik.store/friend/find', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,

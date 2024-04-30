@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function checkLogin() {
     if (!token) {
       alert('로그인을 하셔야 이용할 수 있는 서비스입니다.');
-      window.location.href = 'http://localhost:3000/user/login';
+      window.location.href = 'https://chunsik.store/user/login';
     }
   }
   // Search functionality

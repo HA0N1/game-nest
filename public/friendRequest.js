@@ -1,15 +1,15 @@
 const token = window.localStorage.getItem('authorization');
 const toMain = document.getElementById('toMain');
 toMain.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/main';
+  window.location.href = 'https://chunsik.store/main';
 });
 const toFriends = document.getElementById('toFriends');
 toFriends.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/friend/findFriends';
+  window.location.href = 'https://chunsik.store/friend/findFriends';
 });
 const toProfile = document.getElementById('toProfile');
 toProfile.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/user/profile';
+  window.location.href = 'https://chunsik.store/user/profile';
 });
 
 window.onload = function () {
@@ -17,7 +17,7 @@ window.onload = function () {
 };
 
 function checkRequests() {
-  fetch('http://localhost:3000/friend/acceptFriends', {
+  fetch('https://chunsik.store/friend/acceptFriends', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -47,7 +47,7 @@ $(document).on('click', '#requests li button', function () {
 });
 
 function acceptFriend(relationshipId) {
-  fetch(`http://localhost:3000/friend/accept?id=${relationshipId}`, {
+  fetch(`https://chunsik.store/friend/accept?id=${relationshipId}`, {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
