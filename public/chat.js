@@ -259,6 +259,7 @@ const createSendTransport = async () => {
 };
 
 const connectSendTransport = async () => {
+  console.log('connectSendTransport');
   console.log('test');
   audioProducer = await producerTransport.produce(audioParams);
   console.log('connectSendTransport ~ audioProducer:', audioProducer);
@@ -285,6 +286,7 @@ const connectSendTransport = async () => {
 
 //! consumer
 const createRecvTransport = async () => {
+  console.log('createRecvTransport');
   socket.on('createWebRtcTransport2', async ({ consumer, params }) => {
     console.log('createRecvTransport transport');
     if (params.error) {
@@ -311,6 +313,7 @@ const createRecvTransport = async () => {
 };
 
 const connectRecvTransport = async () => {
+  console.log('connectRecvTransport');
   let consumer;
 
   socket.on('consume', async ({ params }) => {
