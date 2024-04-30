@@ -110,6 +110,7 @@ export class GameController {
   // 게임 검색
   @Get('search')
   async searchGames(@Query('query') query: string) {
-    return this.gameService.searchGames(query);
+    const findGames = await this.gameService.searchGames(query);
+    return findGames;
   }
 }
