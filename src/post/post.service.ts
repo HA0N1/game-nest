@@ -55,11 +55,11 @@ export class PostService {
 
   //게시글 전체 조회
   async findAll() {
-    const post = await this.postRepository.find({ relations: ['file'] });
-    if (!post) {
+    const posts = await this.postRepository.find({ order: { id: 'DESC' }, relations: ['file'] });
+    if (!posts) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
-    return post;
+    return posts;
   }
 
   //게시글 카테고리별 조회
@@ -175,5 +175,10 @@ export class PostService {
     await this.likeRepository.remove(likePost);
 
     return { message: '게시글에 대한 좋아요를 취소했습니다.' };
+  }
+  //게시글 좋아요 확인
+  async isLikedByUser(userId: number, id: number) {
+    const like = await this.likeRepository.findOne({ where: { user: { id: userId }, post: { id } } });
+    return !!like;
   }
 }
