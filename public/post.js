@@ -6,15 +6,10 @@ async function fetchPosts() {
     let data = await response.json();
     data = data.sort((a, b) => b.id - a.id);
 
-    data.map(async post => {
-      const likeResponse = await fetch(`https://chunsik.store/post/${post.id}/liked`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const { liked } = await likeResponse.json();
+    for (const post of data) {
+      const liked = await likeStatus(post.id);
       displayPosts(post, liked);
-    });
+    }
   } catch (error) {
     console.error('Error fetching posts:', error);
   }
@@ -64,7 +59,7 @@ function displayPosts(post, liked) {
   const likeButton = document.createElement('button');
   const unlikeButton = document.createElement('button');
   likeButton.textContent = '좋아요';
-  if (liked == true) {
+  if (liked) {
     likeButton.style.display = 'none';
     unlikeButton.textContent = '좋아요 취소';
     unlikeButton.addEventListener('click', () => unlike(post.id));
@@ -87,6 +82,7 @@ function displayPosts(post, liked) {
   postItem.appendChild(removeButton);
 
   postList.appendChild(postItem);
+  document.getElementById('post-form').addEventListener('submit', create);
 }
 async function create(event) {
   event.preventDefault();
@@ -99,7 +95,7 @@ async function create(event) {
     alert('제목, 내용, 카테고리를 모두 입력해야 합니다.');
     return;
   }
-  try {
+  try {https://chunsik.store
     const response = await fetch('https://chunsik.store/post', {
       method: 'POST',
       body: formData,
@@ -122,7 +118,7 @@ async function update(postId) {
   );
 
   if (updatedTitle && updatedContent && updatedCategory) {
-    try {
+    try {https://chunsik.store
       const updateresponse = await fetch(`https://chunsik.store/post/${postId}`, {
         method: 'PATCH',
         headers: {
@@ -147,7 +143,7 @@ async function remove(postId) {
   const logInUserId = window.localStorage.getItem('authorization');
   try {
     const confirmDelete = confirm('정말로 이 게시글을 삭제하시겠습니까?');
-    if (confirmDelete) {
+    if (confirmDelete) {https://chunsik.store
       const deleteResponse = await fetch(`https://chunsik.store/post/${postId}?userId=${logInUserId}`, {
         method: 'DELETE',
         headers: {
@@ -164,7 +160,7 @@ async function remove(postId) {
 }
 
 async function like(postId) {
-  try {
+  try {https://chunsik.store
     const response = await fetch(`https://chunsik.store/post/${postId}/like`, {
       method: 'POST',
       headers: {
@@ -177,7 +173,7 @@ async function like(postId) {
   }
 }
 async function unlike(postId) {
-  try {
+  try {https://chunsik.store
     const response = await fetch(`https://chunsik.store/post/${postId}/like`, {
       method: 'DELETE',
       headers: {
@@ -189,5 +185,17 @@ async function unlike(postId) {
     console.error('Error toggling unlike:', error);
   }
 }
-
+async function likeStatus(postId) {
+  try {https://chunsik.store
+    const response = await fetch(`https://chunsik.store/post/${postId}/liked`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const { liked } = await response.json();
+    return liked;
+  } catch (error) {
+    console.error('Error toggling like status:', error);
+  }
+}
 fetchPosts();

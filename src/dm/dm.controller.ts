@@ -28,10 +28,6 @@ export class DMController {
   @Render('dm')
   getDMPage() {}
 
-  @Get('createRoom')
-  @Render('createDMRoom.hbs')
-  create() {}
-
   /* 디엠 방 생성 */
   @UseGuards(AuthGuard('jwt'))
   @Post('create/:friendshipId')

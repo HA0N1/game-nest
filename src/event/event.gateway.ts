@@ -323,13 +323,13 @@ export class RoomGateway implements OnGatewayConnection {
         listenInfos: [
           {
             protocol: 'udp',
-            ip: this.configService.get('LISTEN_IP') || '0.0.0.0',
-            announcedIp: this.configService.get('ANNOUNCED_IP'),
+            ip: '0.0.0.0',
+            announcedIp: '0.0.0.0',
           },
           {
             protocol: 'tcp',
-            ip: this.configService.get('LISTEN_IP') || '0.0.0.0',
-            announcedIp: this.configService.get('ANNOUNCED_IP'),
+            ip: '0.0.0.0',
+            announcedIp: '0.0.0.0',
           },
         ],
         enableUdp: true,

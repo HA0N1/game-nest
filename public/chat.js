@@ -39,7 +39,7 @@ function checkLogin() {
   if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'https://chunsik.store/user/login';
+    window.location.href = 'https://chunsik.store/main';
   }
 }
 const socket = io('/chat', { auth: { token: token } });
@@ -259,6 +259,7 @@ const createSendTransport = async () => {
 };
 
 const connectSendTransport = async () => {
+  console.log('test');
   audioProducer = await producerTransport.produce(audioParams);
   console.log('connectSendTransport ~ audioProducer:', audioProducer);
 
@@ -279,6 +280,7 @@ const connectSendTransport = async () => {
   videoProducer.on('transportclose', () => {
     console.log('video transport ended');
   });
+  createRecvTransport();
 };
 
 //! consumer
@@ -303,7 +305,6 @@ const createRecvTransport = async () => {
         errback(error);
       }
     });
-    connectRecvTransport();
   });
   // 서버에 consumerTransport 생성 요청
   socket.emit('createWebRtcTransport', { consumer: true });
