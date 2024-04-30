@@ -6,7 +6,9 @@
     <link rel="stylesheet" href="/main.css" />
   </head>
   <body>
-    <header><h1>Gamenest</h1></header>
+    <header>
+      <h1>Gamenest</h1>
+    </header>
 
     <main>
       <div id="sign-up"><button>회원가입</button></div>
@@ -25,7 +27,7 @@
         <button id="popularButton">인기순</button>
         <button id="genreButton">장르별</button>
         <button id="newButton">신작</button>
-        <div id="genreSelect" style="display: none;">
+        <div id="genreSelect" style="display: none">
           <select id="genreDropdown">
             <option value="Adventure">어드벤처</option>
             <option value="RPG">RPG</option>
@@ -39,7 +41,6 @@
           </select>
           <button id="genreSubmit">선택</button>
         </div>
-
       </div>
     </main>
 
@@ -53,6 +54,15 @@
         </li>
       {{/each}}
     </ul>
+    <div class="pagination">
+      {{#if page}}
+        <a href="?page={{decrement page}}&limit={{limit}}">이전 페이지</a>
+      {{/if}}
+      <span>페이지 {{page}} / {{lastPage}}</span>
+      {{#if lastPage}}
+        <a href="?page={{increment page}}&limit={{limit}}">다음 페이지</a>
+      {{/if}}
+    </div>
     <div id="searchResults">
       <h2>검색 결과</h2>
       <ul id="resultsList"></ul>
@@ -61,7 +71,7 @@
   <script src="/mainPage.js"></script>
   <script src="/logout.js"></script>
   <script src="/popularGames.js"></script>
-  <script src="genreGames.js"></script>
-  <script src="search.js"></script>
-  <script src="newGame.js"></script>
+  <script src="/genreGames.js"></script>
+  <script src="/search.js"></script>
+  <script src="/newGame.js"></script>
 </html>

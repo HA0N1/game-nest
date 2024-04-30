@@ -54,11 +54,16 @@ export class PostService {
   }
 
   //게시글 전체 조회
-  async findAll() {
+  async findAll(userId: number) {
     const posts = await this.postRepository.find({ order: { id: 'DESC' }, relations: ['file'] });
     if (!posts) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
+    for (const post of posts) {
+      const liked = await this.isLikedByUser(userId, post.id);
+      post.liked = liked;
+    }
+
     return posts;
   }
 
@@ -72,11 +77,13 @@ export class PostService {
   }
 
   //게시글 상세 조회
-  async findOne(id: number) {
+  async findOne(userId: number, id: number) {
     const post = await this.postRepository.findOne({ where: { id }, relations: ['file'] });
     if (!post) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
+    const liked = await this.isLikedByUser(userId, id);
+    post.liked = liked;
     post.view_count++;
     await this.postRepository.save(post);
 
@@ -147,6 +154,7 @@ export class PostService {
     await this.likeRepository.save(like);
 
     post.likes++;
+    post.liked = true;
     await this.postRepository.save(post);
 
     return { message: '게시글에 좋아요를 추가했습니다.' };
@@ -171,14 +179,18 @@ export class PostService {
     if (post.likes > 0) {
       post.likes--;
     }
+    post.liked = false;
     await this.postRepository.save(post);
     await this.likeRepository.remove(likePost);
 
     return { message: '게시글에 대한 좋아요를 취소했습니다.' };
   }
+
   //게시글 좋아요 확인
   async isLikedByUser(userId: number, id: number) {
+    const post = await this.postRepository.findOne({ where: { id }, relations: ['like'] });
     const like = await this.likeRepository.findOne({ where: { user: { id: userId }, post: { id } } });
-    return !!like;
+    const liked = !!like;
+    return post.liked, liked;
   }
 }

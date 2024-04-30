@@ -41,7 +41,7 @@ export class AppController {
     @Query('limit', new DefaultValuePipe(40), ParseIntPipe) limit: number,
   ) {
     const result = await this.gameService.getGames(page, limit);
-    return { games: result.data };
+    return { games: result.data, page: result.page, limit: result.limit, lastPage: result.lastPage };
   }
 
   @Get('game/:id')
@@ -60,10 +60,14 @@ export class AppController {
       8: 'Racing',
       9: 'Sports',
     };
+    const supported_languages = game.supported_languages.replace(/<[^>]*>?/gm, '');
+    const pc_requirements = game.pc_requirements.replace(/<[^>]*>?/gm, '');
     const genreName = idToGenreMapping[game.genre_id];
     const gameDetail = {
       ...game,
       genreName,
+      supported_languages,
+      pc_requirements,
     };
     return { game: gameDetail };
   }

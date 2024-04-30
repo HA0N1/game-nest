@@ -16526,7 +16526,7 @@ function checkLogin() {
   if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'https://chunsik.store/user/login';
+    window.location.href = 'https://chunsik.store/main';
   }
 }
 const socket = io('/chat', { auth: { token: token } });
@@ -16766,6 +16766,7 @@ const connectSendTransport = async () => {
   videoProducer.on('transportclose', () => {
     console.log('video transport ended');
   });
+  createRecvTransport();
 };
 
 //! consumer
@@ -16790,7 +16791,6 @@ const createRecvTransport = async () => {
         errback(error);
       }
     });
-    connectRecvTransport();
   });
   // 서버에 consumerTransport 생성 요청
   socket.emit('createWebRtcTransport', { consumer: true });
@@ -16816,10 +16816,10 @@ const connectRecvTransport = async () => {
     const newElem = document.createElement('div'); // 비디오 화면
     const newSpan = document.createElement('span');
     // newElem.setAttribute('id', `td-${remoteProducerId}`)
-    wrapper.setAttribute('id', `td-${videoProducer.id}`);
+    wrapper.setAttribute('id', `td-${produceId}`);
 
     newElem.setAttribute('class', 'remoteVideo');
-    newElem.innerHTML = '<video id="' + videoProducer.id + '" autoplay class="video"></video>';
+    newElem.innerHTML = '<video id="' + produceId + '" autoplay class="video"></video>';
 
     wrapper.appendChild(newElem);
     wrapper.appendChild(newSpan);
@@ -16828,7 +16828,7 @@ const connectRecvTransport = async () => {
     // destructure and retrieve the video track from the producer
     const { track } = consumer;
 
-    document.getElementById(videoProducer.id).srcObject = new MediaStream([track]);
+    document.getElementById(produceId).srcObject = new MediaStream([track]);
     await socket.emit('consumer-resume');
   });
 
@@ -16906,6 +16906,6 @@ function handleSuccess(stream) {
 document.getElementById('screenShareBtn').addEventListener('click', screenShare);
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
 document.getElementById('localVideoOffBtn').addEventListener('click', videoOff);
-document.getElementById('recv').addEventListener('click', createRecvTransport);
+document.getElementById('recv').addEventListener('click', connectRecvTransport);
 
 },{"mediasoup-client":40}]},{},[52]);
