@@ -279,6 +279,7 @@ const connectSendTransport = async () => {
   videoProducer.on('transportclose', () => {
     console.log('video transport ended');
   });
+  createRecvTransport();
 };
 
 //! consumer
@@ -303,7 +304,6 @@ const createRecvTransport = async () => {
         errback(error);
       }
     });
-    connectRecvTransport();
   });
   // 서버에 consumerTransport 생성 요청
   socket.emit('createWebRtcTransport', { consumer: true });
