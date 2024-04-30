@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Render } from '@nestjs/common';
 import { FriendService } from './friend.service';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -14,12 +14,29 @@ export class FriendController {
   @UseGuards(AuthGuard('jwt'))
   @Post('send')
   async beFriend(@UserInfo() user: User, @Body() beFriendDto: BeFriendDto) {
+    console.log('controller: ', beFriendDto, beFriendDto.email);
+
     return await this.friendService.beFriend(user, beFriendDto.email);
   }
 
+  //친구 요청 보내기
+  @Get('sendFriend')
+  @Render('sendFriend.hbs')
+  async sendFriend() {}
+
+  //친구 목록 조회
+  @Get('findFriends')
+  @Render('findFriends.hbs')
+  async find() {}
+
+  //친구 요청 조회
+  @Get('friendRequest')
+  @Render('friendRequest.hbs')
+  async getRequest() {}
+
   /* 친구창 조회 */
   @UseGuards(AuthGuard('jwt'))
-  @Get()
+  @Get('find')
   async allFriend(@UserInfo() user: User) {
     return await this.friendService.allFriend(user);
   }
@@ -33,7 +50,7 @@ export class FriendController {
 
   /* 나에게 온 친구 요청 조회 */
   @UseGuards(AuthGuard('jwt'))
-  @Get('beFriends')
+  @Get('acceptFriends')
   async findRequests(@UserInfo() user: User) {
     return await this.friendService.requests(user);
   }
@@ -51,7 +68,7 @@ export class FriendController {
 
   /* 친구 삭제 */
   @UseGuards(AuthGuard('jwt'))
-  @Delete()
+  @Delete('deleteFriend')
   async deleteFriend(@Query() id: number) {
     return await this.friendService.deleteFriend(id);
   }

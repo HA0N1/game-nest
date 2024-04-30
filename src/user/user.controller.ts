@@ -12,6 +12,7 @@ import {
   Render,
   UploadedFile,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -23,7 +24,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { User } from './entities/user.entity';
 import { UserInfo } from 'src/utils/decorators/userInfo';
 import { InterestGenre } from './entities/interestGenre.entity';
-import { Request, Response } from 'express';
+import { Request, Response, query } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResizeImagePipe } from 'src/utils/resizeImage.pipe';
 
@@ -86,6 +87,13 @@ export class UserController {
     } else {
       return { isLoggedIn: false };
     }
+  }
+
+  /* 유저 검색 기능 */
+  @Get('findUser')
+  async findUser(@Query() nickname) {
+    const value = nickname.input;
+    return await this.userService.findUserByNickname(value);
   }
 
   /* refreshtoken으로 accesstoken 재발급하기 */

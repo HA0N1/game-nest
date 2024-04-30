@@ -8,6 +8,8 @@ import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
+import { APP_FILTER } from '@nestjs/core';
+import { TokenExpiredFilter } from 'src/auth/guard/exception.filter';
 
 @Module({
   imports: [
@@ -27,6 +29,6 @@ import { HttpModule } from '@nestjs/axios';
     UserModule,
   ],
   controllers: [FriendController],
-  providers: [FriendService],
+  providers: [FriendService, { provide: APP_FILTER, useClass: TokenExpiredFilter }],
 })
 export class FriendModule {}
