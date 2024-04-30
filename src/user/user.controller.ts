@@ -129,13 +129,23 @@ export class UserController {
       return ig.genre_game_genre;
     });
 
-    return {
-      id: userInfo.id,
-      email: userInfo.email,
-      nickname: userInfo.nickname,
-      file: userInfo.file.filePath,
-      interestGenre: genreNames,
-    };
+    if (!userInfo.file) {
+      return {
+        id: userInfo.id,
+        email: userInfo.email,
+        nickname: userInfo.nickname,
+        file: process.env.DEFAULT_PROFILE_IMAGE,
+        interestGenre: genreNames,
+      };
+    } else {
+      return {
+        id: userInfo.id,
+        email: userInfo.email,
+        nickname: userInfo.nickname,
+        file: userInfo.file.filePath,
+        interestGenre: genreNames,
+      };
+    }
   }
 
   /* 프로필 이미지 추가 */
