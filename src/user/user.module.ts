@@ -14,6 +14,8 @@ import { HttpModule } from '@nestjs/axios';
 import { AwsService } from 'src/aws/aws.service';
 import { File } from 'src/aws/entities/file.entity';
 import { AwsModule } from 'src/aws/aws.module';
+import { APP_FILTER } from '@nestjs/core';
+import { TokenExpiredFilter } from 'src/auth/guard/exception.filter';
 
 @Module({
   imports: [
@@ -33,7 +35,7 @@ import { AwsModule } from 'src/aws/aws.module';
     RedisAppModule,
   ],
   controllers: [UserController],
-  providers: [UserService, AwsService],
+  providers: [UserService, AwsService, { provide: APP_FILTER, useClass: TokenExpiredFilter }],
   exports: [UserService],
 })
 export class UserModule {}

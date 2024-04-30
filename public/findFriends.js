@@ -9,7 +9,9 @@ const toDM = document.getElementById('toDM');
 toDM.addEventListener('click', function(){window.location.href = 'http://localhost:3000/dm'})
 
 const friends = document.getElementById('friends')
-const sendFriend = document.getElementById('sendFriend')
+const sendFriend = document.getElementById('sendFriend');
+
+
 const receiveFriend = document.getElementById('receiveFriend');
 
 window.onload = function(){
