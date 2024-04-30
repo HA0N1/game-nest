@@ -94,7 +94,7 @@ export class FriendService {
       .andWhere('me.is_friend = false')
       .leftJoin('me.user', 'us')
       .leftJoin('me.friend', 'fr')
-      .select(['me.id', 'me.is_friend', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
+      .select(['me.id', 'me.is_friend', 'us.id', 'us.nickname'])
       .getRawMany();
   }
 

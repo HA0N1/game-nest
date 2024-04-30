@@ -29,11 +29,6 @@ export class FriendController {
   @Render('findFriends.hbs')
   async find() {}
 
-  //친구 수락
-  @Get('beFriends')
-  @Render('beFriends.hbs')
-  async acceptRequest() {}
-
   //친구 요청 조회
   @Get('friendRequest')
   @Render('friendRequest.hbs')
