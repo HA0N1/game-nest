@@ -25,19 +25,19 @@ imageWrapper.style.display='none';
 changeImage.addEventListener('click', changeProfileImage)
 
 dmBtn.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/dm';
+  window.location.href = 'https://chunsik.store/dm';
 });
 
 findFriends.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/friend/findFriends';
+  window.location.href = 'https://chunsik.store/friend/findFriends';
 });
 
 registerFriends.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/friend/sendFriend';
+  window.location.href = 'https://chunsik.store/friend/sendFriend';
 });
 
 function checkLoginStatus() {
-  fetch('http://localhost:3000/user/checkLogin', {
+  fetch('https://chunsik.store/user/checkLogin', {
     method: 'GET',
   })
     .then(res => {
@@ -45,7 +45,7 @@ function checkLoginStatus() {
         return;
       } else {
         alert('로그인을 하지 않은 유저입니다. 쿠키를 확인해주십시오.');
-        window.location.href = 'http://localhost:3000/main';
+        window.location.href = 'https://chunsik.store/main';
       }
     })
     .catch(error => {
@@ -54,7 +54,7 @@ function checkLoginStatus() {
 }
 
 function UserProfiles() {
-  fetch('http://localhost:3000/user/userinfo', {
+  fetch('https://chunsik.store/user/userinfo', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -137,7 +137,7 @@ const data = new FormData();
 
 data.append('filePath', file);
 
-fetch(`http://localhost:3000/user/image?userId=${userId}`,{
+fetch(`https://chunsik.store/user/image?userId=${userId}`,{
   method:'PATCH',
   body: data,
   credentials: 'include'
@@ -160,7 +160,7 @@ originalImage.addEventListener('click', goOriginalImage);
 function goOriginalImage(event){
   event.preventDefault();
  
-  fetch('http://localhost:3000/user/defaultImage',{
+  fetch('https://chunsik.store/user/defaultImage',{
     method:'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
