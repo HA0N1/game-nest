@@ -14,16 +14,30 @@ export class FriendController {
   @UseGuards(AuthGuard('jwt'))
   @Post('send')
   async beFriend(@UserInfo() user: User, @Body() beFriendDto: BeFriendDto) {
+    console.log('controller: ', beFriendDto, beFriendDto.email);
+
     return await this.friendService.beFriend(user, beFriendDto.email);
   }
 
+  //친구 요청 보내기
+  @Get('sendFriend')
+  @Render('sendFriend.hbs')
+  async sendFriend() {}
+
+  //친구 목록 조회
   @Get('findFriends')
   @Render('findFriends.hbs')
   async find() {}
 
-  @Get('getFriends')
-  @Render('getFriends.hbs')
-  async get() {}
+  //친구 수락
+  @Get('beFriends')
+  @Render('beFriends.hbs')
+  async acceptRequest() {}
+
+  //친구 요청 조회
+  @Get('friendRequest')
+  @Render('friendRequest.hbs')
+  async getRequest() {}
 
   /* 친구창 조회 */
   @UseGuards(AuthGuard('jwt'))
@@ -41,7 +55,7 @@ export class FriendController {
 
   /* 나에게 온 친구 요청 조회 */
   @UseGuards(AuthGuard('jwt'))
-  @Get('beFriends')
+  @Get('acceptFriends')
   async findRequests(@UserInfo() user: User) {
     return await this.friendService.requests(user);
   }
@@ -59,7 +73,7 @@ export class FriendController {
 
   /* 친구 삭제 */
   @UseGuards(AuthGuard('jwt'))
-  @Delete()
+  @Delete('deleteFriend')
   async deleteFriend(@Query() id: number) {
     return await this.friendService.deleteFriend(id);
   }

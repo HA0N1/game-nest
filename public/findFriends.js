@@ -10,9 +10,10 @@ toDM.addEventListener('click', function(){window.location.href = 'http://localho
 
 const friends = document.getElementById('friends')
 const sendFriend = document.getElementById('sendFriend');
-
+sendFriend.addEventListener('click', function(){window.location.href='http://localhost:3000/friend/sendFriend'})
 
 const receiveFriend = document.getElementById('receiveFriend');
+receiveFriend.addEventListener('click', function(){window.location.href='http://localhost:3000/friend/friendRequest'})
 
 window.onload = function(){
     loadFriends()

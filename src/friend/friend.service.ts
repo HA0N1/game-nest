@@ -24,6 +24,7 @@ export class FriendService {
   async beFriend(user: User, email: string) {
     // 친구할 유저의 이메일로 조회
     const friend = await this.userRepository.findOneBy({ email });
+    console.log(email);
 
     if (!friend) {
       throw new NotFoundException('해당 이메일을 가진 유저가 존재하지 않습니다.');
