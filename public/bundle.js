@@ -18063,7 +18063,7 @@
         document.getElementById('screenShareBtn').addEventListener('click', screenShare);
         document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
         document.getElementById('localVideoOffBtn').addEventListener('click', videoOff);
-        document.getElementById('recv').addEventListener('click', createRecvTransport);
+        document.getElementById('recv').addEventListener('click', connectRecvTransport);
       },
       { 'mediasoup-client': 40 },
     ],

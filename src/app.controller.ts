@@ -60,6 +60,7 @@ export class AppController {
       8: 'Racing',
       9: 'Sports',
     };
+
     const pc_requirements = game.pc_requirements.replace(/<[^>]*>?/gm, '');
     const genreName = idToGenreMapping[game.genre_id];
     const gameDetail = {
