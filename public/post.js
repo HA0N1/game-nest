@@ -100,7 +100,6 @@ async function create(event) {
     return;
   }
   try {
-    const token = window.localStorage.getItem('authorization');
     const response = await fetch('https://chunsik.store/post', {
       method: 'POST',
       body: formData,

@@ -1,7 +1,7 @@
 function login() {
   const email = $('#email').val();
   const password = $('#password').val();
-  fetch('http://chunsik.store:3000/user/email', {
+  fetch('https://chunsik.store/user/email', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

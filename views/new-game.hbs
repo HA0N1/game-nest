@@ -1,0 +1,34 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  </head>
+  <body>
+<div id='new-games'>
+        <h2>신작 게임</h2>
+
+        </div>
+        {{#each data}}
+
+          <div class='game'>
+            <img src='{{this.screen_shot}}' alt='{{this.title}}' />
+            <p>
+              <span class='title'>{{this.title}}</span>
+            </p>
+            <p><span class='release_date'>발매일: {{this.release_date}}</span></p>
+          <p><span class='price'>가격: {{this.price}}</span></p> 
+          </div>
+        {{/each}}
+
+        <div class="pagination">
+        {{#if page}}
+          <a href="?page={{decrement page}}&limit={{limit}}">이전 페이지</a>
+        {{/if}}
+        <span>페이지 {{page}} / {{lastPage}}</span>
+        {{#if lastPage}}
+          <a href="?page={{increment page}}&limit={{limit}}">다음 페이지</a>
+        {{/if}}
+      </div>
+    </div>
+  </body>
+</html>

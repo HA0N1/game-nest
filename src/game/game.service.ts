@@ -132,7 +132,7 @@ export class GameService {
   // 장르별 조회
   async getGamesByGenre(genre_id: number, page = 1, limit = 10) {
     page = Math.max(page, 1);
-    limit = Math.max(limit, 1);
+    limit = Math.max(limit, 1, 50);
 
     const offset = (page - 1) * limit;
 
@@ -145,7 +145,7 @@ export class GameService {
     if (games.length === 0) {
       throw new NotFoundException('해당하는 장르의 게임을 찾을 수 없습니다.');
     }
-    return { data: games, total: total, page: page, lastPage: Math.ceil(total / limit) };
+    return { data: games, total: total, page: page, limit: limit, lastPage: Math.ceil(total / limit) };
   }
 
   // 인기순 저장
@@ -169,12 +169,12 @@ export class GameService {
         const price = element.querySelector('.Wh0L8EnwsPV_8VAu8TOYr')?.textContent ?? '가격 정보 없음';
         const change = element.querySelector('._2OA1JW-4H-f01kM7myTUuu.Focusable').textContent ?? '변동 정보 없음';
 
-        return { rank, screen_shot, title, price, change };
+        return { rank, screen_shot, title, price, change, is_popular: true };
       });
     });
     await browser.close();
 
-    await this.gameRepository.createQueryBuilder().delete().from(Game).where('change IS NOT NULL').execute();
+    await this.gameRepository.createQueryBuilder().delete().from(Game).where('is_popular = TRUE').execute();
 
     await this.gameRepository.save(popularGames);
 
@@ -183,6 +183,8 @@ export class GameService {
 
   // 인기순 조회
   async getPopularGames(page = 1, limit = 10) {
+    page = Math.max(page, 1);
+    limit = Math.max(limit, 20);
     const offset = (page - 1) * limit;
     const [popularGames, total] = await this.gameRepository.findAndCount({
       select: ['rank', 'screen_shot', 'title', 'price', 'change'],
@@ -202,9 +204,10 @@ export class GameService {
 
     return {
       data: popularGames,
-      count: total,
+      total: total,
       page: page,
       limit: limit,
+      lastPage: Math.ceil(total / limit),
     };
   }
 
@@ -224,7 +227,7 @@ export class GameService {
         const imageElement = item.querySelector('.col.search_capsule img');
         const screen_shot = imageElement.getAttribute('src');
         const release_date = item.querySelector('.search_released').textContent;
-        const price = item.querySelector('.discount_final_price').textContent;
+        const price = item.querySelector('.discount_final_price').textContent ?? '가격 정보 없음';
         return { title, release_date, price, screen_shot };
       });
     });
@@ -284,12 +287,11 @@ export class GameService {
       .select(['title', 'screen_shot', 'release_date', 'price'])
       .where('game.release_date > :oneWeekAgo', { oneWeekAgo })
       .andWhere('game.release_date < :now', { now })
-      .andWhere('game.developer IS NULL')
       .orderBy('game.release_date', 'DESC')
       .offset(offset)
       .take(limit)
       .getRawMany();
-
+    console.log('s1', newGames);
     return {
       data: newGames,
       page,

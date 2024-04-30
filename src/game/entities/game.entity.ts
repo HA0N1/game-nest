@@ -27,7 +27,7 @@ export class Game {
   @Column({ type: 'text' })
   supported_languages: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'text' })
   pc_requirements: string;
 
   @Column({ type: 'datetime' })
@@ -36,19 +36,22 @@ export class Game {
   @Column({ type: 'varchar' })
   price: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   change: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   rank: number;
+
+  @Column({ type: 'boolean', default: false })
+  is_popular: boolean;
 
   @Column({ type: 'enum', enum: PlatformEnum })
   platform: PlatformEnum;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   publisher: string;
 
-  @Column({ type: 'int', unsigned: true })
+  @Column({ type: 'int', unsigned: true, nullable: true })
   genre_id: number;
 
   @ManyToOne(() => Genre, genre => genre.game)
