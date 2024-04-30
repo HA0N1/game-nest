@@ -22,7 +22,7 @@ findFriends.addEventListener('click', function () {
 });
 
 registerFriends.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/friend/getFriends';
+  window.location.href = 'https://chunsik.store/friend/sendFriend';
 });
 
 function checkLoginStatus() {
