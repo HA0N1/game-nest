@@ -1,78 +1,93 @@
 const postList = document.getElementById('post-list');
-
+const token = window.localStorage.getItem('authorization');
 async function fetchPosts() {
   try {
-    const response = await fetch('http://chunsik.store:3000/post');
-    const data = await response.json();
+    const response = await fetch('https://chunsik.store/post');
+    let data = await response.json();
+    data = data.sort((a, b) => b.id - a.id);
 
-    displayPosts(data);
+    data.map(async post => {
+      const likeResponse = await fetch(`https://chunsik.store/post/${post.id}/liked`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const { liked } = await likeResponse.json();
+      displayPosts(post, liked);
+    });
   } catch (error) {
     console.error('Error fetching posts:', error);
   }
 }
 
-document.getElementById('post-form').addEventListener('submit', create);
+function displayPosts(post, liked) {
+  const postItem = document.createElement('div');
+  postItem.classList.add('post-item');
 
-function displayPosts(posts) {
-  postList.innerHTML = '';
-  posts.forEach(post => {
-    const postItem = document.createElement('div');
-    postItem.classList.add('post-item');
+  const titleElement = document.createElement('h2');
+  titleElement.textContent = `제목: ${post.title}`;
+  postItem.appendChild(titleElement);
 
-    const titleElement = document.createElement('h2');
-    titleElement.textContent = `제목: ${post.title}`;
-    postItem.appendChild(titleElement);
+  const contentElement = document.createElement('p');
+  contentElement.textContent = `내용: ${post.content}`;
+  postItem.appendChild(contentElement);
 
-    const contentElement = document.createElement('p');
-    contentElement.textContent = `내용: ${post.content}`;
-    postItem.appendChild(contentElement);
+  const categoryElement = document.createElement('p');
+  categoryElement.textContent = `카테고리: ${post.category}`;
+  postItem.appendChild(categoryElement);
 
-    const categoryElement = document.createElement('p');
-    categoryElement.textContent = `카테고리: ${post.category}`;
-    postItem.appendChild(categoryElement);
-
-    const viewCountElement = document.createElement('p');
-    viewCountElement.textContent = `조회수: ${post.view_count}`;
-    postItem.appendChild(viewCountElement);
-
-    if (post.file && post.file.filePath) {
+  const viewCountElement = document.createElement('p');
+  viewCountElement.textContent = `조회수: ${post.view_count}`;
+  postItem.appendChild(viewCountElement);
+  if (post.file && post.file.filePath) {
+    if (post.file.filePath.includes('jpg')) {
       const imageElement = document.createElement('img');
       imageElement.src = post.file.filePath;
       imageElement.alt = 'Post Image';
-
       imageElement.width = 800;
       imageElement.height = 400;
       postItem.appendChild(imageElement);
+    } else if (post.file.filePath.includes('mp4')) {
+      const videoElement = document.createElement('video');
+      videoElement.src = post.file.filePath;
+      videoElement.controls = true;
+      videoElement.width = 800;
+      videoElement.height = 400;
+      postItem.appendChild(videoElement);
     }
+  }
 
-    const likesElement = document.createElement('p');
-    likesElement.textContent = `좋아요: ${post.likes}`;
-    postItem.appendChild(likesElement);
+  const likesElement = document.createElement('p');
+  likesElement.textContent = `좋아요: ${post.likes}`;
+  postItem.appendChild(likesElement);
 
-    const likeButton = document.createElement('button');
-    if (post.likes) {
-      likeButton.textContent = '좋아요 취소';
-    } else {
-      likeButton.textContent = '좋아요';
-    }
-
-    likeButton.addEventListener('click', () => like(post.id, posts));
+  const likeButton = document.createElement('button');
+  const unlikeButton = document.createElement('button');
+  likeButton.textContent = '좋아요';
+  if (liked == true) {
+    likeButton.style.display = 'none';
+    unlikeButton.textContent = '좋아요 취소';
+    unlikeButton.addEventListener('click', () => unlike(post.id));
+    postItem.appendChild(unlikeButton);
+  } else {
+    unlikeButton.style.display = 'none';
+    likeButton.textContent = '좋아요';
+    likeButton.addEventListener('click', () => like(post.id));
     postItem.appendChild(likeButton);
+  }
 
-    const updateButton = document.createElement('button');
-    updateButton.textContent = '수정';
-    updateButton.addEventListener('click', () => update(post.id));
-    postItem.appendChild(updateButton);
+  const updateButton = document.createElement('button');
+  updateButton.textContent = '수정';
+  updateButton.addEventListener('click', () => update(post.id));
+  postItem.appendChild(updateButton);
 
-    const removeButton = document.createElement('button');
-    removeButton.textContent = '삭제';
-    removeButton.addEventListener('click', () => remove(post.id));
-    postItem.appendChild(removeButton);
+  const removeButton = document.createElement('button');
+  removeButton.textContent = '삭제';
+  removeButton.addEventListener('click', () => remove(post.id));
+  postItem.appendChild(removeButton);
 
-    postList.prepend(postItem);
-  });
+  postList.appendChild(postItem);
 }
-
 async function create(event) {
   event.preventDefault();
   const formData = new FormData(document.getElementById('post-form'));
@@ -86,7 +101,7 @@ async function create(event) {
   }
   try {
     const token = window.localStorage.getItem('authorization');
-    const response = await fetch('http://chunsik.store:3000/post', {
+    const response = await fetch('https://chunsik.store/post', {
       method: 'POST',
       body: formData,
       headers: {
@@ -101,8 +116,6 @@ async function create(event) {
 }
 
 async function update(postId) {
-  const response = await fetch(`http://chunsik.store:3000/post/${postId}`);
-
   const updatedTitle = prompt('수정할 제목을 입력하세요:');
   const updatedContent = prompt('수정할 내용을 입력하세요:');
   const updatedCategory = prompt(
@@ -111,8 +124,7 @@ async function update(postId) {
 
   if (updatedTitle && updatedContent && updatedCategory) {
     try {
-      const token = window.localStorage.getItem('authorization');
-      const updateresponse = await fetch(`http://chunsik.store:3000/post/${postId}`, {
+      const updateresponse = await fetch(`https://chunsik.store/post/${postId}`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -135,11 +147,9 @@ async function update(postId) {
 async function remove(postId) {
   const logInUserId = window.localStorage.getItem('authorization');
   try {
-    const response = await fetch(`http://chunsik.store:3000/${postId}`);
-
     const confirmDelete = confirm('정말로 이 게시글을 삭제하시겠습니까?');
     if (confirmDelete) {
-      const deleteResponse = await fetch(`http://chunsik.store:3000/post/${postId}?userId=${logInUserId}`, {
+      const deleteResponse = await fetch(`https://chunsik.store/post/${postId}?userId=${logInUserId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${logInUserId}`,
@@ -154,22 +164,31 @@ async function remove(postId) {
   }
 }
 
-async function like(postId, posts) {
+async function like(postId) {
   try {
-    // 좋아요 상태에 따라 적절한 요청 보내기
-    const post = posts.find(post => post.id === postId);
-    const token = window.localStorage.getItem('authorization');
-    const response = await fetch(`http://chunsik.store:3000/post/${postId}/like`, {
-      method: post.likes ? 'DELETE' : 'POST',
+    const response = await fetch(`https://chunsik.store/post/${postId}/like`, {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-
-    // UI 업데이트를 위해 페이지 다시 로드
     window.location.reload();
   } catch (error) {
     console.error('Error toggling like:', error);
   }
 }
+async function unlike(postId) {
+  try {
+    const response = await fetch(`https://chunsik.store/post/${postId}/like`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    window.location.reload();
+  } catch (error) {
+    console.error('Error toggling unlike:', error);
+  }
+}
+
 fetchPosts();
