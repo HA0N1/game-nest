@@ -18,11 +18,11 @@ dmBtn.addEventListener('click', function () {
 });
 
 findFriends.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/friend/findFriends';
+  window.location.href = 'https://chunsik.store/user/findFriends';
 });
 
 registerFriends.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/friend/getFriends';
+  window.location.href = 'https://chunsik.store/user/getFriends';
 });
 
 function checkLoginStatus() {

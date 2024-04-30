@@ -329,10 +329,10 @@ const connectRecvTransport = async () => {
     const newElem = document.createElement('div'); // 비디오 화면
     const newSpan = document.createElement('span');
     // newElem.setAttribute('id', `td-${remoteProducerId}`)
-    wrapper.setAttribute('id', `td-${videoProducer.id}`);
+    wrapper.setAttribute('id', `td-${produceId}`);
 
     newElem.setAttribute('class', 'remoteVideo');
-    newElem.innerHTML = '<video id="' + videoProducer.id + '" autoplay class="video"></video>';
+    newElem.innerHTML = '<video id="' + produceId + '" autoplay class="video"></video>';
 
     wrapper.appendChild(newElem);
     wrapper.appendChild(newSpan);
@@ -341,7 +341,7 @@ const connectRecvTransport = async () => {
     // destructure and retrieve the video track from the producer
     const { track } = consumer;
 
-    document.getElementById(videoProducer.id).srcObject = new MediaStream([track]);
+    document.getElementById(produceId).srcObject = new MediaStream([track]);
     await socket.emit('consumer-resume');
   });
 
