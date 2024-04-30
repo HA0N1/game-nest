@@ -27,7 +27,7 @@ export class Game {
   @Column({ type: 'text' })
   supported_languages: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'text' })
   pc_requirements: string;
 
   @Column({ type: 'datetime' })

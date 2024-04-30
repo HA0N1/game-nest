@@ -8,7 +8,7 @@ export class TokenExpiredFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    fetch('https://chunsik.store:3000/user/refreshToken', {
+    fetch('https://chunsik.store/user/refreshToken', {
       method: 'POST',
       credentials: 'include',
     })

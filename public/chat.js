@@ -39,7 +39,7 @@ function checkLogin() {
   if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'https://chunsik.store:3000/user/login';
+    window.location.href = 'https://chunsik.store/user/login';
   }
 }
 const socket = io('/chat', { auth: { token: token } });
@@ -345,36 +345,26 @@ const connectRecvTransport = async () => {
 
   // await socket.emit('consumer-resume');
 };
-
 function videoOff() {
   const localVideo = document.getElementById('localVideo');
-  const remoteVideo = document.getElementById('remoteVideo');
+  const remoteVideo = document.getElementById('remoteVideo'); // Assuming this is the ID of your remote video element
 
-  // localVideo와 remoteVideo가 존재하는지 확인
-  if (localVideo && remoteVideo) {
-    const stream1 = localVideo.srcObject;
-    const stream2 = remoteVideo.srcObject;
-
-    if (stream1) {
-      const tracks1 = stream1.getTracks();
-      tracks1.forEach(track1 => {
-        track1.stop();
-      });
-      localVideo.srcObject = null;
-    }
-
-    if (stream2) {
-      const tracks2 = stream2.getTracks();
-      tracks2.forEach(track2 => {
-        track2.stop();
-      });
-      remoteVideo.srcObject = null;
-    }
-  } else {
-    console.error('localVideo 또는 remoteVideo 요소를 찾을 수 없습니다.');
+  // Stop all tracks in the local video stream
+  const localStream = localVideo.srcObject;
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
   }
-}
 
+  // Stop all tracks in the remote video stream
+  const remoteStream = remoteVideo.srcObject;
+  if (remoteStream) {
+    remoteStream.getTracks().forEach(track => track.stop());
+  }
+
+  // Remove the video streams from the video elements
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+}
 // 화면공유
 
 if (adapter.browserDetails.browser === 'chrome' && adapter.browserDetails.version >= 107) {
