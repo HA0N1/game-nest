@@ -324,7 +324,7 @@ export class RoomGateway implements OnGatewayConnection {
           {
             protocol: 'udp',
             ip: '0.0.0.0',
-            announcedIp: '127.0.0.1',
+            announcedIp: this.configService.get<string>('ANNOUNCED_IP'),
           },
         ],
         enableUdp: true,
