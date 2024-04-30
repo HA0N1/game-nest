@@ -60,10 +60,14 @@ export class AppController {
       8: 'Racing',
       9: 'Sports',
     };
+    const supported_languages = game.supported_languages.replace(/<[^>]*>?/gm, '');
+    const pc_requirements = game.pc_requirements.replace(/<[^>]*>?/gm, '');
     const genreName = idToGenreMapping[game.genre_id];
     const gameDetail = {
       ...game,
       genreName,
+      supported_languages,
+      pc_requirements,
     };
     return { game: gameDetail };
   }
