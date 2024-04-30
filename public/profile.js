@@ -14,19 +14,19 @@ window.onload = function (){
 }
 
 dmBtn.addEventListener('click', function(){
-    window.location.href = 'https://chunsik.store:3000/dm'
+    window.location.href = 'http://localhost:3000/dm'
 })
 
 findFriends.addEventListener('click', function(){
-    window.location.href = 'https://chunsik.store:3000/user/findFriends'
+    window.location.href = 'http://localhost:3000/friend/findFriends'
 })
 
 registerFriends.addEventListener('click', function(){
-    window.location.href = 'https://chunsik.store:3000/user/getFriends'
+    window.location.href = 'http://localhost:3000/friend/getFriends'
 })
 
 function checkLoginStatus(){
-    fetch('https://chunsik.store:3000/user/checkLogin',{
+    fetch('http://localhost:3000/user/checkLogin',{
         method:'GET',
       })
     .then(res => {
@@ -34,7 +34,7 @@ function checkLoginStatus(){
         return;
       }else{
         alert('로그인을 하지 않은 유저입니다. 쿠키를 확인해주십시오.');
-        window.location.href='https://chunsik.store:3000/main';
+        window.location.href='http://localhost:3000/main';
       }
     })
     .catch(error => {
@@ -43,7 +43,7 @@ function checkLoginStatus(){
 }
 
 function UserProfiles(){
-    fetch('https://chunsik.store:3000/user/userinfo',{
+    fetch('http://localhost:3000/user/userinfo',{
         method:'GET',
         headers: {
             Authorization: `Bearer ${token}`,
