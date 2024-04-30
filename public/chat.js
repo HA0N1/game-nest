@@ -259,6 +259,7 @@ const createSendTransport = async () => {
 };
 
 const connectSendTransport = async () => {
+  console.log('test');
   audioProducer = await producerTransport.produce(audioParams);
   console.log('connectSendTransport ~ audioProducer:', audioProducer);
 
