@@ -2,7 +2,7 @@ const postList = document.getElementById('post-list');
 const token = window.localStorage.getItem('authorization');
 async function fetchPosts() {
   try {
-    const response = await fetch('https://chunsik.store/post');
+    const response = await fetch('http://localhost:3000/post');
     let data = await response.json();
     data = data.sort((a, b) => b.id - a.id);
 
@@ -95,8 +95,8 @@ async function create(event) {
     alert('제목, 내용, 카테고리를 모두 입력해야 합니다.');
     return;
   }
-  try {https://chunsik.store
-    const response = await fetch('https://chunsik.store/post', {
+  try {http://localhost:3000
+    const response = await fetch('http://localhost:3000/post', {
       method: 'POST',
       body: formData,
       headers: {
@@ -118,8 +118,8 @@ async function update(postId) {
   );
 
   if (updatedTitle && updatedContent && updatedCategory) {
-    try {https://chunsik.store
-      const updateresponse = await fetch(`https://chunsik.store/post/${postId}`, {
+    try {http://localhost:3000
+      const updateresponse = await fetch(`http://localhost:3000/post/${postId}`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -143,8 +143,8 @@ async function remove(postId) {
   const logInUserId = window.localStorage.getItem('authorization');
   try {
     const confirmDelete = confirm('정말로 이 게시글을 삭제하시겠습니까?');
-    if (confirmDelete) {https://chunsik.store
-      const deleteResponse = await fetch(`https://chunsik.store/post/${postId}?userId=${logInUserId}`, {
+    if (confirmDelete) {http://localhost:3000
+      const deleteResponse = await fetch(`http://localhost:3000/post/${postId}?userId=${logInUserId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${logInUserId}`,
@@ -160,8 +160,8 @@ async function remove(postId) {
 }
 
 async function like(postId) {
-  try {https://chunsik.store
-    const response = await fetch(`https://chunsik.store/post/${postId}/like`, {
+  try {http://localhost:3000
+    const response = await fetch(`http://localhost:3000/post/${postId}/like`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -173,8 +173,8 @@ async function like(postId) {
   }
 }
 async function unlike(postId) {
-  try {https://chunsik.store
-    const response = await fetch(`https://chunsik.store/post/${postId}/like`, {
+  try {http://localhost:3000
+    const response = await fetch(`http://localhost:3000/post/${postId}/like`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -186,8 +186,8 @@ async function unlike(postId) {
   }
 }
 async function likeStatus(postId) {
-  try {https://chunsik.store
-    const response = await fetch(`https://chunsik.store/post/${postId}/liked`, {
+  try {http://localhost:3000
+    const response = await fetch(`http://localhost:3000/post/${postId}/liked`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

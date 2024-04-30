@@ -201,6 +201,5 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = await this.findUserByCookie(cookie, socket);
 
     socket.emit('receiveUserInfo', user);
-    console.log('유저 정보 전송 완료');
   }
 }

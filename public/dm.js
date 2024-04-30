@@ -1,5 +1,5 @@
 const token = window.localStorage.getItem('authorization');
-const socket = io('https://chunsik.store/friendDM', { auth: { token: token } });
+const socket = io('http://localhost:3000/friendDM', { auth: { token: token } });
 
 const dmMain = document.getElementById('dmMain');
 const rooms = dmMain.querySelector('#rooms');
@@ -28,7 +28,7 @@ function checkLogin() {
   if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'https://chunsik.store/user/login';
+    window.location.href = 'http://localhost:3000/user/login';
   }
 }
 
@@ -62,7 +62,7 @@ function sayBye() {
 }
 
 function goBack() {
-  window.location.href = 'https://chunsik.store/main';
+  window.location.href = 'http://localhost:3000/main';
 }
 
 socket.on('dmRoomsList', function () {
@@ -106,7 +106,7 @@ function handleImageSubmit(event) {
   event.preventDefault();
   socket.emit('userInfo');
 
-  socket.on('receiveUserInfo', userInfo => {
+  socket.once('receiveUserInfo', userInfo => {
     const userData = userInfo;
     const userId = +userData.id;
 
@@ -121,7 +121,7 @@ function handleImageSubmit(event) {
     const dmRoomName = dmRoom.querySelector('h3').textContent;
     const dmRoomId = dmRoomName.split(' ')[1];
 
-    fetch(`https://chunsik.store/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`, {
+    fetch(`http://localhost:3000/dm/file?dmRoomId=${dmRoomId}&userId=${userId}`, {
       method: 'POST',
       body: data,
       credentials: 'include',
@@ -243,7 +243,7 @@ socket.on('messageWithImage', data => {
 });
 
 function history(dmRoomId) {
-  fetch(`https://chunsik.store/dm/history/${dmRoomId}`, {
+  fetch(`http://localhost:3000/dm/history/${dmRoomId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -251,7 +251,6 @@ function history(dmRoomId) {
     .then(res => res.json())
     .then(data =>
       data.map(chat => {
-        console.log(chat);
         // 파일 path가 null인 경우: text가 있음
         if (!chat.file_path) {
           sendDM(`${chat.us_nickname}:${chat.chat_content} ${chat.chat_created_at}`);
@@ -265,5 +264,5 @@ function history(dmRoomId) {
 
 socket.on('userDisconnected', () => {
   alert('소켓 연결이 종료되었습니다. 로그인을 다시 해주세요.');
-  window.location.href = 'https://chunsik.store/user/login';
+  window.location.href = 'http://localhost:3000/user/login';
 });
