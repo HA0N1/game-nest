@@ -82,6 +82,7 @@ function displayPosts(post, liked) {
   postItem.appendChild(removeButton);
 
   postList.appendChild(postItem);
+  document.getElementById('post-form').addEventListener('submit', create);
 }
 async function create(event) {
   event.preventDefault();
