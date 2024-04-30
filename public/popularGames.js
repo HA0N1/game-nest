@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function fetchPopularGames(page) {
     try {
-      const response = await fetch(`https://chunsik.store/games/popularGames?page=${page}`);
+      const response = await fetch(`http://localhost:3000/games/popularGames?page=${page}`);
       if (!response.ok) {
         throw new Error('서버에서 데이터를 불러오는데 실패했습니다.');
       }

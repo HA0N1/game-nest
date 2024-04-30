@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const genreId = genreMapping[selectedGenreName];
 
     if (genreId) {
-      window.location.href = `https://chunsik.store/genre/${genreId}`;
+      window.location.href = `http://localhost:3000/genre/${genreId}`;
     }
   });
 });
