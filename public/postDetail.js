@@ -3,7 +3,7 @@ window.onload = function () {
 };
 async function fetchPostDetail() {
   const postId = window.location.pathname.split('/').pop();
-  const response = await fetch(`https://chunsik.store/post/${postId}`);
+  const response = await fetch(`http://localhost:3000/post/${postId}`);
   const post = await response.json();
   displayPostDetail(post);
 }

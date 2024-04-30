@@ -7,26 +7,37 @@ const interestGenres = document.getElementById('interestGenres');
 const dmBtn = document.getElementById('dmBtn');
 const findFriends = document.getElementById('findFriends');
 const registerFriends = document.getElementById('registerFriend');
+const changeImage = document.getElementById('changeImage');
+const originalImage = document.getElementById('originalImage');
+
+// const imageBox = document.querySelector('#imageBox');
+// imageBox.style.display = 'none';
 
 window.onload = function () {
   checkLoginStatus();
   UserProfiles();
 };
 
+
+const imageWrapper = document.getElementById('imageWrapper');
+imageWrapper.style.display='none';
+
+changeImage.addEventListener('click', changeProfileImage)
+
 dmBtn.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/dm';
+  window.location.href = 'http://localhost:3000/dm';
 });
 
 findFriends.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/friend/findFriends';
+  window.location.href = 'http://localhost:3000/friend/findFriends';
 });
 
 registerFriends.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/friend/sendFriend';
+  window.location.href = 'http://localhost:3000/friend/sendFriend';
 });
 
 function checkLoginStatus() {
-  fetch('https://chunsik.store/user/checkLogin', {
+  fetch('http://localhost:3000/user/checkLogin', {
     method: 'GET',
   })
     .then(res => {
@@ -34,7 +45,7 @@ function checkLoginStatus() {
         return;
       } else {
         alert('로그인을 하지 않은 유저입니다. 쿠키를 확인해주십시오.');
-        window.location.href = 'https://chunsik.store/main';
+        window.location.href = 'http://localhost:3000/main';
       }
     })
     .catch(error => {
@@ -43,7 +54,7 @@ function checkLoginStatus() {
 }
 
 function UserProfiles() {
-  fetch('https://chunsik.store/user/userinfo', {
+  fetch('http://localhost:3000/user/userinfo', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -70,21 +81,21 @@ function UserProfiles() {
 
       function setNickname(input) {
         const p = document.createElement('p');
-        p.innerText = input;
+        p.innerText = `닉네임: ${input}`;
         nickname.appendChild(p);
         return;
       }
 
       function setEmail(input) {
         const p = document.createElement('p');
-        p.innerText = input;
+        p.innerText = `이메일: ${input}`;
         email.appendChild(p);
         return;
       }
 
       function setUserId(input) {
         const p = document.createElement('p');
-        p.innerText = input;
+        p.innerText = `아이디: ${input}`;
         userId.appendChild(p);
         return;
       }
@@ -100,4 +111,69 @@ function UserProfiles() {
     .catch(err => {
       console.log('profile userinfo 연결 중의 에러: ', err);
     });
+}
+
+function changeProfileImage(event){
+  event.preventDefault();
+  imageWrapper.style.display='block';
+}
+
+fileBtn.addEventListener('click', sendImage);
+
+function sendImage(event){
+  event.preventDefault();
+const idData = document.querySelector("#userId p");
+const text = idData.textContent;
+
+const idValue = text.replace('아이디: ','');
+
+const userId = +idValue
+
+const fileBtn = document.getElementById('fileBtn');
+
+const inputFile = document.getElementById('inputFile');
+const file = inputFile.files[0];
+const data = new FormData();
+
+data.append('filePath', file);
+
+fetch(`http://localhost:3000/user/image?userId=${userId}`,{
+  method:'PATCH',
+  body: data,
+  credentials: 'include'
+})
+.then(res=>{
+  return res.json();
+})
+.then(json=>{
+  alert(json.message);
+  location.reload(true);
+})
+.catch(err=>{
+  console.error('프로필 이미지 변경 중의 에러: ', err);
+})
+}
+
+//TODO 기본 프로필 이미지 변경 함수 만들기, addEventListner도!
+originalImage.addEventListener('click', goOriginalImage);
+
+function goOriginalImage(event){
+  event.preventDefault();
+ 
+  fetch('http://localhost:3000/user/defaultImage',{
+    method:'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: 'include',
+  })
+  .then(res=>{return res.json()})
+  .then(json=>{
+    alert(json.message);
+    location.reload(true);
+  })
+  .catch(err=>{
+    console.error('기본 이미지로 변경 중의 에러: ', err);
+  })
+  
 }
