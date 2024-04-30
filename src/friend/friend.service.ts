@@ -39,15 +39,38 @@ export class FriendService {
 
   /* 친구창 조회 */
   async allFriend(user: User) {
-    return await this.friendshipRepository
+    const myId = user.id;
+    const data = await this.friendshipRepository
       .createQueryBuilder('friendship')
-      .select(['friendship.id', 'friendship.is_friend', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
-      .where('friendship.user_id = :user_id', { user_id: user.id })
-      .orWhere('friendship.friend_id = :friend_id', { friend_id: user.id })
+      .select(['friendship.id', 'us.id', 'us.nickname', 'us.email', 'fr.id', 'fr.nickname', 'fr.email'])
+      .where('friendship.user_id = :user_id', { user_id: myId })
+      .orWhere('friendship.friend_id = :friend_id', { friend_id: myId })
       .andWhere('friendship.is_friend = true')
       .leftJoin('friendship.user', 'us')
       .leftJoin('friendship.friend', 'fr')
       .getRawMany();
+
+    const dataValue = Object.values(data);
+
+    const friendData = dataValue.map(e => {
+      if (e.us_id === myId) {
+        return {
+          friendshipId: e.friendship_id,
+          friendId: e.fr_id,
+          friendEmail: e.fr_email,
+          friendNickname: e.fr_nickname,
+        };
+      } else {
+        return {
+          friendshipId: e.friendship_id,
+          friendId: e.us_id,
+          friendEmail: e.us_email,
+          friendNickname: e.us_nickname,
+        };
+      }
+    });
+
+    return friendData;
   }
 
   /* 내가 보낸 친구 요청 조회 */

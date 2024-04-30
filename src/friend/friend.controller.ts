@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Render } from '@nestjs/common';
 import { FriendService } from './friend.service';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -17,9 +17,17 @@ export class FriendController {
     return await this.friendService.beFriend(user, beFriendDto.email);
   }
 
+  @Get('findFriends')
+  @Render('findFriends.hbs')
+  async find() {}
+
+  @Get('getFriends')
+  @Render('getFriends.hbs')
+  async get() {}
+
   /* 친구창 조회 */
   @UseGuards(AuthGuard('jwt'))
-  @Get()
+  @Get('find')
   async allFriend(@UserInfo() user: User) {
     return await this.friendService.allFriend(user);
   }
