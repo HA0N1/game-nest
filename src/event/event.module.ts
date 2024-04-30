@@ -11,6 +11,8 @@ import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
+import { APP_FILTER } from '@nestjs/core';
+import { TokenExpiredFilter } from 'src/auth/guard/exception.filter';
 
 @Module({
   imports: [
@@ -30,7 +32,7 @@ import { HttpModule } from '@nestjs/axios';
     UserModule,
     ChannelModule,
   ],
-  providers: [RoomGateway],
+  providers: [RoomGateway, { provide: APP_FILTER, useClass: TokenExpiredFilter }],
   exports: [],
 })
 export class EventModule {}

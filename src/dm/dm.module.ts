@@ -12,6 +12,8 @@ import { FriendDMs } from './entities/friendDMs.entity';
 import { DMRoom } from './entities/DM-room.entity';
 import { AwsService } from 'src/aws/aws.service';
 import { File } from 'src/aws/entities/file.entity';
+import { APP_FILTER } from '@nestjs/core';
+import { TokenExpiredFilter } from 'src/auth/guard/exception.filter';
 
 @Module({
   imports: [
@@ -26,7 +28,7 @@ import { File } from 'src/aws/entities/file.entity';
     FriendModule,
   ],
   controllers: [DMController],
-  providers: [DMService, AwsService],
+  providers: [DMService, AwsService, { provide: APP_FILTER, useClass: TokenExpiredFilter }],
   exports: [DMService],
 })
 export class DMModule {}
