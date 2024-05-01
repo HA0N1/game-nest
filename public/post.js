@@ -62,12 +62,19 @@ async function create(event) {
     const response = await fetch('http://localhost:3000/post', {
       method: 'POST',
       body: formData,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials:'include'
+    })
+    .then(res=>{
+      return res.json();
+    })
+    .then(json=>{
+      window.location.href = 'http://localhost:3000/post/page';
+    })
+    .catch(err=>{
+      console.error('err: ', err)
     });
-    const data = await response.json();
-    window.location.reload();
+    // const data = await response.json();
+    
   } catch (error) {
     console.error('Error creating post:', error);
   }

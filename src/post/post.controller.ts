@@ -29,7 +29,7 @@ export class PostController {
 
   // 게시글 작성
   @UseInterceptors(FileInterceptor('file'))
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('refresh'))
   @Post()
   async create(
     @UserInfo() user: User,
