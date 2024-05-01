@@ -114,4 +114,9 @@ export class GameController {
     const findGames = await this.gameService.searchGames(query);
     return findGames;
   }
+
+  @Get('test')
+  async findNewGameIds() {
+    return await this.gameService.findNewGameIds();
+  }
 }
