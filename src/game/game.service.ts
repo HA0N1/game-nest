@@ -133,7 +133,7 @@ export class GameService {
   // 장르별 조회
   async getGamesByGenre(genre_id: number, page = 1, limit = 10) {
     page = Math.max(page, 1);
-    limit = Math.max(limit, 1, 50);
+    limit = Math.max(limit, 1, 40);
 
     const offset = (page - 1) * limit;
 
