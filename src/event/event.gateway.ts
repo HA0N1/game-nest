@@ -323,8 +323,8 @@ export class RoomGateway implements OnGatewayConnection {
         listenInfos: [
           {
             protocol: 'udp',
-            ip: '0.0.0.0',
-            announcedIp: this.configService.get<string>('ANNOUNCED_IP'),
+            ip: this.configService.get<string>('LISTEN_IP'), //사설
+            announcedIp: this.configService.get<string>('ANNOUNCED_IP'), //공인
           },
         ],
         enableUdp: true,

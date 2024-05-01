@@ -26,12 +26,12 @@
     <div id="container">
       <div class="localColum">
         <video id="localVideo" autoplay playsinline muted></video>
-        {{! <div class="remoteColum">
+        <div class="remoteColum">
           <div id="videoContainer">
-            <video id="remoteVideo" autoplay></video>
+
           </div>
-        </div> }}
-        <video id="remoteVideo" autoplay playsinline></video>
+        </div>
+        {{! <video id="remoteVideo" autoplay playsinline></video> }}
         <button id="localVideoOnBtn">카메라 켜기</button>
         <button id="localVideoOffBtn">카메라 끄기</button>
         <button id="recv">리시브</button>
@@ -87,6 +87,7 @@
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
+    <script src="/chat.js"></script>
     <script src="/bundle.js"></script>
   </body>
 
