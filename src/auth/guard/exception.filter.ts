@@ -4,6 +4,7 @@ import { Response, Request } from 'express';
 import { AxiosResponse } from 'axios';
 import { HttpAdapterHost, AbstractHttpAdapter } from '@nestjs/core';
 
+//FIXME 토큰 만료 에러는 프론트에서 해결하기
 @Catch(TokenExpiredError, UnauthorizedException)
 export class TokenExpiredFilter implements ExceptionFilter {
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
@@ -17,15 +18,15 @@ export class TokenExpiredFilter implements ExceptionFilter {
     const { httpAdapter } = this.httpAdapterHost;
     const axios = (httpAdapter as AbstractHttpAdapter).getInstance();
 
-    if (refreshToken) {
-      axios.get('http://localhost:3000/user/newAccessToken', { withCredentials: true }).catch(err => {
-        console.error('accessToken 재발급 중의 Error: ', err);
-        throw new UnauthorizedException('토큰이 만료되었습니다.');
-      });
-    } else {
-      axios.get('http://localhost:3000/login').catch(err => {
-        console.error('TokenExpiredFilter에서의 에러: ', err);
-      });
-    }
+    // if (refreshToken) {
+    //   axios.get('http://localhost:3000/user/newAccessToken', { withCredentials: true }).catch(err => {
+    //     console.error('accessToken 재발급 중의 Error: ', err);
+    //     throw new UnauthorizedException('토큰이 만료되었습니다.');
+    //   });
+    // } else {
+    //   axios.get('http://localhost:3000/login').catch(err => {
+    //     console.error('TokenExpiredFilter에서의 에러: ', err);
+    //   });
+    // }
   }
 }
