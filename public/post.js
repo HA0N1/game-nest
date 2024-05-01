@@ -46,6 +46,10 @@ function displayPosts(post) {
 
   postList.appendChild(postItem);
   document.getElementById('post-form').addEventListener('submit', create);
+
+  document.getElementById('gomain').addEventListener('click', function () {
+    window.location.href = 'https://chunsik.store/main';
+  });
 }
 async function create(event) {
   event.preventDefault();
