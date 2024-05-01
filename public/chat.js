@@ -17,6 +17,7 @@ let consumerTransport;
 let audioProducer;
 let videoProducer;
 let producerId;
+
 // let remoteVideo;
 let params = {
   encoding: [
@@ -325,7 +326,7 @@ const connectRecvTransport = async () => {
       console.log('Cannot Consume');
       return;
     }
-
+    const produceId = params.producerId;
     consumer = await consumerTransport.consume({
       id: params.id,
       producerId: params.producerId,
@@ -333,30 +334,27 @@ const connectRecvTransport = async () => {
       rtpParameters: params.rtpParameters,
     });
     const { track } = consumer;
-    remoteVideo.srcObject = new MediaStream([track]);
+    // remoteVideo.srcObject = new MediaStream([track]);
 
-    // const wrapper = document.createElement('div');
-    // const newElem = document.createElement('div'); // 비디오 화면
-    // const newSpan = document.createElement('span');
-    // // newElem.setAttribute('id', `td-${remoteProducerId}`)
-    // wrapper.setAttribute('id', `td-${produceId}`);
+    const wrapper = document.createElement('div');
+    const newElem = document.createElement('div'); // 비디오 화면
+    const newSpan = document.createElement('span');
+    // newElem.setAttribute('id', `td-${remoteProducerId}`)
+    wrapper.setAttribute('id', `td-${produceId}`);
 
-    // newElem.setAttribute('class', 'remoteVideo');
-    // newElem.innerHTML = '<video id="' + produceId + '" autoplay class="video"></video>';
+    newElem.setAttribute('class', 'remoteVideo');
+    newElem.innerHTML = '<video id="' + produceId + '" autoplay class="video"></video>';
 
-    // wrapper.appendChild(newElem);
-    // wrapper.appendChild(newSpan);
-    // videoContainer.appendChild(wrapper);
+    wrapper.appendChild(newElem);
+    wrapper.appendChild(newSpan);
+    videoContainer.appendChild(wrapper);
 
-    // destructure and retrieve the video track from the producer
-    // console.log('socket.on ~ track:', track);
+    document.getElementById(produceId).srcObject = new MediaStream([track]);
 
-    // document.getElementById(produceId).srcObject = new MediaStream([track]);
-
-    // console.log(
-    //   'socket.on ~ document.getElementById(produceId).srcObject:',
-    //   document.getElementById(produceId).srcObject,
-    // );
+    console.log(
+      'socket.on ~ document.getElementById(produceId).srcObject:',
+      document.getElementById(produceId).srcObject,
+    );
     await socket.emit('consumer-resume');
   });
 
@@ -364,26 +362,27 @@ const connectRecvTransport = async () => {
 
   // await socket.emit('consumer-resume');
 };
-// function videoOff() {
-//   const localVideo = document.getElementById('localVideo');
-//   const remoteVideo = document.getElementById('remoteVideo'); // Assuming this is the ID of your remote video element
+function videoOff() {
+  const localVideo = document.getElementById('localVideo');
+  const remoteVideo = document.getElementById('remoteVideo'); // Assuming this is the ID of your remote video element
 
-//   // Stop all tracks in the local video stream
-//   const localStream = localVideo.srcObject;
-//   if (localStream) {
-//     localStream.getTracks().forEach(track => track.stop());
-//   }
+  // Stop all tracks in the local video stream
+  const localStream = localVideo.srcObject;
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+  }
 
-//   // Stop all tracks in the remote video stream
-//   const remoteStream = remoteVideo.srcObject;
-//   if (remoteStream) {
-//     remoteStream.getTracks().forEach(track => track.stop());
-//   }
+  // Stop all tracks in the remote video stream
+  const remoteStream = remoteVideo.srcObject;
+  if (remoteStream) {
+    remoteStream.getTracks().forEach(track => track.stop());
+  }
 
-//   // Remove the video streams from the video elements
-//   localVideo.srcObject = null;
-//   remoteVideo.srcObject = null;
-// }
+  // Remove the video streams from the video elements
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+}
+
 // 화면공유
 
 if (adapter.browserDetails.browser === 'chrome' && adapter.browserDetails.version >= 107) {
@@ -433,5 +432,5 @@ function handleSuccess(stream) {
  * */
 document.getElementById('screenShareBtn').addEventListener('click', screenShare);
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
-// document.getElementById('localVideoOffBtn').addEventListener('click', videoOff);
+document.getElementById('localVideoOffBtn').addEventListener('click', videoOff);
 document.getElementById('recv').addEventListener('click', connectRecvTransport);
