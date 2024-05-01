@@ -81,6 +81,7 @@ function displayPosts(post, liked) {
   document.getElementById('gopost').addEventListener('click', function () {
     window.location.href = 'https://chunsik.store/post/page';
   });
+  fetchComments(postId);
 }
 
 async function update(postId) {
@@ -176,3 +177,103 @@ const pathParts = path.split('/');
 
 const postId = pathParts[2];
 fetchPosts(postId);
+
+//댓글 작성
+document.getElementById('comment-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const content = document.getElementById('comment-content').value;
+  try {
+    const response = await fetch(`https://chunsik.store/comment/${postId}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
+    });
+    const data = await response.json();
+    console.log(data);
+    fetchComments(postId);
+    window.location.reload();
+  } catch (error) {
+    console.error('Error creating comment:', error);
+  }
+});
+// 댓글 조회
+async function fetchComments(postId) {
+  try {
+    const response = await fetch(`https://chunsik.store/comment/${postId}`);
+    const comments = await response.json();
+    displayComments(comments, postId);
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+  }
+}
+
+// 댓글 표시
+function displayComments(comments, postId) {
+  const commentList = document.getElementById('comment-list');
+  commentList.innerHTML = '';
+  comments.forEach(comment => {
+    const commentItem = document.createElement('div');
+    commentItem.classList.add('comment-item');
+    commentItem.innerHTML = `
+        <p><strong>작성자: ${comment.user.nickname}</strong></p>
+        <p>${comment.content}</p>
+        <button class="edit-comment" data-comment-id="${comment.id}">수정</button>
+        <button class="delete-comment" data-comment-id="${comment.id}">삭제</button>
+      `;
+    commentList.appendChild(commentItem);
+  });
+}
+
+fetchComments(postId);
+
+// 댓글 수정
+document.getElementById('comment-list').addEventListener('click', async event => {
+  if (event.target.classList.contains('edit-comment')) {
+    const commentId = event.target.dataset.commentId;
+    const updatedContent = prompt('댓글을 수정하세요:', event.target.previousSibling.textContent);
+    if (updatedContent) {
+      try {
+        const response = await fetch(`https://chunsik.store/comment/${postId}/${commentId}`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ content: updatedContent }),
+        });
+        const data = await response.json();
+        console.log(data);
+        fetchComments(postId);
+        window.location.reload();
+      } catch (error) {
+        console.error('Error updating comment:', error);
+      }
+    }
+  }
+});
+// 댓글 삭제
+document.getElementById('comment-list').addEventListener('click', async event => {
+  if (event.target.classList.contains('delete-comment')) {
+    const commentId = event.target.dataset.commentId;
+    const confirmDelete = confirm('정말로 이 댓글을 삭제하시겠습니까?');
+    if (confirmDelete) {
+      try {
+        const response = await fetch(`https://chunsik.store/comment/${postId}/${commentId}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        console.log(data);
+        fetchComments(postId);
+        window.location.reload();
+      } catch (error) {
+        console.error('Error deleting comment:', error);
+      }
+    }
+  }
+});

@@ -4,8 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -54,6 +56,12 @@ let consumerTransport: {
 let producer;
 let consumer;
 const mediaCodecs = config.mediasoup.router.mediaCodecs;
+let rooms = {}; // { roomName1: { Router, rooms: [ sicketId1, ... ] }, ...}
+let peers = {}; // { socketId1: { roomName1, socket, transports = [id1, id2,] }, producers = [id1, id2,] }, consumers = [id1, id2,], peerDetails }, ...}
+let transports = []; // [ { socketId1, roomName1, transport, consumer }, ... ]
+let producers = []; // [ { socketId1, roomName1, producer, }, ... ]
+let consumers = []; // [ { socketId1, roomName1, consumer, }, ... ]
+
 interface CreateRoomData {
   room: string;
   createChatDto: {
@@ -80,7 +88,7 @@ interface ScreenSharingData {
 
 let channelId;
 @WebSocketGateway({ namespace: 'chat' })
-export class RoomGateway implements OnGatewayConnection {
+export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly channelService: ChannelService,
     private readonly userService: UserService,
@@ -124,13 +132,42 @@ export class RoomGateway implements OnGatewayConnection {
         await this.channelService.createMember(userId, channelId);
       }
       console.log(channelId);
+      worker = this.createWorker();
       return true;
     } catch (error) {
       console.log('에러');
       throw new WsException(error.message);
     }
   }
-  // server 연결 시 worker 생성
+
+  handleDisconnect(@ConnectedSocket() socket: Socket) {
+    const removeItems = (items, socketId, type) => {
+      items.forEach(item => {
+        if (item.socketId === socket.id) {
+          item[type].close();
+        }
+      });
+      items = items.filter(item => item.socketId !== socket.id);
+
+      return items;
+    };
+
+    console.log('peer disconnected');
+    consumers = removeItems(consumers, socket.id, 'consumer');
+    producers = removeItems(producers, socket.id, 'producer');
+    transports = removeItems(transports, socket.id, 'transport');
+
+    try {
+      const { roomName } = peers[socket.id];
+      delete peers[socket.id];
+
+      //rooms에서 해당 소켓 정보 삭제
+      rooms[roomName] = {
+        router: rooms[roomName].router,
+        peers: rooms[roomName].peers.filter(socketId => socketId !== socket.id),
+      };
+    } catch (e) {}
+  }
 
   async createWorker() {
     worker = await mediasoup.createWorker({
@@ -271,7 +308,6 @@ export class RoomGateway implements OnGatewayConnection {
 
     //! 2. server : worker가 router 생성, 서버가 클라이언트에 rtpCapabilities 전달
     // chatType이 voice인 경우에만 Worker와 Router 생성
-    worker = await this.createWorker();
     router = await worker.createRouter({ mediaCodecs });
     // RTP Capabilities 가져오기
     const rtpCapabilities = router.rtpCapabilities;
@@ -283,8 +319,7 @@ export class RoomGateway implements OnGatewayConnection {
   @SubscribeMessage('createWebRtcTransport')
   async handleCreateTransport(@MessageBody() data) {
     const { consumer } = data;
-    console.log('RoomGateway ~ handleCreateTransport ~ consumer:', consumer);
-
+    console.log('createWebRtcTransport 도착');
     try {
       if (!consumer) {
         producerTransport = await this.createWebRtcTransport();
@@ -323,8 +358,8 @@ export class RoomGateway implements OnGatewayConnection {
         listenInfos: [
           {
             protocol: 'udp',
-            ip: '0.0.0.0',
-            announcedIp: this.configService.get<string>('ANNOUNCED_IP'),
+            ip: this.configService.get<string>('LISTEN_IP'), //사설
+            announcedIp: this.configService.get<string>('ANNOUNCED_IP'), //공인
           },
         ],
         enableUdp: true,
