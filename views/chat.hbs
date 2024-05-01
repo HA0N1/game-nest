@@ -26,9 +26,12 @@
     <div id="container">
       <div class="localColum">
         <video id="localVideo" autoplay playsinline muted></video>
-        <div class="remoteColum">
-          <div id="videoContainer"></div>
-        </div>
+        {{! <div class="remoteColum">
+          <div id="videoContainer">
+            <video id="remoteVideo" autoplay></video>
+          </div>
+        </div> }}
+        <video id="remoteVideo" autoplay playsinline></video>
         <button id="localVideoOnBtn">카메라 켜기</button>
         <button id="localVideoOffBtn">카메라 끄기</button>
         <button id="recv">리시브</button>

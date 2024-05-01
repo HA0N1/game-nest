@@ -148,12 +148,11 @@ export class UserController {
     }
   }
 
-  /* 프로필 이미지 추가 */
+  /* 프로필 이미지 변경 */
   @UseInterceptors(FileInterceptor('filePath'))
-  @UseGuards(AuthGuard('jwt'))
   @Patch('image')
-  async addImage(@UserInfo() user: User, @UploadedFile(new ResizeImagePipe()) file: Express.Multer.File) {
-    return this.userService.addImage(user, file);
+  async addImage(@Query('userId') userId: number, @UploadedFile(new ResizeImagePipe()) file: Express.Multer.File) {
+    return this.userService.addImage(userId, file);
   }
 
   /* 프로필 이미지 기본으로 변경 */

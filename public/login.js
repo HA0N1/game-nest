@@ -9,7 +9,6 @@ function login() {
     body: JSON.stringify({ email: email, password: password }),
   })
     .then(res => {
-      console.log(res);
       if (res.status === 201) {
         alert('로그인 성공');
         return res.json();
