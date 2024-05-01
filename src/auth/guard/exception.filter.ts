@@ -19,12 +19,12 @@ export class TokenExpiredFilter implements ExceptionFilter {
     const axios = (httpAdapter as AbstractHttpAdapter).getInstance();
 
     // if (refreshToken) {
-    //   axios.get('http://localhost:3000/user/newAccessToken', { withCredentials: true }).catch(err => {
+    //   axios.get('https://chunsik.store/user/newAccessToken', { withCredentials: true }).catch(err => {
     //     console.error('accessToken 재발급 중의 Error: ', err);
     //     throw new UnauthorizedException('토큰이 만료되었습니다.');
     //   });
     // } else {
-    //   axios.get('http://localhost:3000/login').catch(err => {
+    //   axios.get('https://chunsik.store/login').catch(err => {
     //     console.error('TokenExpiredFilter에서의 에러: ', err);
     //   });
     // }

@@ -1,11 +1,11 @@
 const token = window.localStorage.getItem('authorization');
 const toMain = document.getElementById('toMain');
 toMain.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/main';
+  window.location.href = 'https://chunsik.store/main';
 });
 const toFriends = document.getElementById('toFriends');
 toFriends.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/friend/findFriends';
+  window.location.href = 'https://chunsik.store/friend/findFriends';
 });
 
 const nickBtn = document.getElementById('nickBtn');
@@ -13,12 +13,12 @@ nickBtn.addEventListener('click', searchUsers);
 
 const toFriendReq = document.getElementById('toFriendReq');
 toFriendReq.addEventListener('click', function () {
-  window.location.href = 'http://localhost:3000/friend/friendRequest';
+  window.location.href = 'https://chunsik.store/friend/friendRequest';
 });
 
 function searchUsers() {
   const nickname = $('#nickname').val();
-  fetch(`http://localhost:3000/user/findUser?input=${nickname}`, {
+  fetch(`https://chunsik.store/user/findUser?input=${nickname}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -44,7 +44,7 @@ $(document).on('click', '#results li button', function () {
 });
 
 function sendFriendRequest(sendEmail) {
-  fetch('http://localhost:3000/friend/send', {
+  fetch('https://chunsik.store/friend/send', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
