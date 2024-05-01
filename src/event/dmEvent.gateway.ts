@@ -73,7 +73,6 @@ export class DMGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return user;
     } catch (err) {
       if (err instanceof TokenExpiredError) {
-        console.log('catch err');
         socket.emit('userDisconnected');
         socket.disconnect();
 
