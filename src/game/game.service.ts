@@ -139,7 +139,7 @@ export class GameService {
 
     const [games, total] = await this.gameRepository.findAndCount({
       where: { genre_id: genre_id },
-      select: ['title', 'screen_shot'],
+      select: ['id', 'title', 'screen_shot'],
       skip: offset,
       take: limit,
     });
@@ -149,9 +149,8 @@ export class GameService {
     return { data: games, total: total, page: page, limit: limit, lastPage: Math.ceil(total / limit) };
   }
 
-  // 인기순 저장
-  @Cron('0 16 1 * * *')
-  async savePopularGames() {
+  // 인기 게임 id 가져오기
+  async findPopularGameIds() {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto('https://store.steampowered.com/charts/topselling/KR', {
@@ -160,26 +159,95 @@ export class GameService {
     });
 
     await page.waitForSelector('tr');
-    const popularGames = await page.evaluate(() => {
-      const gameElements = Array.from(document.querySelectorAll('tbody > tr'));
-      return gameElements.map(element => {
-        const rank = parseInt(element.querySelector('._34h48M_x9S-9Q2FFPX_CcU').textContent);
-        const imageElement = element.querySelector('img._2dODJrHKWs6F9v9QpgzihO');
-        const screen_shot = imageElement ? imageElement.getAttribute('src') : '이미지 정보 없음';
-        const title = element.querySelector('._1n_4-zvf0n4aqGEksbgW9N').textContent;
-        const price = element.querySelector('.Wh0L8EnwsPV_8VAu8TOYr')?.textContent ?? '가격 정보 없음';
-        const change = element.querySelector('._2OA1JW-4H-f01kM7myTUuu.Focusable').textContent ?? '변동 정보 없음';
-
-        return { rank, screen_shot, title, price, change, is_popular: true };
+    const popularGameIds = await page.evaluate(() => {
+      const idElements = Array.from(document.querySelectorAll('tbody > tr'));
+      return idElements.map(element => {
+        const linkElement = element.querySelector('a[href*="/app/"]');
+        if (linkElement) {
+          const href = linkElement.getAttribute('href');
+          const idMatch = href.match(/\/app\/(\d+)/);
+          if (idMatch && idMatch.length > 1) {
+            const id = idMatch[1];
+            return { id };
+          }
+        }
       });
     });
     await browser.close();
+    return popularGameIds;
+  }
 
+  // 인기 게임 저장
+  @Cron('0 16 1 * * *')
+  async savePopularGames() {
     await this.gameRepository.createQueryBuilder().delete().from(Game).where('is_popular = TRUE').execute();
+    const popularGameIds = await this.findPopularGameIds();
+    console.log('s1', popularGameIds);
+    for (const appId of popularGameIds) {
+      if (!appId) continue;
+      try {
+        const response = await axios.get(`https://store.steampowered.com/api/appdetails?appids=${appId.id}`);
+        const appData = response.data[appId.id.toString()];
 
-    await this.gameRepository.save(popularGames);
+        if (appData && appData.success) {
+          const details = appData.data;
+          if (
+            details.type === 'game' &&
+            details.supported_languages &&
+            details.supported_languages.includes('Korean')
+          ) {
+            const mapGenreToId = genres => {
+              const genreMapping = {
+                Adventure: 1,
+                RPG: 2,
+                Action: 3,
+                Strategy: 4,
+                Simulation: 5,
+                Casual: 6,
+                Indie: 7,
+                Racing: 8,
+                Sports: 9,
+              };
 
-    return { message: '인기 게임 저장 완료' };
+              for (const genre of genres) {
+                for (const [key, value] of Object.entries(genreMapping)) {
+                  if (genre.description === key) {
+                    return value;
+                  }
+                }
+              }
+              return null;
+            };
+            const gameGenre = mapGenreToId(details.genres);
+            const pc = PlatformEnum.PC;
+            const existingGame = await this.gameRepository.findOne({ where: { title: details.name } });
+            if (existingGame) {
+              console.log(`${details.name}은 이미 저장된 게임입니다.`);
+              continue;
+            }
+
+            const gameToSave = {
+              developer: details.developers.join(', '),
+              title: details.name,
+              description: details.short_description,
+              screen_shot: details.header_image,
+              metacritic: details.metacritic?.score,
+              supported_languages: details.supported_languages,
+              pc_requirements: JSON.stringify(details.pc_requirements),
+              release_date: new Date(details.release_date.date),
+              platform: pc,
+              publisher: details.publishers.join(', '),
+              genre: { id: gameGenre },
+              is_popular: true,
+            };
+
+            await this.gameRepository.save(gameToSave);
+          }
+        }
+      } catch (error) {
+        error;
+      }
+    }
   }
 
   // 인기순 조회
@@ -188,13 +256,8 @@ export class GameService {
     limit = Math.max(limit, 20);
     const offset = (page - 1) * limit;
     const [popularGames, total] = await this.gameRepository.findAndCount({
-      select: ['rank', 'screen_shot', 'title', 'price', 'change'],
-      where: {
-        change: Not(IsNull()),
-      },
-      order: {
-        rank: 'ASC',
-      },
+      select: ['id', 'title', 'screen_shot'],
+      where: { is_popular: true },
       take: limit,
       skip: offset,
     });
@@ -212,55 +275,97 @@ export class GameService {
     };
   }
 
-  // 신작 저장
-  @Cron('0 0 0 * * *')
-  async saveNewGames() {
+  // 신작 게임 id 가져오기
+  async findNewGameIds() {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto('https://store.steampowered.com/search/?sort_by=Released_DESC&os=win', {
+      timeout: 60000,
       waitUntil: 'networkidle2',
     });
 
-    const newGames = await page.evaluate(() => {
-      const items = document.querySelectorAll('.search_result_row');
-      return Array.from(items).map(item => {
-        const title = item.querySelector('.title').textContent;
-        const imageElement = item.querySelector('.col.search_capsule img');
-        const screen_shot = imageElement.getAttribute('src');
-        const release_date = item.querySelector('.search_released').textContent;
-        const price = item.querySelector('.discount_final_price').textContent ?? '가격 정보 없음';
-        return { title, release_date, price, screen_shot };
-      });
-    });
+    const gameLinks = await page.$$eval('a[href*="/app/"]', links => links.map(link => link.getAttribute('href')));
+
+    const gameIds = gameLinks
+      .map(link => {
+        const match = /\/app\/(\d+)/.exec(link);
+        return match ? match[1] : null;
+      })
+      .filter(id => id !== null);
+
+    console.log(gameIds);
+
     await browser.close();
+  }
 
-    function parseDate(dateString) {
-      return new Date(Date.parse(dateString));
-    }
+  // 신작 저장
+  @Cron('0 0 0 * * *')
+  async saveNewGames() {
+    const popularGameIds = await this.findPopularGameIds();
+    for (const appId of popularGameIds) {
+      if (!appId) continue;
+      try {
+        const response = await axios.get(`https://store.steampowered.com/api/appdetails?appids=${appId.id}`);
+        const appData = response.data[appId.id.toString()];
 
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        if (appData && appData.success) {
+          const details = appData.data;
+          if (
+            details.type === 'game' &&
+            details.supported_languages &&
+            details.supported_languages.includes('Korean')
+          ) {
+            const mapGenreToId = genres => {
+              const genreMapping = {
+                Adventure: 1,
+                RPG: 2,
+                Action: 3,
+                Strategy: 4,
+                Simulation: 5,
+                Casual: 6,
+                Indie: 7,
+                Racing: 8,
+                Sports: 9,
+              };
 
-    const gamesToSave = newGames.filter(game => {
-      const gameReleaseDate = parseDate(game.release_date);
-      return gameReleaseDate > oneWeekAgo;
-    });
+              for (const genre of genres) {
+                for (const [key, value] of Object.entries(genreMapping)) {
+                  if (genre.description === key) {
+                    return value;
+                  }
+                }
+              }
+              return null;
+            };
+            const gameGenre = mapGenreToId(details.genres);
+            const pc = PlatformEnum.PC;
+            const existingGame = await this.gameRepository.findOne({ where: { title: details.name } });
+            if (existingGame) {
+              console.log(`${details.name}은 이미 저장된 게임입니다.`);
+              continue;
+            }
 
-    await Promise.all(
-      gamesToSave.map(async game => {
-        const existingGame = await this.gameRepository.findOne({
-          where: {
-            title: game.title,
-            release_date: parseDate(game.release_date),
-          },
-        });
-        if (!existingGame) {
-          await this.gameRepository.save(game);
+            const gameToSave = {
+              developer: details.developers.join(', '),
+              title: details.name,
+              description: details.short_description,
+              screen_shot: details.header_image,
+              metacritic: details.metacritic?.score,
+              supported_languages: details.supported_languages,
+              pc_requirements: JSON.stringify(details.pc_requirements),
+              release_date: new Date(details.release_date.date),
+              platform: pc,
+              publisher: details.publishers.join(', '),
+              genre: { id: gameGenre },
+              is_popular: true,
+            };
+            await this.gameRepository.save(gameToSave);
+          }
         }
-      }),
-    );
-
-    return { message: '신작 게임 저장 완료' };
+      } catch (error) {
+        error;
+      }
+    }
   }
 
   // 신작 조회
@@ -287,7 +392,7 @@ export class GameService {
 
     const newGames = await this.gameRepository
       .createQueryBuilder('game')
-      .select(['title', 'screen_shot', 'release_date', 'price'])
+      .select(['id', 'title', 'screen_shot'])
       .where('game.release_date > :oneWeekAgo', { oneWeekAgo })
       .andWhere('game.release_date < :now', { now })
       .orderBy('game.release_date', 'DESC')
