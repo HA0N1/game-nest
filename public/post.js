@@ -3,7 +3,7 @@ const postForm = document.getElementById('post-form');
 const token = window.localStorage.getItem('authorization');
 async function fetchPosts() {
   try {
-    const response = await fetch('http://localhost:3000/post');
+    const response = await fetch('https://chunsik.store/post');
     let data = await response.json();
     data = data.sort((a, b) => b.id - a.id);
 
@@ -41,7 +41,7 @@ function displayPosts(post) {
 
   postItem.addEventListener('click', () => {
     const postId = post.id;
-    window.location.href = `http://localhost:3000/post/${postId}/page`;
+    window.location.href = `https://chunsik.store/post/${postId}/page`;
   });
 
   postList.appendChild(postItem);
@@ -59,7 +59,7 @@ async function create(event) {
     return;
   }
   try {
-    const response = await fetch('http://localhost:3000/post', {
+    const response = await fetch('https://chunsik.store/post', {
       method: 'POST',
       body: formData,
       headers: {
