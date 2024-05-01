@@ -10,6 +10,7 @@
         <h2>신작 게임</h2>
 
         </div>
+        <ul>
         {{#each data}}
 
           <div class='game'>
@@ -21,7 +22,7 @@
             </a>
           </div>
         {{/each}}
-
+        </ul>
         <div class="pagination">
         {{#if page}}
           <a href="?page={{decrement page}}&limit={{limit}}">이전 페이지</a>

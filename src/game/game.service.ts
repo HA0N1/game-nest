@@ -299,7 +299,7 @@ export class GameService {
   }
 
   // 신작 저장
-  @Cron('0 0 0 * * *')
+  @Cron('0 0 1 * * *')
   async saveNewGames() {
     const popularGameIds = await this.findPopularGameIds();
     for (const appId of popularGameIds) {
