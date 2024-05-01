@@ -84,7 +84,7 @@ export class GameController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
-    const maxLimit = 50;
+    const maxLimit = 40;
     if (limit > maxLimit) {
       throw new HttpException(`최대 검색 가능 개수는 ${maxLimit}개입니다.`, HttpStatus.BAD_REQUEST);
     }
