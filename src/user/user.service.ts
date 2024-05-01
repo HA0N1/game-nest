@@ -12,7 +12,7 @@ import { EmailLoginDto } from './dto/emailLogin.dto';
 import { JwtService } from '@nestjs/jwt';
 import _ from 'lodash';
 import { compare, hash } from 'bcrypt';
-import { Repository, Brackets } from 'typeorm';
+import { Repository, Brackets, Like } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InterestGenre } from './entities/interestGenre.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -189,6 +189,16 @@ export class UserService {
 
   async findUserById(id: number) {
     const user = await this.userRepository.findOneBy({ id });
+    return user;
+  }
+
+  /* 닉네임으로 유저 검색 */
+  async findUserByNickname(input: string) {
+    const user = await this.userRepository.find({
+      where: { nickname: Like(`%${input}%`) },
+      select: { id: true, nickname: true, email: true },
+    });
+
     return user;
   }
 
@@ -401,7 +411,7 @@ export class UserService {
   }
 
   /* 프로필 이미지 수정 */
-  async addImage(user: User, file: Express.Multer.File) {
+  async addImage(userId: number, file: Express.Multer.File) {
     const imagename = this.awsService.getUUID();
 
     const ext = file.originalname.split('.').pop();
@@ -409,8 +419,6 @@ export class UserService {
     const fileName = `${imagename}.${ext}`;
 
     const imageUrl = `https://s3.${process.env.AWS_S3_REGION}.amazonaws.com/${process.env.AWS_S3_BUCKET_NAME}/${fileName}`;
-
-    const userId = user.id;
 
     const newImageUrl = await this.awsService.imageUploadToS3(fileName, file, ext);
 

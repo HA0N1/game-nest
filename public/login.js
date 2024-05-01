@@ -9,7 +9,6 @@ function login() {
     body: JSON.stringify({ email: email, password: password }),
   })
     .then(res => {
-      console.log(res);
       if (res.status === 201) {
         alert('로그인 성공');
         return res.json();
@@ -21,7 +20,7 @@ function login() {
       const token = json.accessToken;
       window.localStorage.setItem('authorization', token);
 
-      window.location.href = 'http://chunsik.store:3000/main';
+      window.location.href = 'https://chunsik.store/main';
     })
     .catch(error => console.error('Error:', error));
 }

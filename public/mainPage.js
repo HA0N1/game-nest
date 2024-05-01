@@ -73,7 +73,7 @@ function goDM(event) {
 
 function goProgile(event) {
   console.log('프로필 이동');
-  window.location.href = 'https://chunsik.store/user/userinfo';
+  window.location.href = 'https://chunsik.store/user/profile';
 }
 
 function goPost(event) {

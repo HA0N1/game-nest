@@ -24,9 +24,30 @@ export class FriendService {
   async beFriend(user: User, email: string) {
     // 친구할 유저의 이메일로 조회
     const friend = await this.userRepository.findOneBy({ email });
-
     if (!friend) {
       throw new NotFoundException('해당 이메일을 가진 유저가 존재하지 않습니다.');
+    }
+
+    const check1 = await this.friendshipRepository
+      .createQueryBuilder('fs')
+      .select('fs.id')
+      .leftJoin('fs.user', 'us')
+      .leftJoin('fs.friend', 'fr')
+      .where('fs.user_id=:user_id', { user_id: friend.id })
+      .andWhere('fs.friend_id=:friend_id', { friend_id: user.id })
+      .getRawOne();
+
+    const check2 = await this.friendshipRepository
+      .createQueryBuilder('fs')
+      .select('fs.id')
+      .leftJoin('fs.user', 'us')
+      .leftJoin('fs.friend', 'fr')
+      .where('fs.user_id=:user_id', { user_id: user.id })
+      .andWhere('fs.friend_id=:friend_id', { friend_id: friend.id })
+      .getRawOne();
+
+    if (check1 || check2) {
+      throw new ConflictException('이미 친구 관계입니다.');
     }
 
     await this.friendshipRepository.save({
@@ -39,15 +60,38 @@ export class FriendService {
 
   /* 친구창 조회 */
   async allFriend(user: User) {
-    return await this.friendshipRepository
+    const myId = user.id;
+    const data = await this.friendshipRepository
       .createQueryBuilder('friendship')
-      .select(['friendship.id', 'friendship.is_friend', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
-      .where('friendship.user_id = :user_id', { user_id: user.id })
-      .orWhere('friendship.friend_id = :friend_id', { friend_id: user.id })
+      .select(['friendship.id', 'us.id', 'us.nickname', 'us.email', 'fr.id', 'fr.nickname', 'fr.email'])
+      .where('friendship.user_id = :user_id', { user_id: myId })
+      .orWhere('friendship.friend_id = :friend_id', { friend_id: myId })
       .andWhere('friendship.is_friend = true')
       .leftJoin('friendship.user', 'us')
       .leftJoin('friendship.friend', 'fr')
       .getRawMany();
+
+    const dataValue = Object.values(data);
+
+    const friendData = dataValue.map(e => {
+      if (e.us_id === myId) {
+        return {
+          friendshipId: e.friendship_id,
+          friendId: e.fr_id,
+          friendEmail: e.fr_email,
+          friendNickname: e.fr_nickname,
+        };
+      } else {
+        return {
+          friendshipId: e.friendship_id,
+          friendId: e.us_id,
+          friendEmail: e.us_email,
+          friendNickname: e.us_nickname,
+        };
+      }
+    });
+
+    return friendData;
   }
 
   /* 내가 보낸 친구 요청 조회 */
@@ -70,7 +114,7 @@ export class FriendService {
       .andWhere('me.is_friend = false')
       .leftJoin('me.user', 'us')
       .leftJoin('me.friend', 'fr')
-      .select(['me.id', 'me.is_friend', 'us.id', 'us.nickname', 'fr.id', 'fr.nickname'])
+      .select(['me.id', 'me.is_friend', 'us.id', 'us.nickname'])
       .getRawMany();
   }
 

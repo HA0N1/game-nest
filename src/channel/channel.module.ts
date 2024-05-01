@@ -10,6 +10,8 @@ import { JwtStrategy } from 'src/auth/jwt.strategy';
 import { ChannelDMs } from './entities/channelDMs.entity';
 import { Channel } from './entities/channel.entity';
 import { RedisAppModule } from 'src/redis/redis.module';
+import { APP_FILTER } from '@nestjs/core';
+import { TokenExpiredFilter } from 'src/auth/guard/exception.filter';
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { RedisAppModule } from 'src/redis/redis.module';
   ],
   controllers: [ChannelController],
   //EventGateway를 providers에 넣으면 채팅을 만들 때마다 웹소켓 서버가 생김
-  providers: [ChannelService, JwtStrategy],
+  providers: [ChannelService, JwtStrategy, { provide: APP_FILTER, useClass: TokenExpiredFilter }],
   exports: [ChannelService],
 })
 export class ChannelModule {}

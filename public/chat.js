@@ -6,7 +6,6 @@ document.getElementById('sendBtn').addEventListener('click', sendMessage);
 document.getElementById('createRoomBtn').addEventListener('click', openModal);
 document.querySelector('.close').addEventListener('click', closeModal);
 document.getElementById('createRoomForm').addEventListener('submit', createRoomWithModal);
-
 const preferredDisplaySurface = document.getElementById('displaySurface');
 const startButton = document.getElementById('startButton');
 const remoteColum = document.querySelector('.remoteColum');
@@ -18,7 +17,7 @@ let consumerTransport;
 let audioProducer;
 let videoProducer;
 let producerId;
-let remoteVideo;
+// let remoteVideo;
 let params = {
   encoding: [
     { rid: 'r0', maxBitrate: 100000, scalabiltyMode: 'S1T3' },
@@ -39,7 +38,7 @@ function checkLogin() {
   if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'https://chunsik.store/user/login';
+    window.location.href = 'https://chunsik.store/main';
   }
 }
 const socket = io('/chat', { auth: { token: token } });
@@ -162,6 +161,7 @@ let videoParams = { params };
 const streamSuccess = async stream => {
   const localVideo = document.getElementById('localVideo');
   localVideo.srcObject = stream;
+  console.log('streamSuccess ~ localVideo:', localVideo.srcObject);
   console.log('streamSuccess ~ stream:', stream);
 
   let room = currentRoom;
@@ -228,6 +228,8 @@ const createSendTransport = async () => {
         //LP 생성. Send transport
         await socket.emit('transport-connect', { dtlsParameters });
         callback();
+
+        console.log('producerTransport.on ~ producerTransport11111:', producerTransport);
       } catch (error) {
         errback(error);
       }
@@ -247,6 +249,7 @@ const createSendTransport = async () => {
           appData: parameters.appData,
           dtlsParameters: parameters.dtlsParameters,
         });
+        console.log('producerTransport.on ~ producerTransport2222:', producerTransport);
       } catch (error) {
         errback(error);
       }
@@ -258,11 +261,13 @@ const createSendTransport = async () => {
 };
 
 const connectSendTransport = async () => {
+  console.log('connectSendTransport');
+  console.log('test');
   audioProducer = await producerTransport.produce(audioParams);
   console.log('connectSendTransport ~ audioProducer:', audioProducer);
 
   videoProducer = await producerTransport.produce(videoParams);
-  console.log('connectSendTransport ~ videoProducer:', videoProducer);
+  console.log('connectSendTransport ~ producerTransport:', videoProducer);
 
   audioProducer.on('trackended', () => {
     console.log('track ended');
@@ -278,12 +283,13 @@ const connectSendTransport = async () => {
   videoProducer.on('transportclose', () => {
     console.log('video transport ended');
   });
-
+  console.log('connectSendTransport ~ videoProducer:', producerTransport);
   createRecvTransport();
 };
 
 //! consumer
 const createRecvTransport = async () => {
+  console.log('createRecvTransport');
   socket.on('createWebRtcTransport2', async ({ consumer, params }) => {
     console.log('createRecvTransport transport');
     if (params.error) {
@@ -304,14 +310,15 @@ const createRecvTransport = async () => {
         errback(error);
       }
     });
-    connectRecvTransport();
   });
   // 서버에 consumerTransport 생성 요청
   socket.emit('createWebRtcTransport', { consumer: true });
 };
 
 const connectRecvTransport = async () => {
+  console.log('connectRecvTransport');
   let consumer;
+
   socket.on('consume', async ({ params }) => {
     console.log('socket.on ~ params:', params);
     if (params.error) {
@@ -326,18 +333,30 @@ const connectRecvTransport = async () => {
       rtpParameters: params.rtpParameters,
     });
     const { track } = consumer;
-    // remoteVideo.srcObject = new MediaStream([track]);
-    // 새로운 video 요소를 생성
-    remoteVideo = document.createElement('video');
-    remoteVideo.autoplay = true;
-    remoteVideo.playsInline = true;
-    remoteVideo.muted = false; // 원격 비디오이므로 음소거를 해제
-
-    // 생성한 video 요소에 스트림을 연결
     remoteVideo.srcObject = new MediaStream([track]);
 
-    // 생성한 video 요소를 remoteColum div에 추가
-    remoteColum.appendChild(remoteVideo);
+    // const wrapper = document.createElement('div');
+    // const newElem = document.createElement('div'); // 비디오 화면
+    // const newSpan = document.createElement('span');
+    // // newElem.setAttribute('id', `td-${remoteProducerId}`)
+    // wrapper.setAttribute('id', `td-${produceId}`);
+
+    // newElem.setAttribute('class', 'remoteVideo');
+    // newElem.innerHTML = '<video id="' + produceId + '" autoplay class="video"></video>';
+
+    // wrapper.appendChild(newElem);
+    // wrapper.appendChild(newSpan);
+    // videoContainer.appendChild(wrapper);
+
+    // destructure and retrieve the video track from the producer
+    // console.log('socket.on ~ track:', track);
+
+    // document.getElementById(produceId).srcObject = new MediaStream([track]);
+
+    // console.log(
+    //   'socket.on ~ document.getElementById(produceId).srcObject:',
+    //   document.getElementById(produceId).srcObject,
+    // );
     await socket.emit('consumer-resume');
   });
 
@@ -345,26 +364,26 @@ const connectRecvTransport = async () => {
 
   // await socket.emit('consumer-resume');
 };
-function videoOff() {
-  const localVideo = document.getElementById('localVideo');
-  const remoteVideo = document.getElementById('remoteVideo'); // Assuming this is the ID of your remote video element
+// function videoOff() {
+//   const localVideo = document.getElementById('localVideo');
+//   const remoteVideo = document.getElementById('remoteVideo'); // Assuming this is the ID of your remote video element
 
-  // Stop all tracks in the local video stream
-  const localStream = localVideo.srcObject;
-  if (localStream) {
-    localStream.getTracks().forEach(track => track.stop());
-  }
+//   // Stop all tracks in the local video stream
+//   const localStream = localVideo.srcObject;
+//   if (localStream) {
+//     localStream.getTracks().forEach(track => track.stop());
+//   }
 
-  // Stop all tracks in the remote video stream
-  const remoteStream = remoteVideo.srcObject;
-  if (remoteStream) {
-    remoteStream.getTracks().forEach(track => track.stop());
-  }
+//   // Stop all tracks in the remote video stream
+//   const remoteStream = remoteVideo.srcObject;
+//   if (remoteStream) {
+//     remoteStream.getTracks().forEach(track => track.stop());
+//   }
 
-  // Remove the video streams from the video elements
-  localVideo.srcObject = null;
-  remoteVideo.srcObject = null;
-}
+//   // Remove the video streams from the video elements
+//   localVideo.srcObject = null;
+//   remoteVideo.srcObject = null;
+// }
 // 화면공유
 
 if (adapter.browserDetails.browser === 'chrome' && adapter.browserDetails.version >= 107) {
@@ -414,4 +433,5 @@ function handleSuccess(stream) {
  * */
 document.getElementById('screenShareBtn').addEventListener('click', screenShare);
 document.getElementById('localVideoOnBtn').addEventListener('click', getLocalStream);
-document.getElementById('localVideoOffBtn').addEventListener('click', videoOff);
+// document.getElementById('localVideoOffBtn').addEventListener('click', videoOff);
+document.getElementById('recv').addEventListener('click', connectRecvTransport);

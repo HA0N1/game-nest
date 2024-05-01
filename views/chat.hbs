@@ -26,10 +26,15 @@
     <div id="container">
       <div class="localColum">
         <video id="localVideo" autoplay playsinline muted></video>
-        <div class="remoteColum">
-        </div>
+        {{! <div class="remoteColum">
+          <div id="videoContainer">
+            <video id="remoteVideo" autoplay></video>
+          </div>
+        </div> }}
+        <video id="remoteVideo" autoplay playsinline></video>
         <button id="localVideoOnBtn">카메라 켜기</button>
         <button id="localVideoOffBtn">카메라 끄기</button>
+        <button id="recv">리시브</button>
       </div>
       <div>
         <video id="screenShare" autoplay playsinline muted></video>
@@ -77,11 +82,11 @@
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-    <script src="http://code.jquery.com/jquery-3.6.1.slim.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.1.slim.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+
     <script src="/bundle.js"></script>
   </body>
 
