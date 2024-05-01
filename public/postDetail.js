@@ -218,6 +218,7 @@ function displayComments(comments, postId) {
     const commentItem = document.createElement('div');
     commentItem.classList.add('comment-item');
     commentItem.innerHTML = `
+        <p><strong>작성자: ${comment.user.nickname}</strong></p>
         <p>${comment.content}</p>
         <button class="edit-comment" data-comment-id="${comment.id}">수정</button>
         <button class="delete-comment" data-comment-id="${comment.id}">삭제</button>
