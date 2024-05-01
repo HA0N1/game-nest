@@ -31,15 +31,19 @@ function displayPosts(post, liked) {
   const viewCountElement = document.createElement('p');
   viewCountElement.textContent = `조회수: ${post.view_count}`;
   postItem.appendChild(viewCountElement);
+
   if (post.file && post.file.filePath) {
-    if (post.file.filePath.includes('jpg')) {
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+    const videoExtensions = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm'];
+    const fileExtension = post.file.filePath.split('.').pop().toLowerCase();
+    if (imageExtensions.includes(fileExtension)) {
       const imageElement = document.createElement('img');
       imageElement.src = post.file.filePath;
       imageElement.alt = 'Post Image';
       imageElement.width = 800;
       imageElement.height = 400;
       postItem.appendChild(imageElement);
-    } else if (post.file.filePath.includes('mp4')) {
+    } else if (videoExtensions.includes(fileExtension)) {
       const videoElement = document.createElement('video');
       videoElement.src = post.file.filePath;
       videoElement.controls = true;
