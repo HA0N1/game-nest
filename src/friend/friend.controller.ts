@@ -14,8 +14,6 @@ export class FriendController {
   @UseGuards(AuthGuard('jwt'))
   @Post('send')
   async beFriend(@UserInfo() user: User, @Body() beFriendDto: BeFriendDto) {
-    console.log('controller: ', beFriendDto, beFriendDto.email);
-
     return await this.friendService.beFriend(user, beFriendDto.email);
   }
 

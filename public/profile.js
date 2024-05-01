@@ -70,6 +70,7 @@ function UserProfiles() {
       const returnId = json.id;
       const returnEmail = json.email;
       const returnInterestGenre = json.interestGenre;
+      console.log(returnInterestGenre);
 
       function showImage(filePath) {
         const img = document.createElement('img');
@@ -100,13 +101,21 @@ function UserProfiles() {
         return;
       }
 
-      //TODO interestGenre도 나타나도록 함수 구현하기
-      function setInterestGenres(input) {}
+      function setInterestGenres(input) {
+        input.map(e=>{
+          const ul = document.createElement('ul');
+          ul.innerText = e;
+          interestGenres.appendChild(ul);
+          return;
+
+        })
+      }
 
       showImage(filePath);
       setNickname(returnNickname);
       setEmail(returnEmail);
       setUserId(returnId);
+      setInterestGenres(returnInterestGenre);
     })
     .catch(err => {
       console.log('profile userinfo 연결 중의 에러: ', err);
@@ -154,7 +163,6 @@ fetch(`https://chunsik.store/user/image?userId=${userId}`,{
 })
 }
 
-//TODO 기본 프로필 이미지 변경 함수 만들기, addEventListner도!
 originalImage.addEventListener('click', goOriginalImage);
 
 function goOriginalImage(event){
