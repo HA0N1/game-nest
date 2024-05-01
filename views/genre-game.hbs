@@ -12,10 +12,12 @@
     <main>
       <ul>
         {{#each data}}
-          <li>
-            <h2>{{this.title}}</h2>
-            <img src="{{this.screen_shot}}" alt="{{this.title}} 스크린샷" />
-          </li>
+          <a href="/game/{{this.id}}">
+            <li>
+              <h2>{{this.title}}</h2>
+              <img src="{{this.screen_shot}}" alt="{{this.title}} 스크린샷" />
+            </li>
+          </a>
         {{/each}}
       </ul>
       <div class="pagination">

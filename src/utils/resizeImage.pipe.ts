@@ -1,7 +1,7 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import sharp from 'sharp';
 
-const maxLength = 500;
+const maxLength = 100;
 
 @Injectable()
 export class ResizeImagePipe implements PipeTransform {

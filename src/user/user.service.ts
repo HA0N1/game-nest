@@ -411,7 +411,7 @@ export class UserService {
   }
 
   /* 프로필 이미지 수정 */
-  async addImage(user: User, file: Express.Multer.File) {
+  async addImage(userId: number, file: Express.Multer.File) {
     const imagename = this.awsService.getUUID();
 
     const ext = file.originalname.split('.').pop();
@@ -419,8 +419,6 @@ export class UserService {
     const fileName = `${imagename}.${ext}`;
 
     const imageUrl = `https://s3.${process.env.AWS_S3_REGION}.amazonaws.com/${process.env.AWS_S3_BUCKET_NAME}/${fileName}`;
-
-    const userId = user.id;
 
     const newImageUrl = await this.awsService.imageUploadToS3(fileName, file, ext);
 

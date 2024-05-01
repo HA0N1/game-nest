@@ -106,7 +106,7 @@ function handleImageSubmit(event) {
   event.preventDefault();
   socket.emit('userInfo');
 
-  socket.on('receiveUserInfo', userInfo => {
+  socket.once('receiveUserInfo', userInfo => {
     const userData = userInfo;
     const userId = +userData.id;
 
@@ -251,7 +251,6 @@ function history(dmRoomId) {
     .then(res => res.json())
     .then(data =>
       data.map(chat => {
-        console.log(chat);
         // 파일 path가 null인 경우: text가 있음
         if (!chat.file_path) {
           sendDM(`${chat.us_nickname}:${chat.chat_content} ${chat.chat_created_at}`);

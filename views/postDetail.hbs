@@ -1,13 +1,23 @@
-<html lang='en'>
+<html lang="en">
   <head>
-    <meta charset='UTF-8' />
-    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>게시글 상세 페이지</title>
-    <link rel='stylesheet' href='post.css' />
+    <link rel="stylesheet" href="/post.css" />
   </head>
   <body>
-    <div id='post-detail'></div>
+    <div id="gopost">커뮤니티로 돌아가기</div>
+    <div id="post-detail"></div>
 
-    <script src='/postDetail.js'></script>
+    <div id="post-list"></div>
+
+    <form id="comment-form">
+      <textarea id="comment-content" placeholder="댓글을 입력하세요"></textarea>
+      <button type="submit">댓글 작성</button>
+    </form>
+
+    <div id="comment-list"></div>
+
+    <script src="/postDetail.js"></script>
   </body>
 </html>

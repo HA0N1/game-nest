@@ -97,7 +97,7 @@ export class AppController {
   async getNewGames(@Query('page') page: number = 1, @Query('limit') limit: number = 10) {
     const result = await this.gameService.getNewGames(page, limit);
 
-    return { data: result.data, page: result.page, limit: result.limit };
+    return { data: result.data, page: result.page, limit: result.limit, lastPage: result.lastPage };
   }
 }
 hbs.registerHelper('decrement', function (value) {

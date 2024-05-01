@@ -3,23 +3,26 @@
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   </head>
+  <title>신작 게임 목록</title>
+  <link rel="stylesheet" href='/newGame.css'/>
   <body>
 <div id='new-games'>
         <h2>신작 게임</h2>
 
         </div>
+        <ul>
         {{#each data}}
 
           <div class='game'>
+            <a href="/game/{{this.id}}">
             <img src='{{this.screen_shot}}' alt='{{this.title}}' />
             <p>
               <span class='title'>{{this.title}}</span>
             </p>
-            <p><span class='release_date'>발매일: {{this.release_date}}</span></p>
-          <p><span class='price'>가격: {{this.price}}</span></p> 
+            </a>
           </div>
         {{/each}}
-
+        </ul>
         <div class="pagination">
         {{#if page}}
           <a href="?page={{decrement page}}&limit={{limit}}">이전 페이지</a>

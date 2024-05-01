@@ -29,7 +29,7 @@ export class PostController {
 
   // 게시글 작성
   @UseInterceptors(FileInterceptor('file'))
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('refresh'))
   @Post()
   async create(
     @UserInfo() user: User,
@@ -61,9 +61,10 @@ export class PostController {
 
   // 게시글 상세 조회
   @Get(':postId')
-  findOne(@Param('postId') userId: number, id: number) {
-    return this.postService.findOne(+userId, id);
+  findOne(@Param('postId') id: number) {
+    return this.postService.findOne(id);
   }
+  //프론트엔드 상세 조회
   @Get(':postId/page')
   @Render('postDetail.hbs')
   async detailpage() {}

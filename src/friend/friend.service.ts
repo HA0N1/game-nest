@@ -24,10 +24,30 @@ export class FriendService {
   async beFriend(user: User, email: string) {
     // 친구할 유저의 이메일로 조회
     const friend = await this.userRepository.findOneBy({ email });
-    console.log(email);
-
     if (!friend) {
       throw new NotFoundException('해당 이메일을 가진 유저가 존재하지 않습니다.');
+    }
+
+    const check1 = await this.friendshipRepository
+      .createQueryBuilder('fs')
+      .select('fs.id')
+      .leftJoin('fs.user', 'us')
+      .leftJoin('fs.friend', 'fr')
+      .where('fs.user_id=:user_id', { user_id: friend.id })
+      .andWhere('fs.friend_id=:friend_id', { friend_id: user.id })
+      .getRawOne();
+
+    const check2 = await this.friendshipRepository
+      .createQueryBuilder('fs')
+      .select('fs.id')
+      .leftJoin('fs.user', 'us')
+      .leftJoin('fs.friend', 'fr')
+      .where('fs.user_id=:user_id', { user_id: user.id })
+      .andWhere('fs.friend_id=:friend_id', { friend_id: friend.id })
+      .getRawOne();
+
+    if (check1 || check2) {
+      throw new ConflictException('이미 친구 관계입니다.');
     }
 
     await this.friendshipRepository.save({
