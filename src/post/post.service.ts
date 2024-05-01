@@ -77,12 +77,14 @@ export class PostService {
   }
 
   //게시글 상세 조회
-  async findOne(userId: number, id: number) {
-    const post = await this.postRepository.findOne({ where: { id }, relations: ['file'] });
+  async findOne(id: number) {
+    console.log(id);
+    const post = await this.postRepository.findOne({ where: { id }, relations: ['file', 'user'] });
     if (!post) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
-    const liked = await this.isLikedByUser(userId, id);
+
+    const liked = await this.isLikedByUser(1, id);
     post.liked = liked;
     post.view_count++;
     await this.postRepository.save(post);
