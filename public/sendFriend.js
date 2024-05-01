@@ -53,13 +53,22 @@ function sendFriendRequest(sendEmail) {
     credentials: 'include',
     body: JSON.stringify({ email: sendEmail }),
   })
-    .then(res => {
-      return res.json();
-    })
-    .then(json => {
-      alert(json.message);
-    })
-    .catch(err => {
-      console.error('친구 신청 버튼 누를 때 에러: ', err);
+  .then(res => {
+    if (res.status === 409) {
+      alert('이미 친구 관계입니다.');
+      setTimeout(function() {
+        location.reload();
+      }, 100);
+
+      return;
+    }
+    return res.json();
+  })
+  .then(json => {
+    alert(json.message);
+  })
+  .catch(err => {
+    console.error('친구 신청 버튼 누를 때 에러: ', err);
+
     });
 }
