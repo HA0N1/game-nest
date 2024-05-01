@@ -95,7 +95,7 @@ async function create(event) {
     alert('제목, 내용, 카테고리를 모두 입력해야 합니다.');
     return;
   }
-  try {https://chunsik.store
+  try {
     const response = await fetch('https://chunsik.store/post', {
       method: 'POST',
       body: formData,
@@ -118,7 +118,7 @@ async function update(postId) {
   );
 
   if (updatedTitle && updatedContent && updatedCategory) {
-    try {https://chunsik.store
+    try {
       const updateresponse = await fetch(`https://chunsik.store/post/${postId}`, {
         method: 'PATCH',
         headers: {
@@ -143,7 +143,7 @@ async function remove(postId) {
   const logInUserId = window.localStorage.getItem('authorization');
   try {
     const confirmDelete = confirm('정말로 이 게시글을 삭제하시겠습니까?');
-    if (confirmDelete) {https://chunsik.store
+    if (confirmDelete) {
       const deleteResponse = await fetch(`https://chunsik.store/post/${postId}?userId=${logInUserId}`, {
         method: 'DELETE',
         headers: {
@@ -160,7 +160,7 @@ async function remove(postId) {
 }
 
 async function like(postId) {
-  try {https://chunsik.store
+  try {
     const response = await fetch(`https://chunsik.store/post/${postId}/like`, {
       method: 'POST',
       headers: {
@@ -173,7 +173,7 @@ async function like(postId) {
   }
 }
 async function unlike(postId) {
-  try {https://chunsik.store
+  try {
     const response = await fetch(`https://chunsik.store/post/${postId}/like`, {
       method: 'DELETE',
       headers: {
@@ -186,7 +186,7 @@ async function unlike(postId) {
   }
 }
 async function likeStatus(postId) {
-  try {https://chunsik.store
+  try {
     const response = await fetch(`https://chunsik.store/post/${postId}/liked`, {
       headers: {
         Authorization: `Bearer ${token}`,
