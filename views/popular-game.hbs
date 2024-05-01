@@ -12,13 +12,12 @@
         {{#each popularGames}}
 
           <div class="game">
-            <img src="{{this.screen_shot}}" alt="{{this.title}}" />
-            <p>
-              <span class="rank">{{this.rank}}위</span>
-              <span class="title">{{this.title}}</span>
-              <span class="price">{{this.price}}</span>
-              <span class="change">{{this.change}}</span>
-            </p>
+            <a href="/game/{{this.id}}">
+              <img src="{{this.screen_shot}}" alt="{{this.title}}" />
+              <p>
+                <span class="title">{{this.title}}</span>
+              </p>
+            </a>
           </div>
         {{/each}}
       </ul>
