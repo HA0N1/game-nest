@@ -61,6 +61,13 @@ function sendFriendRequest(sendEmail) {
       }, 100);
 
       return;
+    }else if(res.status === 400){
+      alert('자기 자신에게는 친구 신청을 보낼 수 없습니다.');
+      setTimeout(function() {
+        location.reload();
+      }, 100);
+
+      return;
     }
     return res.json();
   })

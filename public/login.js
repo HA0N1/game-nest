@@ -26,3 +26,7 @@ function login() {
 }
 
 document.getElementById('loginBtn').addEventListener('click', login);
+
+document.getElementById('toMain').addEventListener('click',function(){
+  window.location.href = 'http://localhost:3000/main'
+})
