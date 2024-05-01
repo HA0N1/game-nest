@@ -60,14 +60,18 @@ export class AppController {
       8: 'Racing',
       9: 'Sports',
     };
-    const supported_languages = game.supported_languages.replace(/<[^>]*>?/gm, '');
-    const pc_requirements = game.pc_requirements.replace(/<[^>]*>?/gm, '');
+    const supported_languages = game.supported_languages.replace(/<[^>]*>?/gm, '').replace(/\*/g, '');
+
+    let pc_requirements_parsed;
+
+    pc_requirements_parsed = JSON.parse(game.pc_requirements.replace(/<[^>]*>?/gm, '').replace(/\*/g, ''));
+
     const genreName = idToGenreMapping[game.genre_id];
     const gameDetail = {
       ...game,
       genreName,
       supported_languages,
-      pc_requirements,
+      pc_requirements: pc_requirements_parsed,
     };
     return { game: gameDetail };
   }
