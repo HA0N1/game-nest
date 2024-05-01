@@ -48,7 +48,7 @@ function displayPosts(post) {
   document.getElementById('post-form').addEventListener('submit', create);
 
   document.getElementById('gomain').addEventListener('click', function () {
-    window.location.href = 'https://chunsik.store/main';
+    window.location.href = 'http://localhost:3000/main';
   });
 }
 async function create(event) {
@@ -72,7 +72,7 @@ async function create(event) {
         return res.json();
       })
       .then(json => {
-        window.location.href = 'https://chunsik.store/post/page';
+        window.location.href = 'http://localhost:3000/post/page';
       })
       .catch(err => {
         console.error('err: ', err);

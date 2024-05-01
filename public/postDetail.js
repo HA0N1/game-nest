@@ -79,7 +79,7 @@ function displayPosts(post, liked) {
 
   postList.appendChild(postItem);
   document.getElementById('gopost').addEventListener('click', function () {
-    window.location.href = 'https://chunsik.store/post/page';
+    window.location.href = 'http://localhost:3000/post/page';
   });
 }
 
