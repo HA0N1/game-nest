@@ -1,29 +1,29 @@
-<html lang='en'>
+<html lang="en">
   <head>
-    <meta charset='UTF-8' />
-    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>게임 커뮤니티</title>
-    <link rel='stylesheet' href='/post.css' />
+    <link rel="stylesheet" href="/post.css" />
   </head>
   <body>
     <h1>게임 커뮤니티</h1>
 
-    <form id='post-form' action='/post' method='POST' enctype='multipart/form-data'>
-      <input type='text' id='title' name='title' placeholder='제목' />
-      <textarea id='content' name='content' placeholder='내용'></textarea>
-      <select id='category' name='category'>
-        <option value='talk'>잡담</option>
-        <option value='question'>질문</option>
-        <option value='walkthrough'>연습</option>
-        <option value='notice'>공지</option>
-        <option value='pre-order'>선주문</option>
-        <option value='new game news'>새로운 게임 소식</option>
+    <form id="post-form" action="/post" method="POST" enctype="multipart/form-data">
+      <input type="text" id="title" name="title" placeholder="제목" />
+      <textarea id="content" name="content" placeholder="내용"></textarea>
+      <select id="category" name="category">
+        <option value="talk">잡담</option>
+        <option value="question">질문</option>
+        <option value="walkthrough">연습</option>
+        <option value="notice">공지</option>
+        <option value="pre-order">선주문</option>
+        <option value="new game news">새로운 게임 소식</option>
       </select>
-      <input type='file' id='file' name='file' />
-      <button type='submit'>게시</button>
+      <input type="file" id="file" name="file" />
+      <button type="submit">게시</button>
 
     </form>
-    <div id='post-list'></div>
-    <script src='/post.js'></script>
+    <div id="post-list"></div>
+    <script src="/post.js"></script>
   </body>
 </html>
