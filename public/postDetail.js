@@ -78,6 +78,9 @@ function displayPosts(post, liked) {
   postItem.appendChild(removeButton);
 
   postList.appendChild(postItem);
+  document.getElementById('gopost').addEventListener('click', function () {
+    window.location.href = 'https://chunsik.store/post/page';
+  });
 }
 
 async function update(postId) {

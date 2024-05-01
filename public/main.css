@@ -50,6 +50,10 @@ ul li {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.gameList {
+  list-style-type: none;
+}
+
 /* 링크 기본 상태 */
 a:link {
   color: black;

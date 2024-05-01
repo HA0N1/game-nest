@@ -46,6 +46,10 @@ function displayPosts(post) {
 
   postList.appendChild(postItem);
   document.getElementById('post-form').addEventListener('submit', create);
+
+  document.getElementById('gomain').addEventListener('click', function () {
+    window.location.href = 'https://chunsik.store/main';
+  });
 }
 async function create(event) {
   event.preventDefault();
@@ -62,19 +66,18 @@ async function create(event) {
     const response = await fetch('http://localhost:3000/post', {
       method: 'POST',
       body: formData,
-      credentials:'include'
+      credentials: 'include',
     })
-    .then(res=>{
-      return res.json();
-    })
-    .then(json=>{
-      window.location.href = 'http://localhost:3000/post/page';
-    })
-    .catch(err=>{
-      console.error('err: ', err)
-    });
+      .then(res => {
+        return res.json();
+      })
+      .then(json => {
+        window.location.href = 'https://chunsik.store/post/page';
+      })
+      .catch(err => {
+        console.error('err: ', err);
+      });
     // const data = await response.json();
-    
   } catch (error) {
     console.error('Error creating post:', error);
   }
