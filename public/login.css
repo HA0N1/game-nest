@@ -2,7 +2,10 @@
   width: 640px; /* 너비 설정 */
   height: 360px; /* 높이 설정 */
 }
-
+#main {
+  z-index: 150;
+  margin-left: 260px;
+}
 .chatList {
   width: 250px;
   height: 100%;
@@ -83,7 +86,7 @@
 .modal {
   display: none; /* 기본적으로는 숨겨져 있음 */
   position: fixed; /* 화면에 고정 */
-  z-index: 1000; /* 다른 요소 위에 표시 */
+  z-index: 100; /* 다른 요소 위에 표시 */
   left: 0;
   top: 0;
   width: 100%; /* 전체 너비 */

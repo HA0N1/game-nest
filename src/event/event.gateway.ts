@@ -4,10 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
-  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -35,8 +33,8 @@ import { ChannelMember } from 'src/channel/entities/channelMember.entity';
  * 웹소켓 서버 인스턴스 접근
  * WebSocketServer()
  */
-let worker: mediasoup.types.Worker<mediasoup.types.AppData>;
-
+let worker;
+let router;
 let producerTransport: {
   id: any;
   iceParameters: any;
@@ -56,20 +54,6 @@ let consumerTransport: {
 let producer;
 let consumer;
 const mediaCodecs = config.mediasoup.router.mediaCodecs;
-let rooms = {}; // { roomName1: { Router, rooms: [ sicketId1, ... ] }, ...}
-let peers = {}; // { socketId1: { roomName1, socket, transports = [id1, id2,] }, producers = [id1, id2,] }, consumers = [id1, id2,], peerDetails }, ...}
-let transports = []; // [ { socketId1, roomName1, transport, consumer }, ... ]
-let producers = []; // [ { socketId1, roomName1, producer, }, ... ]
-let consumers = []; // [ { socketId1, roomName1, consumer, }, ... ]
-let socketConnect = {}; //socket 아이디가 key, value는 Bool
-let socketAudioProduce: SocketAudioProduce = {}; // socket 아이디가 key, value는 Bool
-let socketVideoProduce: SocketVideoProduce = {}; // socket 아이디가 key, value는 Bool
-interface SocketAudioProduce {
-  id?: boolean;
-}
-interface SocketVideoProduce {
-  id?: boolean;
-}
 interface CreateRoomData {
   room: string;
   createChatDto: {
@@ -96,7 +80,7 @@ interface ScreenSharingData {
 
 let channelId;
 @WebSocketGateway({ namespace: 'chat' })
-export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class RoomGateway implements OnGatewayConnection {
   constructor(
     private readonly channelService: ChannelService,
     private readonly userService: UserService,
@@ -116,7 +100,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   nextMediasoupWorkerIdx = 0;
 
   async handleConnection(socket: Socket & { user: User }, data: any) {
-    console.log(`connect!!!!!!!!!!!!!!!!!!!!!!!: ${socket.id}`);
+    console.log(`connect: ${socket.id}`);
     const cookie = socket.handshake.headers.cookie;
     const cookieParts = cookie.split(';');
     const authorizationCookie = cookieParts[0].trim().split('=');
@@ -135,58 +119,18 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const path = url.pathname;
       const parts = path.split('/');
       channelId = +parts[2];
-
-      const foundUser = await this.userService.findUserById(+userId);
-      const nickname1 = foundUser.nickname;
-
       const existingMember = await this.MemberRepo.findOne({ where: { userId } });
       if (!existingMember) {
         await this.channelService.createMember(userId, channelId);
       }
       console.log(channelId);
-      worker = await this.createWorker();
-
-      socket.emit('connection-success', {
-        socketId1: socket.id,
-        nickname1,
-      });
       return true;
     } catch (error) {
       console.log('에러');
       throw new WsException(error.message);
     }
   }
-
-  handleDisconnect(@ConnectedSocket() socket: Socket) {
-    const removeItems = (items, socketId, type) => {
-      items.forEach(item => {
-        if (item.socketId === socket.id) {
-          item[type].close();
-        }
-      });
-      items = items.filter(item => item.socketId !== socket.id);
-
-      return items;
-    };
-
-    console.log('peer disconnected');
-    consumers = removeItems(consumers, socket.id, 'consumer');
-    producers = removeItems(producers, socket.id, 'producer');
-    transports = removeItems(transports, socket.id, 'transport');
-
-    try {
-      const { room } = peers[socket.id];
-      delete peers[socket.id];
-
-      //rooms에서 해당 소켓 정보 삭제
-      rooms[room] = {
-        router: rooms[room].router,
-        peers: rooms[room].peers.filter(socketId => socketId !== socket.id),
-      };
-      console.log('RoomGateway ~ handleDisconnect ~ peers:', peers);
-      console.log('RoomGateway ~ handleDisconnect ~ rooms:', rooms);
-    } catch (e) {}
-  }
+  // server 연결 시 worker 생성
 
   async createWorker() {
     worker = await mediasoup.createWorker({
@@ -232,7 +176,6 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const channelRoom = await this.channelService.findOneChat(room);
     const chatType = channelRoom.chatType;
 
-    console.log('RoomGateway ~ handleChatType ~ chatType:', chatType);
     this.server.emit('chatType', chatType);
   }
 
@@ -266,7 +209,6 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const path = url.pathname;
       const parts = path.split('/');
       const channelId = +parts[2];
-      console.log('RoomGateway ~ handleRequestRooms ~ channelId:', channelId);
       const rooms = await this.channelService.findAllChat(channelId);
 
       this.server.emit('rooms', rooms);
@@ -324,60 +266,28 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('joinVoiceRoom')
   async handleJoinVoiceRoom(socket: Socket & { user: User }, data: any) {
-    const { room, nickname } = data;
+    const { room } = data;
+    socket.join(room);
 
     //! 2. server : worker가 router 생성, 서버가 클라이언트에 rtpCapabilities 전달
     // chatType이 voice인 경우에만 Worker와 Router 생성
-    const router1 = await this.createRoom(room, socket.id);
-    peers[socket.id] = {
-      socket,
-      room,
-      transports: [],
-      producers: [],
-      consumers: [],
-      peerDetails: {
-        name: nickname,
-      },
-    };
-    console.log(`${nickname} just joined the Room `);
-    // router = await worker.createRouter({ mediaCodecs });
+    worker = await this.createWorker();
+    router = await worker.createRouter({ mediaCodecs });
     // RTP Capabilities 가져오기
-    const rtpCapabilities = router1.rtpCapabilities;
+    const rtpCapabilities = router.rtpCapabilities;
     // 클라이언트에게 RTP Capabilities 전달
-    this.server.emit('getRtpCapabilities', rtpCapabilities);
+    this.server.to(room).emit('getRtpCapabilities', rtpCapabilities);
   }
 
-  createRoom = async (room, socketId) => {
-    console.log('RoomGateway ~ createRoom= ~ socketId:', socketId);
-    let router1;
-    let peers = [];
-    if (rooms[room]) {
-      router1 = rooms[room].router;
-      peers = rooms[room].peers || [];
-    } else {
-      router1 = await worker.createRouter({ mediaCodecs });
-    }
-
-    // console.log(`Router ID: ${router1.id}`, peers.length)
-
-    rooms[room] = {
-      router: router1,
-      peers: [...peers, socketId],
-    };
-
-    return router1;
-  };
   //! 5. server :⭐RP (router producer)생성, 생성한 tranport 정보 client에 반환
   @SubscribeMessage('createWebRtcTransport')
-  async handleCreateTransport(@ConnectedSocket() socket: Socket, @MessageBody() data) {
+  async handleCreateTransport(@MessageBody() data) {
     const { consumer } = data;
-    console.log('createWebRtcTransport 도착');
+    console.log('RoomGateway ~ handleCreateTransport ~ consumer:', consumer);
+
     try {
-      const room = await peers[socket.id].room;
-      const router = await rooms[room].router;
-      const [verify] = transports.filter(transport => transport.socketId === socket.id && !transport.consumer);
       if (!consumer) {
-        producerTransport = await this.createWebRtcTransport(router);
+        producerTransport = await this.createWebRtcTransport();
         this.server.emit('createWebRtcTransport1', {
           consumer,
           params: {
@@ -387,10 +297,9 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
             dtlsParameters: producerTransport.dtlsParameters,
           },
         });
-        await this.addTransport(socket, producerTransport, room, consumer);
         console.log('producer로써');
       } else {
-        consumerTransport = await this.createWebRtcTransport(router);
+        consumerTransport = await this.createWebRtcTransport();
         //! 잘만들어짐
         this.server.emit('createWebRtcTransport2', {
           consumer,
@@ -401,209 +310,14 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
             dtlsParameters: consumerTransport.dtlsParameters,
           },
         });
-        console.log('여기 몇번2?');
-        await this.addTransport(socket, consumerTransport, room, consumer);
         console.log('consumer로써');
       }
     } catch (error) {
       console.error(error);
     }
   }
-  async addTransport(socket, transport, room, consumer) {
-    transports = [...transports, { socketId: socket.id, transport, room, consumer }];
 
-    peers[socket.id] = {
-      ...peers[socket.id],
-      transports: [...peers[socket.id].transports, transport.id],
-    };
-    //! transports,peers 생성 잘됨
-  }
-
-  @SubscribeMessage('getProducers')
-  async handleGetProducers(@ConnectedSocket() socket: Socket): Promise<void> {
-    const room = peers[socket.id]?.room;
-    if (!room) {
-      console.error(`No room found for socket ID ${socket.id}`);
-      socket.emit('error', 'No associated room found.');
-      return;
-    }
-
-    console.log(`Fetching producers for room: ${room}`);
-    let producerList = [];
-
-    producers.forEach(producerData => {
-      // Ensure that we are not sending back the producer of the requesting socket
-      if (producerData.socketId !== socket.id && producerData.room === room) {
-        producerList.push({
-          producerId: producerData.producer.id,
-          nickname: peers[producerData.socketId].peerDetails.name,
-          socketId: producerData.socketId,
-        });
-      }
-    });
-
-    console.log(`Producer list for room ${room}:`, producerList);
-
-    // Only emit to the requesting client to maintain data privacy
-    socket.emit('getProducers', { producerList });
-  }
-
-  @SubscribeMessage('transport-connect')
-  async transportConnect(@MessageBody() data, @ConnectedSocket() socket: Socket): Promise<void> {
-    console.log('오냐');
-    const { dtlsParameters } = data;
-
-    const producerTransport = await this.getTransport(socket.id); // Get the transport for this socket ID
-    //!잘댐
-    if (
-      producerTransport &&
-      producerTransport.dtlsState !== 'connected' &&
-      producerTransport.dtlsState !== 'connecting'
-    ) {
-      try {
-        await producerTransport.connect({ dtlsParameters });
-        console.log('producer 연결 성공');
-        this.server.emit('transport-connect', { dtlsParameters }); // Notify other clients on successful connection
-      } catch (error) {
-        console.log('producer 연결 실패:', error);
-      }
-    } else if (producerTransport) {
-      console.log('producer는 이미 연결 중 또는 연결되어 있습니다:', producerTransport.dtlsState);
-    } else {
-      console.log('No valid producer transport found for socket ID:', socket.id);
-    }
-  }
-
-  async getTransport(socketId) {
-    console.log('getTransport socketId ===  transports socketId', socketId);
-
-    const [producerTransport] = transports.filter(transport => transport.socketId === socketId && !transport.consumer);
-    try {
-      return producerTransport.transport;
-    } catch (e) {
-      console.log(`getTransport 도중 에러 발생. details: ${e}`);
-    }
-  }
-  // @SubscribeMessage('transport-produce')
-  // async transportProduce(
-  //   @ConnectedSocket() socket: Socket,
-  //   @MessageBody() { kind, rtpParameters, appData, dtlsParameters },
-  // ): Promise<void> {
-  //   console.log('transport-produce 도착');
-  //   try {
-  //     if ((kind == 'audio' && !socketAudioProduce.id) || (kind == 'video' && !socketVideoProduce.id)) {
-  //       producer = await this.getTransport(socket.id).produce({
-  //         kind,
-  //         rtpParameters,
-  //       });
-
-  //       if (kind == 'audio') {
-  //         socketAudioProduce.id = true;
-  //       }
-  //       if (kind == 'video') {
-  //         socketVideoProduce.id = true;
-  //       }
-  //       console.log('Producer ID: ', producer.id, producer.kind);
-
-  //       const { room } = await peers[socket.id];
-
-  //       await this.addProducer(socket, producer, room);
-
-  //       await this.informConsumers(room, socket.id, producer.id);
-  //       console.log('이상없음');
-  //       producer.on('transportclose', () => {
-  //         console.log('transport for this producer closed ');
-  //         producer.close();
-  //       });
-  //     }
-  //     console.log('RoomGateway ~ socket.id:', socket.id);
-
-  //     this.server.emit('transport-produce', { id: producer.id, producersExist: producers.length > 1 ? true : false });
-  //   } catch (error) {
-  //     console.log('produce 중 error', error.message);
-  //   }
-  // }
-  @SubscribeMessage('transport-produce')
-  async transportProduce(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() { kind, rtpParameters, appData, dtlsParameters },
-  ): Promise<void> {
-    console.log('transport-produce arrived');
-    try {
-      // Correctly awaiting the getTransport call
-      let transport = await this.getTransport(socket.id);
-      if (!transport) {
-        console.log('No transport available for this socket');
-        return;
-      }
-
-      // Now you can safely call produce on the transport object
-      if (
-        (kind === 'audio' && !socketAudioProduce[socket.id]) ||
-        (kind === 'video' && !socketVideoProduce[socket.id])
-      ) {
-        let producer = await transport.produce({
-          kind,
-          rtpParameters,
-        });
-
-        if (kind === 'audio') {
-          socketAudioProduce[socket.id] = true; // Correctly index by socket.id
-        } else if (kind === 'video') {
-          socketVideoProduce[socket.id] = true; // Correctly index by socket.id
-        }
-
-        console.log('Producer ID: ', producer.id, producer.kind);
-
-        const { room } = peers[socket.id];
-        await this.addProducer(socket, producer, room);
-        await this.informConsumers(room, socket.id, producer.id);
-        console.log('No issues');
-
-        producer.on('transportclose', () => {
-          console.log('transport for this producer closed');
-          producer.close();
-        });
-
-        // Inform clients about the producer
-        this.server.emit('transport-produce', { id: producer.id, producersExist: producers.length > 1 });
-      } else {
-        console.log(`Producer for ${kind} already exists.`);
-      }
-    } catch (error) {
-      console.log('Error during production:', error.message);
-    }
-  }
-
-  async addProducer(socket, producer, room) {
-    producers = [...producers, { socketId: socket.id, producer, room, name: socket.nsp.name, kind: producer.kind }];
-    peers[socket.id] = await {
-      ...peers[socket.id],
-      producers: [...peers[socket.id].producers, producer.id],
-    };
-    console.log(`Added producer: ${producer.id} in room: ${room}`);
-  }
-
-  async informConsumers(room, socketId, id) {
-    //! 일단 작동 안하는게 맞음
-    producers.forEach(producerData => {
-      if (producerData.socketId !== socketId && producerData.room === room) {
-        const producerSocket = peers[producerData.socketId].socket;
-        // use socket to send producer id to producer
-        const socketName = peers[socketId].peerDetails.name;
-        console.log('RoomGateway ~ informConsumers ~ socketName:', socketName);
-
-        console.log(`new-producer emit! socketName: ${socketName}, producerId: ${id}, kind : ${producerData.kind}`);
-        producerSocket.emit('new-producer', {
-          producerId: id,
-          socketName: socketName,
-          socketId: socketId,
-        });
-      }
-    });
-  }
-
-  async createWebRtcTransport(router) {
+  async createWebRtcTransport() {
     try {
       const webRtcTransport_options = {
         listenInfos: [
@@ -637,13 +351,41 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('transport-connect')
+  async transportConnect(@MessageBody() data): Promise<void> {
+    const { dtlsParameters } = data;
+
+    try {
+      await producerTransport.connect({ dtlsParameters });
+      console.log('producer 연결 성공');
+      this.server.emit('transport-connect', { dtlsParameters });
+    } catch (error) {
+      console.log('producer 연결 실패:', error);
+    }
+  }
+
+  @SubscribeMessage('transport-produce')
+  async transportProduce(@MessageBody() { kind, rtpParameters, appData, dtlsParameters }): Promise<void> {
+    try {
+      producer = await producerTransport.produce({
+        kind,
+        rtpParameters,
+      });
+
+      producer.on('transportclose', () => {
+        console.log('transport for this producer closed ');
+        producer.close();
+      });
+
+      this.server.emit('transport-produce', { id: producer.id });
+    } catch (error) {
+      console.log('produce 중 error', error.message);
+    }
+  }
+
   @SubscribeMessage('transport-recv-connect')
   async transportConsumer(@MessageBody() data): Promise<void> {
-    const { dtlsParameters, serverConsumerTransportId } = data;
-    const consumerTransport = transports.find(
-      transportData => transportData.consumer && transportData.transport.id == serverConsumerTransportId,
-    ).transport;
-    console.log('consumerTransport의 dtlsState 확인 🌼🌼🌼', consumerTransport.dtlsState);
+    const { dtlsParameters } = data;
     try {
       await consumerTransport.connect({ dtlsParameters });
       console.log('consumer연결 성공');
@@ -655,44 +397,27 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('consume')
   async consume(socket: Socket & { user: User }, data: any): Promise<void> {
-    const { rtpCapabilities, remoteProducerId, serverConsumerTransportId } = data;
+    const { rtpCapabilities, producerId } = data;
     try {
-      const { room } = peers[socket.id];
-      const nickname = peers[socket.id].peerDetails.name;
-      const router = rooms[room].router;
-
-      let consumerTransport = transports.find(
-        transportData => transportData.consumer && transportData.transport.id == serverConsumerTransportId,
-      ).transport;
-
-      if (router.canConsume({ remoteProducerId, rtpCapabilities })) {
+      if (router.canConsume({ producerId, rtpCapabilities })) {
         consumer = await consumerTransport.consume({
-          producerId: remoteProducerId,
+          producerId,
           rtpCapabilities,
           paused: true,
         });
-
         consumer.on('transportclose', () => {
           console.log('transport close from consumer');
         });
 
         consumer.on('producerclose', () => {
           console.log('producer of consumer closed');
-          socket.emit('producer-closed', { remoteProducerId });
-
-          consumerTransport.close([]);
-          transports = transports.filter(transportData => transportData.transport.id !== consumerTransport.id);
-          consumer.close();
-          consumers = consumers.filter(consumerData => consumerData.consumer.id !== consumer.id);
         });
-        await this.addConsumer(consumer, room);
+
         const params = {
           id: consumer.id,
-          producerId: remoteProducerId,
+          producerId: producer.id,
           kind: consumer.kind,
           rtpParameters: consumer.rtpParameters,
-          serverConsumerId: consumer.id,
-          nickname: nickname,
         };
 
         this.server.emit('consume', { params });
@@ -701,24 +426,12 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log('consume 중 error', error);
     }
   }
-  async addConsumer(consumer, room) {
-    consumers = [...consumers, { socketId: socket.id, consumer, room }];
-
-    peers[socket.id] = {
-      ...peers[socket.id],
-      consumers: [...peers[socket.id].consumers, consumer.id],
-    };
-  }
 
   @SubscribeMessage('consumer-resume')
-  async consumerResume(socket: Socket & { user: User }, data): Promise<void> {
-    console.log('RoomGateway ~ consumerResume ~ data:', data);
-    const { serverConsumerId } = data;
+  async consumerResume(socket: Socket & { user: User }): Promise<void> {
     try {
       console.log('consumer resume');
-      const { consumer } = consumers.find(consumerData => consumerData.consumer.id === serverConsumerId);
-
-      await consumer.resume();
+      consumer.resume();
     } catch (error) {
       console.error('Error resuming consumer:', error);
     }

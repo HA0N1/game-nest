@@ -27,6 +27,6 @@ function login() {
 
 document.getElementById('loginBtn').addEventListener('click', login);
 
-document.getElementById('toMain').addEventListener('click',function(){
-  window.location.href = 'https://chunsik.store/main'
-})
+document.getElementById('toMain').addEventListener('click', function () {
+  window.location.href = 'https://chunsik.store/main';
+});
