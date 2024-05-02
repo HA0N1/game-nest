@@ -6,9 +6,11 @@ document.getElementById('sendBtn').addEventListener('click', sendMessage);
 document.getElementById('createRoomBtn').addEventListener('click', openModal);
 document.querySelector('.close').addEventListener('click', closeModal);
 document.getElementById('createRoomForm').addEventListener('submit', createRoomWithModal);
+document.getElementById('main').addEventListener('click', main);
 const preferredDisplaySurface = document.getElementById('displaySurface');
 const startButton = document.getElementById('startButton');
 const remoteColum = document.querySelector('.remoteColum');
+
 document.getElementById('myModal').style.display = 'none';
 let device;
 let rtpCapabilities;
@@ -41,12 +43,17 @@ function checkLogin() {
   if (!token) {
     socket.disconnect();
     alert('로그인을 해야 할 수 있는 서비스입니다.');
-    window.location.href = 'https://chunsik.store/main';
+    window.location.href = 'http://localhost:3000/main';
   }
 }
+
 const socket = io('/chat', { auth: { token: token } });
 
 let currentRoom = '';
+
+function main() {
+  window.location.href = 'http://localhost:3000/main';
+}
 
 socket.on('connection-success', ({ socketId1, nickname1 }) => {
   socketId = socketId1;

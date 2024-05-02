@@ -1,7 +1,7 @@
 function login() {
   const email = $('#email').val();
   const password = $('#password').val();
-  fetch('https://chunsik.store/user/email', {
+  fetch('http://localhost:3000/user/email', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -20,13 +20,13 @@ function login() {
       const token = json.accessToken;
       window.localStorage.setItem('authorization', token);
 
-      window.location.href = 'https://chunsik.store/main';
+      window.location.href = 'http://localhost:3000/main';
     })
     .catch(error => console.error('Error:', error));
 }
 
 document.getElementById('loginBtn').addEventListener('click', login);
 
-document.getElementById('toMain').addEventListener('click',function(){
-  window.location.href = 'https://chunsik.store/main'
-})
+document.getElementById('toMain').addEventListener('click', function () {
+  window.location.href = 'http://localhost:3000/main';
+});

@@ -3,7 +3,7 @@ const token = window.localStorage.getItem('authorization');
 
 async function fetchPosts(postId) {
   try {
-    const response = await fetch(`https://chunsik.store/post/${postId}`);
+    const response = await fetch(`http://localhost:3000/post/${postId}`);
     const post = await response.json();
     const liked = await likeStatus(postId);
     displayPosts(post, liked);
@@ -83,7 +83,7 @@ function displayPosts(post, liked) {
 
   postList.appendChild(postItem);
   document.getElementById('gopost').addEventListener('click', function () {
-    window.location.href = 'https://chunsik.store/post/page';
+    window.location.href = 'http://localhost:3000/post/page';
   });
   fetchComments(postId);
 }
@@ -97,7 +97,7 @@ async function update(postId) {
 
   if (updatedTitle && updatedContent && updatedCategory) {
     try {
-      const updateresponse = await fetch(`https://chunsik.store/post/${postId}`, {
+      const updateresponse = await fetch(`http://localhost:3000/post/${postId}`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -121,7 +121,7 @@ async function remove(postId) {
   try {
     const confirmDelete = confirm('정말로 이 게시글을 삭제하시겠습니까?');
     if (confirmDelete) {
-      const deleteResponse = await fetch(`https://chunsik.store/post/${postId}?userId=${token}`, {
+      const deleteResponse = await fetch(`http://localhost:3000/post/${postId}?userId=${token}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -129,7 +129,7 @@ async function remove(postId) {
       });
 
       const data = await deleteResponse.json();
-      window.location.href = 'https://chunsik.store/post/page';
+      window.location.href = 'http://localhost:3000/post/page';
     }
   } catch (error) {
     console.error('Error deleting post:', error);
@@ -138,7 +138,7 @@ async function remove(postId) {
 
 async function like(postId) {
   try {
-    const response = await fetch(`https://chunsik.store/post/${postId}/like`, {
+    const response = await fetch(`http://localhost:3000/post/${postId}/like`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -151,7 +151,7 @@ async function like(postId) {
 }
 async function unlike(postId) {
   try {
-    const response = await fetch(`https://chunsik.store/post/${postId}/like`, {
+    const response = await fetch(`http://localhost:3000/post/${postId}/like`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -164,7 +164,7 @@ async function unlike(postId) {
 }
 async function likeStatus(postId) {
   try {
-    const response = await fetch(`https://chunsik.store/post/${postId}/liked`, {
+    const response = await fetch(`http://localhost:3000/post/${postId}/liked`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -187,7 +187,7 @@ document.getElementById('comment-form').addEventListener('submit', async event =
   event.preventDefault();
   const content = document.getElementById('comment-content').value;
   try {
-    const response = await fetch(`https://chunsik.store/comment/${postId}`, {
+    const response = await fetch(`http://localhost:3000/comment/${postId}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -206,7 +206,7 @@ document.getElementById('comment-form').addEventListener('submit', async event =
 // 댓글 조회
 async function fetchComments(postId) {
   try {
-    const response = await fetch(`https://chunsik.store/comment/${postId}`);
+    const response = await fetch(`http://localhost:3000/comment/${postId}`);
     const comments = await response.json();
     displayComments(comments, postId);
   } catch (error) {
@@ -240,7 +240,7 @@ document.getElementById('comment-list').addEventListener('click', async event =>
     const updatedContent = prompt('댓글을 수정하세요:', event.target.previousSibling.textContent);
     if (updatedContent) {
       try {
-        const response = await fetch(`https://chunsik.store/comment/${postId}/${commentId}`, {
+        const response = await fetch(`http://localhost:3000/comment/${postId}/${commentId}`, {
           method: 'PATCH',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -265,7 +265,7 @@ document.getElementById('comment-list').addEventListener('click', async event =>
     const confirmDelete = confirm('정말로 이 댓글을 삭제하시겠습니까?');
     if (confirmDelete) {
       try {
-        const response = await fetch(`https://chunsik.store/comment/${postId}/${commentId}`, {
+        const response = await fetch(`http://localhost:3000/comment/${postId}/${commentId}`, {
           method: 'DELETE',
           headers: {
             Authorization: `Bearer ${token}`,

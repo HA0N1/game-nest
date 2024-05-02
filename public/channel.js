@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const createChannel = document.getElementById('createChannel');
   const channelNameInput = document.getElementById('name');
   const gameIdInput = document.getElementById('gameId');
+  document.getElementById('main').addEventListener('click', main);
   const token = window.localStorage.getItem('authorization');
 
   window.onload = function () {
@@ -17,8 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!token) {
       socket.disconnect();
       alert('로그인을 해야 할 수 있는 서비스입니다.');
-      window.location.href = 'https://chunsik.store/main';
+      window.location.href = 'http://localhost:3000/main';
     }
+  }
+
+  function main() {
+    window.location.href = 'http://localhost:3000/main';
   }
   // Search functionality
   // Search functionality

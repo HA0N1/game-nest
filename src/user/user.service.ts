@@ -45,7 +45,7 @@ export class UserService {
   ) {}
 
   async signUp() {
-    return this.httpService.post('https://chunsik.store/user/create');
+    return this.httpService.post('http://localhost:3000/user/create');
   }
 
   /* 회원가입 */
@@ -110,7 +110,7 @@ export class UserService {
   }
 
   async login() {
-    return this.httpService.post('https://chunsik.store/user/email');
+    return this.httpService.post('http://localhost:3000/user/email');
   }
 
   /* 이메일로 로그인 */

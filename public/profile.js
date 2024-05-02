@@ -17,7 +17,7 @@ window.onload = function () {
 
 const toMain = document.getElementById('toMain');
 toMain.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/main';
+  window.location.href = 'http://localhost:3000/main';
 });
 
 const imageWrapper = document.getElementById('imageWrapper');
@@ -26,19 +26,19 @@ imageWrapper.style.display = 'none';
 changeImage.addEventListener('click', changeProfileImage);
 
 dmBtn.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/dm';
+  window.location.href = 'http://localhost:3000/dm';
 });
 
 findFriends.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/friend/findFriends';
+  window.location.href = 'http://localhost:3000/friend/findFriends';
 });
 
 registerFriends.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/friend/sendFriend';
+  window.location.href = 'http://localhost:3000/friend/sendFriend';
 });
 
 function checkLoginStatus() {
-  fetch('https://chunsik.store/user/checkLogin', {
+  fetch('http://localhost:3000/user/checkLogin', {
     method: 'GET',
   })
     .then(res => {
@@ -46,7 +46,7 @@ function checkLoginStatus() {
         return;
       } else {
         alert('로그인을 하지 않은 유저입니다. 쿠키를 확인해주십시오.');
-        window.location.href = 'https://chunsik.store/main';
+        window.location.href = 'http://localhost:3000/main';
       }
     })
     .catch(error => {
@@ -55,7 +55,7 @@ function checkLoginStatus() {
 }
 
 function UserProfiles() {
-  fetch('https://chunsik.store/user/userinfo', {
+  fetch('http://localhost:3000/user/userinfo', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -146,7 +146,7 @@ function sendImage(event) {
 
   data.append('filePath', file);
 
-  fetch(`https://chunsik.store/user/image?userId=${userId}`, {
+  fetch(`http://localhost:3000/user/image?userId=${userId}`, {
     method: 'PATCH',
     body: data,
     credentials: 'include',
@@ -168,7 +168,7 @@ originalImage.addEventListener('click', goOriginalImage);
 function goOriginalImage(event) {
   event.preventDefault();
 
-  fetch('https://chunsik.store/user/defaultImage', {
+  fetch('http://localhost:3000/user/defaultImage', {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,

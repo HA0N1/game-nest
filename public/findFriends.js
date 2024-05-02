@@ -2,27 +2,27 @@ const token = window.localStorage.getItem('authorization');
 
 const toMain = document.getElementById('toMain');
 toMain.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/main';
+  window.location.href = 'http://localhost:3000/main';
 });
 const toProfile = document.getElementById('toProfile');
 toProfile.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/user/profile';
+  window.location.href = 'http://localhost:3000/user/profile';
 });
 
 const toDM = document.getElementById('toDM');
 toDM.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/dm';
+  window.location.href = 'http://localhost:3000/dm';
 });
 
 const friends = document.getElementById('friends');
 const sendFriend = document.getElementById('sendFriend');
 sendFriend.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/friend/sendFriend';
+  window.location.href = 'http://localhost:3000/friend/sendFriend';
 });
 
 const receiveFriend = document.getElementById('receiveFriend');
 receiveFriend.addEventListener('click', function () {
-  window.location.href = 'https://chunsik.store/friend/friendRequest';
+  window.location.href = 'http://localhost:3000/friend/friendRequest';
 });
 
 window.onload = function () {
@@ -30,7 +30,7 @@ window.onload = function () {
 };
 
 function loadFriends() {
-  fetch('https://chunsik.store/friend/find', {
+  fetch('http://localhost:3000/friend/find', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -64,7 +64,7 @@ function makeBox(relationId, id, email, nickname) {
 
 $(document).on('click', '#dmRoom', function () {
   const relationshipId = $(this).closest('li').attr('id');
-  fetch(`https://chunsik.store/dm/create/${relationshipId}`, {
+  fetch(`http://localhost:3000/dm/create/${relationshipId}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ $(document).on('click', '#dmRoom', function () {
     })
     .then(json => {
       alert(json.message);
-      window.location.href = 'https://chunsik.store/dm';
+      window.location.href = 'http://localhost:3000/dm';
     })
     .catch(err => {
       console.error('DMRoom 생성: ', err);
