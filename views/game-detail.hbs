@@ -3,14 +3,15 @@
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>게임 상세 정보</title>
-
+    <link rel="stylesheet" href="/detailGame.css"/>
   </head>
   <body>
+    <a href='/main'>게임 목록으로 돌아가기</a>
     <div class='game-detail'>
+      
       <img src='{{game.screen_shot}}' alt='게임 스크린샷' />
       <p><strong>Id:</strong> {{game.id}}</p>
       <h1>{{game.title}}</h1>
-      <p><strong>개발자:</strong> {{game.developer}}</p>
       <p><strong>개발자:</strong> {{game.developer}}</p>
       <p>{{game.description}}</p>
       <p><strong>출시일:</strong> {{game.release_date}}</p>
@@ -33,7 +34,6 @@
         <button class='edit' style='display: none;'>수정</button>
         <button class='delete' style='display: none;'>삭제</button>
     </div>
-    <a href='/main'>게임 목록으로 돌아가기</a>
     </div>
   </body>
   <script src='/comment.js'></script>
