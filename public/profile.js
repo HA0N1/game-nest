@@ -10,19 +10,20 @@ const registerFriends = document.getElementById('registerFriend');
 const changeImage = document.getElementById('changeImage');
 const originalImage = document.getElementById('originalImage');
 
-// const imageBox = document.querySelector('#imageBox');
-// imageBox.style.display = 'none';
-
 window.onload = function () {
   checkLoginStatus();
   UserProfiles();
 };
 
+const toMain = document.getElementById('toMain');
+toMain.addEventListener('click', function () {
+  window.location.href = 'https://chunsik.store/main';
+});
 
 const imageWrapper = document.getElementById('imageWrapper');
-imageWrapper.style.display='none';
+imageWrapper.style.display = 'none';
 
-changeImage.addEventListener('click', changeProfileImage)
+changeImage.addEventListener('click', changeProfileImage);
 
 dmBtn.addEventListener('click', function () {
   window.location.href = 'https://chunsik.store/dm';
@@ -102,13 +103,12 @@ function UserProfiles() {
       }
 
       function setInterestGenres(input) {
-        input.map(e=>{
+        input.map(e => {
           const ul = document.createElement('ul');
           ul.innerText = e;
           interestGenres.appendChild(ul);
           return;
-
-        })
+        });
       }
 
       showImage(filePath);
@@ -122,66 +122,67 @@ function UserProfiles() {
     });
 }
 
-function changeProfileImage(event){
+function changeProfileImage(event) {
   event.preventDefault();
-  imageWrapper.style.display='block';
+  imageWrapper.style.display = 'block';
 }
 
 fileBtn.addEventListener('click', sendImage);
 
-function sendImage(event){
+function sendImage(event) {
   event.preventDefault();
-const idData = document.querySelector("#userId p");
-const text = idData.textContent;
+  const idData = document.querySelector('#userId p');
+  const text = idData.textContent;
 
-const idValue = text.replace('아이디: ','');
+  const idValue = text.replace('아이디: ', '');
 
-const userId = +idValue
+  const userId = +idValue;
 
-const fileBtn = document.getElementById('fileBtn');
+  const fileBtn = document.getElementById('fileBtn');
 
-const inputFile = document.getElementById('inputFile');
-const file = inputFile.files[0];
-const data = new FormData();
+  const inputFile = document.getElementById('inputFile');
+  const file = inputFile.files[0];
+  const data = new FormData();
 
-data.append('filePath', file);
+  data.append('filePath', file);
 
-fetch(`https://chunsik.store/user/image?userId=${userId}`,{
-  method:'PATCH',
-  body: data,
-  credentials: 'include'
-})
-.then(res=>{
-  return res.json();
-})
-.then(json=>{
-  alert(json.message);
-  location.reload(true);
-})
-.catch(err=>{
-  console.error('프로필 이미지 변경 중의 에러: ', err);
-})
+  fetch(`https://chunsik.store/user/image?userId=${userId}`, {
+    method: 'PATCH',
+    body: data,
+    credentials: 'include',
+  })
+    .then(res => {
+      return res.json();
+    })
+    .then(json => {
+      alert(json.message);
+      location.reload(true);
+    })
+    .catch(err => {
+      console.error('프로필 이미지 변경 중의 에러: ', err);
+    });
 }
 
 originalImage.addEventListener('click', goOriginalImage);
 
-function goOriginalImage(event){
+function goOriginalImage(event) {
   event.preventDefault();
- 
-  fetch('https://chunsik.store/user/defaultImage',{
-    method:'PATCH',
+
+  fetch('https://chunsik.store/user/defaultImage', {
+    method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
     },
     credentials: 'include',
   })
-  .then(res=>{return res.json()})
-  .then(json=>{
-    alert(json.message);
-    location.reload(true);
-  })
-  .catch(err=>{
-    console.error('기본 이미지로 변경 중의 에러: ', err);
-  })
-  
+    .then(res => {
+      return res.json();
+    })
+    .then(json => {
+      alert(json.message);
+      location.reload(true);
+    })
+    .catch(err => {
+      console.error('기본 이미지로 변경 중의 에러: ', err);
+    });
 }
