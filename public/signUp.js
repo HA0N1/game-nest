@@ -101,8 +101,8 @@ function signUp() {
     })
     .catch(error => {
       if ((error.code = 409)) {
-        console.error('이미 해당 이메일로 가입한 사용자가 있습니다.');
-        alert('이미 해당 이메일로 가입한 사용자가 있습니다.');
+        console.error('회원가입 에러: ', error);
+        alert('회원가입 필수 칸들을 작성하셨는지, 중복 이메일인지, 이메일 형식이 맞는지 확인해주세요.');
         window.location.reload(true);
       } else if ((error.code = 400)) {
         console.error('비밀번호와 비밀번호 확인이 다릅니다.');
