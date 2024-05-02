@@ -28,6 +28,7 @@ export class CommentService {
       post,
       user: { id: userId },
     });
+
     return { message: '댓글이 생성되었습니다.', comment };
   }
 

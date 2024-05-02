@@ -10,13 +10,15 @@ const registerFriends = document.getElementById('registerFriend');
 const changeImage = document.getElementById('changeImage');
 const originalImage = document.getElementById('originalImage');
 
-// const imageBox = document.querySelector('#imageBox');
-// imageBox.style.display = 'none';
-
 window.onload = function () {
   checkLoginStatus();
   UserProfiles();
 };
+
+const toMain = document.getElementById('toMain');
+toMain.addEventListener('click', function () {
+  window.location.href = 'https://chunsik.store/main';
+});
 
 const imageWrapper = document.getElementById('imageWrapper');
 imageWrapper.style.display = 'none';

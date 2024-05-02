@@ -1,28 +1,32 @@
-import { Catch, ExceptionFilter, ArgumentsHost, HttpException } from '@nestjs/common';
+import { Catch, ExceptionFilter, ArgumentsHost, HttpException, UnauthorizedException } from '@nestjs/common';
 import { TokenExpiredError } from 'jsonwebtoken';
-import { Response } from '@nestjs/common';
+import { Response, Request } from 'express';
+import { AxiosResponse } from 'axios';
+import { HttpAdapterHost, AbstractHttpAdapter } from '@nestjs/core';
 
-@Catch(TokenExpiredError)
+//FIXME 토큰 만료 에러는 프론트에서 해결하기
+@Catch(TokenExpiredError, UnauthorizedException)
 export class TokenExpiredFilter implements ExceptionFilter {
-  catch(exception: TokenExpiredError, host: ArgumentsHost) {
+  constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
+  catch(exception: TokenExpiredError | UnauthorizedException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
-    fetch('https://chunsik.store/user/refreshToken', {
-      method: 'POST',
-      credentials: 'include',
-    })
-      .then(res => {
-        if (res.status === 201) {
-          return res.json();
-        }
-      })
-      .then(json => {
-        const newAccessToken = json.accessToken;
-        window.localStorage.setItem('authorization', newAccessToken);
-      })
-      .catch(err => {
-        console.error('accessToken 재발급 중의 Error: ', err);
-      });
+    const refreshToken = request.cookies?.Refresh;
+
+    const { httpAdapter } = this.httpAdapterHost;
+    const axios = (httpAdapter as AbstractHttpAdapter).getInstance();
+
+    // if (refreshToken) {
+    //   axios.get('https://chunsik.store/user/newAccessToken', { withCredentials: true }).catch(err => {
+    //     console.error('accessToken 재발급 중의 Error: ', err);
+    //     throw new UnauthorizedException('토큰이 만료되었습니다.');
+    //   });
+    // } else {
+    //   axios.get('https://chunsik.store/login').catch(err => {
+    //     console.error('TokenExpiredFilter에서의 에러: ', err);
+    //   });
+    // }
   }
 }
