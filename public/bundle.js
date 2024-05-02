@@ -16488,7 +16488,7 @@ module.exports = function (session, opts) {
 const mediasoupClient = require('mediasoup-client');
 document.getElementById('container').style.display = 'none';
 document.getElementById('chatBox').style.display = 'none';
-
+document.getElementById('main').addEventListener('click', main);
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 document.getElementById('createRoomBtn').addEventListener('click', openModal);
 document.querySelector('.close').addEventListener('click', closeModal);
@@ -16504,7 +16504,6 @@ let consumerTransport;
 let audioProducer;
 let videoProducer;
 let producerId;
-
 // let remoteVideo;
 let params = {
   encoding: [
@@ -16532,7 +16531,9 @@ function checkLogin() {
 const socket = io('/chat', { auth: { token: token } });
 
 let currentRoom = '';
-
+function main() {
+  window.location.href = 'https://chunsik.store/main';
+}
 document.addEventListener('DOMContentLoaded', function () {
   const currentUrl = window.location.href;
   console.log('currentUrl:', currentUrl);
