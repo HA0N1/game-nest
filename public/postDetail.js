@@ -209,6 +209,7 @@ async function fetchComments(postId) {
     const response = await fetch(`https://chunsik.store/comment/${postId}`);
     const comments = await response.json();
     displayComments(comments, postId);
+    displayCommentCount(comments.length);
   } catch (error) {
     console.error('Error fetching comments:', error);
   }
@@ -229,6 +230,10 @@ function displayComments(comments, postId) {
       `;
     commentList.appendChild(commentItem);
   });
+}
+function displayCommentCount(commentCount) {
+  const commentCountElement = document.getElementById('comment-count');
+  commentCountElement.textContent = `댓글 수: ${commentCount}`;
 }
 
 fetchComments(postId);

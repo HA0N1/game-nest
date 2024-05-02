@@ -86,4 +86,10 @@ export class CommentService {
     const deletecomment = await this.commentRepository.remove(comment);
     return { message: '댓글이 삭제되었습니다.', deletecomment };
   }
+
+  //댓글 갯수
+  async countComments(post_Id: number) {
+    const count = await this.commentRepository.count({ where: { post: { id: +post_Id } } });
+    return count;
+  }
 }

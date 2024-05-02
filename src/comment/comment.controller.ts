@@ -47,4 +47,10 @@ export class CommentController {
   remove(@UserInfo() user: User, @Param('postId') post_Id: number, @Param('commentId') id: string) {
     return this.commentService.remove(user.id, post_Id, +id);
   }
+
+  //댓글 갯수
+  @Get(':postId/commentCount')
+  getCommentCount(@Param('postId') postId: number) {
+    return this.commentService.countComments(postId);
+  }
 }
