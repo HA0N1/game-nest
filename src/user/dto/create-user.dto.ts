@@ -1,9 +1,12 @@
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { Contains, IsArray, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateUserDto {
+  @IsString()
   @IsNotEmpty({ message: '이메일을 입력해주세요.' })
+  @Contains('@')
   email: string;
 
+  @IsString()
   @IsNotEmpty({ message: '닉네임을 입력해주세요.' })
   nickname: string;
 

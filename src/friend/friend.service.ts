@@ -22,6 +22,10 @@ export class FriendService {
 
   /* 친구 요청 */
   async beFriend(user: User, email: string) {
+    if (user.email === email) {
+      throw new BadRequestException('자기 자신에게는 친구 신청을 보낼 수 없습니다.');
+    }
+
     // 친구할 유저의 이메일로 조회
     const friend = await this.userRepository.findOneBy({ email });
     if (!friend) {

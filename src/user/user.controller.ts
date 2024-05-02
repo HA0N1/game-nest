@@ -13,6 +13,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Query,
+  UseFilters,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -27,7 +28,9 @@ import { InterestGenre } from './entities/interestGenre.entity';
 import { Request, Response, query } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResizeImagePipe } from 'src/utils/resizeImage.pipe';
+import { TokenExpiredFilter } from 'src/auth/guard/exception.filter';
 
+@UseFilters(TokenExpiredFilter)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -70,7 +73,7 @@ export class UserController {
     const login = await this.userService.emailLogin(emailLoginDto);
 
     response.cookie('authorization', login.accessToken, {
-      maxAge: 3600000,
+      maxAge: 86400000,
       httpOnly: true,
     });
     response.cookie('Refresh', login.refreshToken, { httpOnly: true });

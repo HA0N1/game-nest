@@ -3,10 +3,12 @@
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>게임 상세 정보</title>
-
+    <link rel="stylesheet" href="/detailGame.css"/>
   </head>
   <body>
+    <a href='/main'>게임 목록으로 돌아가기</a>
     <div class='game-detail'>
+      
       <img src='{{game.screen_shot}}' alt='게임 스크린샷' />
       <p><strong>Id:</strong> {{game.id}}</p>
       <h1>{{game.title}}</h1>
@@ -16,7 +18,10 @@
       <p><strong>메타크리틱점수:</strong> {{game.metacritic}}점 (0 = null입니다)</p>
       <p><strong>장르:</strong> {{game.genreName}}</p>
       <p><strong>지원언어:</strong> {{game.supported_languages}}</p>
-      <p><strong>PC 요구사항:</strong> {{game.pc_requirements}}</p>
+      <h5><strong>PC 요구사항 (최소):</strong></h5>
+      <p>{{game.pc_requirements.minimum}}</p>
+      <h5><strong>PC 요구사항 (추천):</strong></h5>
+      <p>{{game.pc_requirements.recommended}}</p>
       <p><strong>배급사:</strong> {{game.publisher}}</p>
     </div>
     <div class='comment-section'>
@@ -29,9 +34,7 @@
         <button class='edit' style='display: none;'>수정</button>
         <button class='delete' style='display: none;'>삭제</button>
     </div>
-    <a href='/main'>게임 목록으로 돌아가기</a>
     </div>
   </body>
   <script src='/comment.js'></script>
-
 </html>

@@ -50,6 +50,19 @@ export class UserService {
 
   /* 회원가입 */
   async create(createUserDto: CreateUserDto) {
+    if (
+      createUserDto.email.length === 0 ||
+      createUserDto.nickname.length === 0 ||
+      createUserDto.password.length === 0 ||
+      createUserDto.passwordCheck.length === 0
+    ) {
+      throw new BadRequestException('비어있는 칸이 있습니다. 확인해주세요.');
+    }
+
+    if (!createUserDto.email.includes('@')) {
+      throw new BadRequestException('잘못된 이메일 형식입니다.');
+    }
+
     // 중복되는 이메일 있는지 확인
     const existingUser = await this.userRepository.findOneBy({
       email: createUserDto.email,
@@ -132,7 +145,7 @@ export class UserService {
 
     const payload = { email, sub: user.id };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '1d' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     const hashedRefreshToken = await hash(refreshToken, 10);
@@ -158,7 +171,7 @@ export class UserService {
 
     const payload = { email, sub: user.id };
 
-    const newAccessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    const newAccessToken = this.jwtService.sign(payload, { expiresIn: '1d' });
     const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     const hashedNewRefreshToken = await hash(newRefreshToken, 10);
