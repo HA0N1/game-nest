@@ -1,73 +1,70 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# 목차
+[1.프로젝트 개요](#프로젝트-개요)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+[2.프로젝트 설치 및 실행 방법](#프로젝트-설치-및-실행-방법)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+[3.팀 소개](#팀-소개)
 
-## Description
+# 프로젝트 개요
+## 프로젝트 명 : GAME NEST
+<img src="https://github.com/HA0N1/game-nest/assets/154482801/c36f61b4-f535-4eaf-b64a-047b56c7f34d" width="300" height="300"/>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## stack
+### ✔️Frond-end
 
-## Installation
+<img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=Next.js&logoColor=white"><img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=Next.js&logoColor=white"><img src="https://img.shields.io/badge/javascript-F7DF1E?style=for-the-badge&logo=Next.js&logoColor=white"><img src="https://img.shields.io/badge/handlebars.js-000000?style=for-the-badge&logo=Next.js&logoColor=white"><img src="https://img.shields.io/badge/axios-5A29E4?style=for-the-badge&logo=Next.js&logoColor=white">
+
+### ✔️Back-end
+<img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=Next.js&logoColor=white"><img src="https://img.shields.io/badge/dotenv-ECD53F?style=for-the-badge&logo=html5&logoColor=white"> 
+
+
+## 프로젝트 소개
+게이머들의 고질적 고민인 '뭔 게임하지?'을 해소하기 위한 웹 서비스입니다.
+
+개발 기간 : 24.03.26 ~ 24.05.02
+
+# 프로젝트 설치 및 실행 방법
+## 환경변수
+DB_HOST=
+<br/>
+DB_PORT=
+<br/>
+DB_USERNAME=
+<br/>
+DB_PASSWORD=
+<br/>
+DB_NAME=
+<br/>
+DB_SYNC=
+<br/>
+JWT_SECRET_KEY=
+<br/>
+STATIC_FILES_PATH=boolean
+<br/>
+REDIS_URL=
+<br/>
+REDIS_USERNAME=
+<br/>
+REDIS_PASSWORD=
+<br/>
+LISTEN_IP=
+<br/>
+ANNOUNCED_IP=
 
 ```bash
-$ npm install
+npm install
+cd public/
+browserify chat.js -o bundle.js
+cd ..
+npm run start
 ```
 
-## Running the app
+# 팀 소개
+|이름|역할|맡은 기능|
+|:---:|:---|:---:|
+|최하온|팀장|게임 채널 및 채팅 CRUD, WebRTC, 실시간통신, 서버 배포 및 관리|
+|박세연|부팀장|회원가입, 로그인, 로그아웃, 프로필, DM, 친구 기능, 로드밸런서 및 도메인 인증서 생성|
+|우승원|팀원|게임 저장 조회 검색, 댓글 CRUD, 크롤링|
+|김상원|팀원|COMMUNITY 글, 댓글 CRUD, 크롤링|
 
-```bash
-# development
-$ npm run start
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
